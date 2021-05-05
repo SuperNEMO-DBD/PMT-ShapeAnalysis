@@ -65,7 +65,7 @@ typedef struct {
 } CONF;
 
 Double_t get_inner_product( std::vector<Double_t> &vec1, std::vector<Double_t> &vec2 );
-std::vector<std::vector<Double_t>> get_template_pulses( std::string template_file , Int_t n_temp );
+std::vector<std::vector<Double_t>> get_template_pulses( std::string template_file , Int_t n_temp , TEMP_INFO tmp_info);
 void update_temp_vector( std::vector<std::vector<Double_t>> &template_vectors, std::vector<Double_t> new_vector,
                          TEMP_INFO tempInfo, Int_t OM_ID, CONF &config_object );
 Int_t get_peak_cell( std::vector<Double_t> &vec );
@@ -206,7 +206,7 @@ int main(int argc, char **argv)
             }
 
         } else {
-            template_vectors = get_template_pulses( "templates.root", template_info.n_templates );
+            template_vectors = get_template_pulses( "templates.root", template_info.n_templates , template_info);
         }
 
         sncabling::service snCabling;
@@ -421,7 +421,7 @@ int main(int argc, char **argv)
     return error_code;
 }
 
-std::vector<std::vector<Double_t>> get_template_pulses( std::string template_file , Int_t n_temp )
+std::vector<std::vector<Double_t>> get_template_pulses( std::string template_file , Int_t n_temp , TEMP_INFO tmp_info)
 {
     std::cout << "get_template_pulses" << std::endl;
     std::vector<std::vector<Double_t>> template_pulses;
@@ -430,13 +430,14 @@ std::vector<std::vector<Double_t>> get_template_pulses( std::string template_fil
     TFile temp_root_file(template_file.c_str(), "READ");
     for (Int_t itemp = 0; itemp < n_temp; itemp++)
     {
+        /*
         //std::cout << "Template: " << itemp << std::endl;
         if ( itemp == 83 || itemp == 109 || itemp == 201 )
         {
             std::vector<Double_t> temp_vector(130, 0.0);
             template_pulses.push_back(temp_vector);
             continue;
-        }
+        }*/
         std::vector<Double_t> temp_vector; // Define a temporary filling vector
         //Get the template histogram from the file
         std::string hist_name = "Template_Ch" + std::to_string(itemp);
@@ -453,7 +454,7 @@ std::vector<std::vector<Double_t>> get_template_pulses( std::string template_fil
 
         if (norm <= 0)
         {
-            std::cout << "Error: Abnormal template pulse" << std::endl;
+            std::cout << "Error: CH" << itemp << " Abnormal template pulse" << std::endl;
             continue;
         }
 
