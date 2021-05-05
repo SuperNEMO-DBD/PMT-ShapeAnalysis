@@ -390,7 +390,6 @@ int main(int argc, char **argv)
 	                    }else{
 	                        if ( my_amplitude < -50 )
 				            {
-				                std::cout << "Template size " << template_vectors[eventn.OM_ID].size() << std::endl;
 				                om_counter[my_class][eventn.side] ++;
 				                matchfilter = sweep(waveform, config_object, my_baseline, template_vectors[eventn.OM_ID]);
 				                tree.Fill();
