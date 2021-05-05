@@ -175,7 +175,7 @@ int main(int argc, char **argv)
 
         // Define how many events per category (my_class) you wish,
         // Categories: MWALL = 0, XWALL = 1, GVETO = 2
-        int n_stop = 1000000;
+        int n_stop = 100000000;
         int my_class;
 
         // Defien how many waveforms you want to use in the template averaging
@@ -208,7 +208,7 @@ int main(int argc, char **argv)
         } else {
             template_vectors = get_template_pulses( "templates.root", template_info.n_templates , template_info);
         }
-
+	std::cout << "Num templates " << template_vectors.size() << " temp 711 " << template_vectors[711].size() << std::endl; 
         sncabling::service snCabling;
         snCabling.initialize_simple();
 
@@ -389,11 +389,14 @@ int main(int argc, char **argv)
 	                                config_object );
 	                        average_counter[eventn.OM_ID]++;
 	                    }else{
-                            if ( my_amplitude > -50 ){ continue; }
-                            om_counter[my_class][eventn.side] ++;
-                            matchfilter = sweep(waveform, config_object, my_baseline, template_vectors[eventn.OM_ID]);
-	                        tree.Fill();
-	                    }
+			        if ( my_amplitude < -50 && eventn.OM_ID == 711 )
+				{
+				  std::cout << "Template size " << template_vectors[eventn.OM_ID].size() << std::endl;
+				    om_counter[my_class][eventn.side] ++;
+				    matchfilter = sweep(waveform, config_object, my_baseline, template_vectors[eventn.OM_ID]);
+				    tree.Fill();
+	                        }
+			    }
 
 	                }
 	            } //end of channels
@@ -430,9 +433,8 @@ std::vector<std::vector<Double_t>> get_template_pulses( std::string template_fil
     TFile temp_root_file(template_file.c_str(), "READ");
     for (Int_t itemp = 0; itemp < n_temp; itemp++)
     {
-        /*
-        //std::cout << "Template: " << itemp << std::endl;
-        if ( itemp == 83 || itemp == 109 || itemp == 201 )
+        std::cout << "Template: " << itemp << std::endl;
+        /*if ( itemp == 83 || itemp == 109 || itemp == 201 )
         {
             std::vector<Double_t> temp_vector(130, 0.0);
             template_pulses.push_back(temp_vector);
@@ -461,9 +463,9 @@ std::vector<std::vector<Double_t>> get_template_pulses( std::string template_fil
         for (int ivec = 0 ; ivec < (Int_t)temp_vector.size() ;  ivec++)
         {
             temp_vector[ivec] = temp_vector[ivec]/norm;
-            //std::cout << ivec << " : " << temp_vector[ivec] << std::endl;
+            std::cout << ivec << " : " << temp_vector[ivec] << std::endl;
         }
-        //std::cout << std::endl;
+        std::cout << std::endl;
         template_pulses.push_back(temp_vector);
     }
     temp_root_file.Close();
@@ -816,7 +818,9 @@ MATCHFILTER sweep( std::vector<Double_t> &vec, CONF &config, Double_t baseline, 
     // Create containers for the shape and amplitude convolutions for storing
     std::vector<Double_t> shape_convolution;
     std::vector<Double_t> amp_convolution;
-
+    std::cout << std::endl;
+    std::cout << std::endl;
+    std::cout << "Template len " << temp.size() << std::endl; 
     // Begin the convolution or sweep
     for ( Int_t i_sweep = sweep_start; i_sweep < (Int_t)vec.size() - (Int_t)temp.size(); i_sweep++ )
     {
@@ -825,13 +829,17 @@ MATCHFILTER sweep( std::vector<Double_t> &vec, CONF &config, Double_t baseline, 
         for ( Int_t i_vec = 0; i_vec < (Int_t)temp.size(); i_vec++ )
         {
             test.push_back( vec[i_vec + i_sweep] - baseline );
+	    std::cout <<  vec[i_vec + i_sweep] - baseline << " " << temp[i_vec] << std::endl;
         }
+	std::cout << std::endl;
 
         // Perform the convolution
         Double_t test_norm = sqrt(get_inner_product( test, test ));
         // Double_t temp_norm = get_inner_product( temp, temp );
         Double_t amplitude_index = get_inner_product( test, temp );
         Double_t shape_index = amplitude_index/test_norm;
+
+	std::cout << "isweep " << i_sweep << " s " << shape_index << " a " << amplitude_index << " test_norm " << test_norm << std::endl;
 
         if (shape_index > 1.0)
         {
