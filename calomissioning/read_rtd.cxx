@@ -835,7 +835,7 @@ MATCHFILTER sweep( std::vector<Double_t> &vec, CONF &config, Double_t baseline, 
         if (shape_index > 1.0)
         {
             std::cout << "Error: shape_index: "<< shape_index << " > 1" << std::endl;
-            exit(1);
+            // exit(1);
         }
 
         // Store the convolution
