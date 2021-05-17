@@ -62,7 +62,7 @@ def main():
                 if len(pmt_waveform.get_pmt_pulse_times()) > 4 and abs(pmt_waveform.get_pmt_pulse_charge()) < 100 and not count:
                     write_to_file(pmt_waveform.get_pmt_waveform(), 'many_apulses.txt')
 
-                if len(pmt_waveform.get_pmt_pulse_times()) > 1 and abs(pmt_waveform.get_pmt_pulse_charge()) < 100 and not count_:
+                if len(pmt_waveform.get_pmt_pulse_times()) > 1 and abs(pmt_waveform.get_pmt_pulse_charge()) < 100 and not _count:
                     write_to_file(pmt_waveform.get_pmt_waveform(), 'one_apulse.txt')
 
                 if count == _count and count:
