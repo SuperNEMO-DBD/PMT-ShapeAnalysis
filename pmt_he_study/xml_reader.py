@@ -14,8 +14,6 @@ def main():
     input_file = args.i
     output_file = args.o
 
-    waveforms = process_xml_file_new(input_file)
-
     pmt_array = PMT_Array([1, 1], "test")
 
     # Set the cuts from a config file. This also sets up the histograms in the array format
@@ -24,6 +22,8 @@ def main():
     pmt_array.set_pmt_templates('/unix/nemo4/PMT_He_Study_nemo4/Templates/new/190621_A1400_B1400_templates.root',
                                 ['Template_Ch0'])
     pmt_array.get_pmt_object_number(0).set_sweep_bool(True)
+
+    waveforms = process_xml_file_new(input_file)
 
     count = 0
 
