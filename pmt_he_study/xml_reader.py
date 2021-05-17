@@ -21,7 +21,8 @@ def main():
     # Set the cuts from a config file. This also sets up the histograms in the array format
     pmt_array.apply_setting("../config_files/pmt_permeation_config_file.txt")
 
-    pmt_array.set_pmt_templates('templates.root', ['Template_Ch0'])
+    pmt_array.set_pmt_templates('/unix/nemo4/PMT_He_Study_nemo4/Templates/new/190621_A1400_B1400_templates.root',
+                                ['Template_Ch0'])
     pmt_array.get_pmt_object_number(0).set_template_bool(True)
 
     count = 0

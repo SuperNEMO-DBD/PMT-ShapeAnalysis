@@ -314,7 +314,10 @@ class PMT_Object:
         template_root_file = ROOT.TFile(root_file_name, "READ")
         template_histogram = template_root_file.Get(template_histogram_name)
         template_list = []
+        print('>>> Creating Template: ')
+        print('>>> i \t V')
         for i_bin in range(int(template_histogram.GetEntries())):
+            print(">>> ", i_bin, "\t", template_histogram.GetBinContent(i_bin))
             template_list.append(template_histogram.GetBinContent(i_bin))
 
         norm = self.get_normalisation_factor(template_list)
