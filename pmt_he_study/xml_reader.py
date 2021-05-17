@@ -1,3 +1,6 @@
+import sys
+sys.path.insert(1, '..')
+
 from src.PMT_Array import PMT_Array
 from src.PMT_Object import PMT_Object
 from src.PMT_Waveform import PMT_Waveform
