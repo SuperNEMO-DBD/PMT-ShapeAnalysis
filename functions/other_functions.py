@@ -2043,10 +2043,10 @@ def om_id_string(omnum: int):
         omnum = omnum - 520 - 128
         wall = omnum % 16
         col = omnum // 16
-        string = f'G:0.{wall}.{col}'
+        string = f'G:0.{col}.{wall}'
     elif omnum < 712:
         omnum = omnum - 520 - 128 - 32
         wall = omnum % 16
         col = omnum // 16
-        string = f'G:1.{wall}.{col}'
+        string = f'G:1.{col}.{wall}'
     return string

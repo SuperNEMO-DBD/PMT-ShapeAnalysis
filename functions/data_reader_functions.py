@@ -63,7 +63,7 @@ def process_xml_file_new(input_data_file_name: str):
     xml_file = minidom.parse(input_data_file_name)
     events = xml_file.getElementsByTagName('event')
     parse_time = TIME.time() - processing_start
-    intermediate_time = TIME
+
     print(">>> File is good. Parse time: %.3f s" % parse_time)
     print(">>> Number of Events: {}".format(len(events)))
 
