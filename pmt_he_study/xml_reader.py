@@ -9,6 +9,7 @@ from functions.other_functions import io_parse_arguments
 import matplotlib.pyplot as plt
 from xml.dom import minidom
 import time as TIME
+import tqdm
 
 
 def main():
@@ -38,7 +39,7 @@ def main():
 
     count = 0
 
-    for event_index, event in enumerate(events):
+    for event_index, event in tqdm.tqdm(enumerate(events)):
 
         traces = event.getElementsByTagName('trace')
         for trace_index, trace in enumerate(traces):
