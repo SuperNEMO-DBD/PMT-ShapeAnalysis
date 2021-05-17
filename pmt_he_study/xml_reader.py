@@ -49,7 +49,7 @@ def main():
 
             if channel == 0:
                 pmt_waveform = PMT_Waveform(list(trace.firstChild.data.split(" ")), pmt_array.get_pmt_object_number(0))
-
+                print(pmt_waveform.get_pmt_pulse_charge())
                 if pmt_waveform.done_sweep:
                     print('done')
 
