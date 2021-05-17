@@ -77,17 +77,21 @@ def main():
                 norm = np.sum(template**2) / len(template)
                 cor_sig = cor_sig / norm
 
-                peaks, _ = find_peaks(cor_sig[800:], 5, distance=5)
+                peaks, _ = find_peaks(cor_sig, 5, distance=5)
 
                 print(len(pmt_waveform.get_pmt_pulse_times()), len(peaks))
 
-                if len(pmt_waveform.get_pmt_pulse_times()) != len(peaks):
+                x = [i for i in range(pmt_waveform.get_pmt_waveform_length())]
+                plt.plot(x, cor_sig)
+                plt.show(peaks, cor_sig[peaks], 'x')
+
+                '''if len(pmt_waveform.get_pmt_pulse_times()) != len(peaks):
                     x = [i for i in range(pmt_waveform.get_pmt_waveform_length())]
                     plt.plot(x, pmt_waveform.get_pmt_waveform())
                     plt.plot(peaks, pmt_waveform.get_pmt_waveform()[peaks])
                     plt.plot(pmt_waveform.get_pmt_pulse_times(),
                              pmt_waveform.get_pmt_waveform()[pmt_waveform.get_pmt_pulse_times()])
-                    plt.show()
+                    plt.show()'''
 
                 del pmt_waveform
 
