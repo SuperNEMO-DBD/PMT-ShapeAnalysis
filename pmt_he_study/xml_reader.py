@@ -56,8 +56,6 @@ def main():
 
             if channel == 0:
                 pmt_waveform = PMT_Waveform(list(trace.firstChild.data.split(" ")), pmt_array.get_pmt_object_number(0))
-                print(pmt_waveform.get_pmt_pulse_peak_position(), pmt_waveform.get_pmt_object().get_pulse_time_threshold(),
-                      pmt_waveform.get_pmt_pulse_charge())
 
                 if len(pmt_waveform.get_pmt_pulse_times()) > 4 and abs(pmt_waveform.get_pmt_pulse_charge()) < 100 and not count:
                     write_to_file(pmt_waveform.get_pmt_waveform(), 'many_apulses.txt')
@@ -67,9 +65,10 @@ def main():
                     write_to_file(pmt_waveform.get_pmt_waveform(), 'one_apulse.txt')
                     _count = True
 
-                if count == _count and count:
-                    break
                 del pmt_waveform
+
+        if count == _count and count:
+            break
 
 
 if __name__ == '__main__':
