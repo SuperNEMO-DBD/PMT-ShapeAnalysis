@@ -8,8 +8,11 @@ from functions.data_reader_functions import process_xml_file_new
 from functions.other_functions import io_parse_arguments
 import matplotlib.pyplot as plt
 from xml.dom import minidom
-import time as TIME
+import time
 import tqdm
+from scipy.signal import find_peaks
+import scipy.fft as fft
+import numpy as np
 
 
 def write_to_file(my_list: list, filename: str):
@@ -33,18 +36,20 @@ def main():
     pmt_array.get_pmt_object_number(0).set_sweep_bool(True)
 
     print(">>> Parsing the data file...")
-    processing_start = TIME.time()
+    processing_start = time.time()
 
     # parse an xml file by name
     xml_file = minidom.parse(input_file)
     events = xml_file.getElementsByTagName('event')
-    parse_time = TIME.time() - processing_start
+    parse_time = time.time() - processing_start
 
     print(">>> File is good. Parse time: %.3f s" % parse_time)
     print(">>> Number of Events: {}".format(len(events)))
 
     count = False
     _count = False
+
+    template = pmt_array.get_pmt_object_number(0).get_template_pmt_pulse()
 
     write_to_file(pmt_array.get_pmt_object_number(0).get_template_pmt_pulse(), "template.txt")
 
@@ -57,13 +62,31 @@ def main():
             if channel == 0:
                 pmt_waveform = PMT_Waveform(list(trace.firstChild.data.split(" ")), pmt_array.get_pmt_object_number(0))
 
-                if len(pmt_waveform.get_pmt_pulse_times()) > 2 and abs(pmt_waveform.get_pmt_pulse_charge()) < 100 and not count:
-                    write_to_file(pmt_waveform.get_pmt_waveform(), 'many_apulses.txt')
-                    count = True
+                if not pmt_waveform.done_sweep:
+                    continue
 
-                if len(pmt_waveform.get_pmt_pulse_times()) > 0 and abs(pmt_waveform.get_pmt_pulse_charge()) < 100 and not _count:
-                    write_to_file(pmt_waveform.get_pmt_waveform(), 'one_apulse.txt')
-                    _count = True
+                signal = pmt_waveform.get_pmt_waveform_reduced()
+
+                NFFT = len(signal)
+                f_signal = fft.fft(signal, NFFT)
+                f_template = fft.fft(template, NFFT)
+
+                f_cor_sig = f_signal * np.conjugate(f_template)
+                cor_sig = fft.ifft(f_cor_sig)
+
+                norm = np.sum(template**2) / len(template)
+                cor_sig = cor_sig / norm
+
+                peaks, _ = find_peaks(cor_sig[800:], 5, distance=5)
+
+                print(len(pmt_waveform.get_pmt_pulse_times()), len(peaks))
+
+                if len(pmt_waveform.get_pmt_pulse_times()) != len(peaks):
+                    x = [i for i in range(pmt_waveform.get_pmt_waveform_length())]
+                    plt.plot(x, pmt_waveform.get_pmt_waveform_reduced()[800:])
+                    plt.plot(x, pmt_waveform.get_pmt_waveform_reduced()[800:][peaks])
+                    plt.plot(x, pmt_waveform.get_pmt_waveform_reduced()[800:][pmt_waveform.get_pmt_pulse_times()])
+                    plt.show()
 
                 del pmt_waveform
 
