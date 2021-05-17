@@ -45,8 +45,13 @@ def main():
         for trace_index, trace in enumerate(traces):
             channel = int(trace.attributes['channel'].value)
 
+            print(channel)
+
             if channel == 0:
                 pmt_waveform = PMT_Waveform(list(trace.firstChild.data.split(" ")), pmt_array.get_pmt_object_number(0))
+
+                if pmt_waveform.done_sweep:
+                    print('done')
 
                 if len(pmt_waveform.get_pmt_pulse_times()) > 0 and abs(pmt_waveform.get_pmt_pulse_charge()) < 10000:
                     plt.plot(pmt_waveform.get_pmt_waveform())

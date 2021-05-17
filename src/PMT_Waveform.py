@@ -53,6 +53,7 @@ class PMT_Waveform:
         self.pmt_waveform_sweep_shape = []
         self.pmt_waveform_sweep_amp = []
         self.pmt_waveform_reduced = np.array([], dtype='float')
+        self.done_sweep = False
 
         self.results_dict = {}
         if self.get_pmt_pulse_peak_position() < self.get_pmt_object().get_pulse_time_threshold():
@@ -83,6 +84,7 @@ class PMT_Waveform:
                     self.set_pmt_pulse_mf_shape(inner_product/self.get_pmt_object().get_normalisation_factor(pmt_pulse))
 
                     if self.get_pmt_object().get_sweep_bool():
+                        self.done_sweep = True
                         self.pmt_pulse_sweep()
 
         self.update_results_dict()
