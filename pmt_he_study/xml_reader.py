@@ -83,9 +83,10 @@ def main():
 
                 if len(pmt_waveform.get_pmt_pulse_times()) != len(peaks):
                     x = [i for i in range(800, pmt_waveform.get_pmt_waveform_length())]
-                    plt.plot(x, pmt_waveform.get_pmt_waveform_reduced()[800:])
-                    plt.plot(x, pmt_waveform.get_pmt_waveform_reduced()[800:][peaks])
-                    plt.plot(x, pmt_waveform.get_pmt_waveform_reduced()[800:][pmt_waveform.get_pmt_pulse_times()])
+                    plt.plot(x[800:], pmt_waveform.get_pmt_waveform_reduced()[800:])
+                    plt.plot(x[peaks][800:], pmt_waveform.get_pmt_waveform_reduced()[peaks][800:])
+                    plt.plot(x[pmt_waveform.get_pmt_pulse_times()][800:],
+                             pmt_waveform.get_pmt_waveform_reduced()[pmt_waveform.get_pmt_pulse_times()][800:])
                     plt.show()
 
                 del pmt_waveform
