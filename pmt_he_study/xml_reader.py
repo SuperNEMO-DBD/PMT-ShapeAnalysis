@@ -53,6 +53,7 @@ def main():
                       pmt_waveform.get_pmt_pulse_charge())
                 '''if pmt_waveform.done_sweep:
                     print('done')'''
+                plt.plot(pmt_waveform.get_pmt_waveform())
 
                 if len(pmt_waveform.get_pmt_pulse_times()) > 0 and abs(pmt_waveform.get_pmt_pulse_charge()) < 10000:
                     plt.plot(pmt_waveform.get_pmt_waveform())
