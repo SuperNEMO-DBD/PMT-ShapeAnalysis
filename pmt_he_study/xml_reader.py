@@ -23,7 +23,7 @@ def main():
 
     pmt_array.set_pmt_templates('/unix/nemo4/PMT_He_Study_nemo4/Templates/new/190621_A1400_B1400_templates.root',
                                 ['Template_Ch0'])
-    pmt_array.get_pmt_object_number(0).set_template_bool(True)
+    pmt_array.get_pmt_object_number(0).set_sweep_bool(True)
 
     count = 0
 

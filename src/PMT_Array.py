@@ -51,6 +51,7 @@ class PMT_Array:
 
     def set_pmt_templates(self, template_root_file_name: str, template_histogram_name_list: list):
         for i_pmt in range(self.get_pmt_total_number()):
+            print(f">>> Setting template: {i_pmt}")
             self.get_pmt_object_number(i_pmt).create_pmt_pulse_template(template_root_file_name, template_histogram_name_list[i_pmt])
 
     def apply_setting(self, config_file_name: str):
