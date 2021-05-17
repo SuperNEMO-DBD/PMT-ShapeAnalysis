@@ -83,7 +83,8 @@ def main():
 
                 x = [i for i in range(pmt_waveform.get_pmt_waveform_length())]
                 plt.plot(x, cor_sig)
-                plt.show(peaks, cor_sig[peaks], 'x')
+                plt.plot(peaks, cor_sig[peaks], 'x')
+                plt.show()
 
                 '''if len(pmt_waveform.get_pmt_pulse_times()) != len(peaks):
                     x = [i for i in range(pmt_waveform.get_pmt_waveform_length())]
