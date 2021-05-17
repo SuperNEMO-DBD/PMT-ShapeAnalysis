@@ -36,6 +36,7 @@ def main():
 
         if count == 10:
             break
+        del pmt_waveform
 
 
 if __name__ == '__main__':
