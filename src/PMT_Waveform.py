@@ -313,9 +313,9 @@ class PMT_Waveform:
         self.pmt_pulse_times = new_pulse_times
 
     def calculate_charge(self):
-        start = 0
-        end = 0
-        self.set_pmt_pulse_charge(-1 * (np.sum(self.get_pmt_waveform()[self.get_pmt_object().get_setting("trigger_point"):self.get_pmt_object().get_setting("trigger_point") + 50] - self.get_pmt_baseline())) / self.get_pmt_object().get_resistance())
+        start = int(self.get_pmt_pulse_peak_position()) - 20
+        end = int(self.get_pmt_pulse_peak_position()) + 30
+        self.set_pmt_pulse_charge(-1 * (np.sum(self.get_pmt_waveform()[start:end] - self.get_pmt_baseline())) / self.get_pmt_object().get_resistance())
         '''for i in range(self.get_pmt_object().get_setting("trigger_point"), int(self.get_pmt_pulse_peak_position())):
             if self.get_pmt_waveform()[i] <= self.get_pmt_waveform()[self.get_pmt_pulse_peak_position()]/self.get_pmt_object().get_setting("integration")[0]:
                 start = i
