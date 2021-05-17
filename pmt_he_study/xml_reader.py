@@ -7,6 +7,8 @@ from src.PMT_Waveform import PMT_Waveform
 from functions.data_reader_functions import process_xml_file_new
 from functions.other_functions import io_parse_arguments
 import matplotlib.pyplot as plt
+from xml.dom import minidom
+import time as TIME
 
 
 def main():
@@ -23,20 +25,32 @@ def main():
                                 ['Template_Ch0'])
     pmt_array.get_pmt_object_number(0).set_sweep_bool(True)
 
-    waveforms = process_xml_file_new(input_file)
+    print(">>> Parsing the data file...")
+    processing_start = TIME.time()
+
+    # parse an xml file by name
+    xml_file = minidom.parse(input_file)
+    events = xml_file.getElementsByTagName('event')
+    parse_time = TIME.time() - processing_start
+
+    print(">>> File is good. Parse time: %.3f s" % parse_time)
+    print(">>> Number of Events: {}".format(len(events)))
 
     count = 0
 
-    for i, waveform in enumerate(waveforms):
-        pmt_waveform = PMT_Waveform(waveform, pmt_array.get_pmt_object_number(0))
+    for event_index, event in enumerate(events):
 
-        if pmt_waveform.get_pmt_pulse_times() > 0 and pmt_waveform.get_pmt_pulse_charge() < 100:
-            plt.plot(pmt_waveform.get_pmt_waveform())
-            count += 1
+        traces = event.getElementsByTagName('trace')
+        for trace_index, trace in enumerate(traces):
+            pmt_waveform = PMT_Waveform([int(trace.attributes['channel'].value), trace.firstChild.data.split(" ")], pmt_array.get_pmt_object_number(0))
 
-        if count == 10:
-            break
-        del pmt_waveform
+            if pmt_waveform.get_pmt_pulse_times() > 0 and pmt_waveform.get_pmt_pulse_charge() < 100:
+                plt.plot(pmt_waveform.get_pmt_waveform())
+                count += 1
+
+            if count == 10:
+                break
+            del pmt_waveform
 
 
 if __name__ == '__main__':
