@@ -13,7 +13,7 @@ import tqdm
 
 
 def write_to_file(my_list: list, filename: str):
-    with open(filename, 'a') as file:
+    with open(filename, 'w') as file:
         for entry in my_list:
             file.write(str(entry) + '\n')
 
