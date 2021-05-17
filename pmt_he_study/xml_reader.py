@@ -74,8 +74,8 @@ def main():
                 f_cor_sig = f_signal * np.conjugate(f_template)
                 cor_sig = fft.ifft(f_cor_sig)
 
-                norm = np.sum(template**2) / len(template)
-                cor_sig = cor_sig / norm
+                '''norm = np.sum(template**2) / len(template)
+                cor_sig = cor_sig / norm'''
 
                 peaks, _ = find_peaks(cor_sig, 5, distance=5)
 
