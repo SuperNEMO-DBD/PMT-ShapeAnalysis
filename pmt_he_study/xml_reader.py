@@ -47,7 +47,7 @@ def main():
             if channel == 0:
                 pmt_waveform = PMT_Waveform(list(trace.firstChild.data.split(" ")), pmt_array.get_pmt_object_number(0))
 
-                if pmt_waveform.get_pmt_pulse_times() > 0 and pmt_waveform.get_pmt_pulse_charge() < 100:
+                if len(pmt_waveform.get_pmt_pulse_times()) > 0 and pmt_waveform.get_pmt_pulse_charge() < 100:
                     plt.plot(pmt_waveform.get_pmt_waveform())
                     count += 1
 
