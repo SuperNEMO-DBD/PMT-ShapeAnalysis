@@ -12,6 +12,12 @@ import time as TIME
 import tqdm
 
 
+def write_to_file(my_list: list, filename: str):
+    with open(filename, 'a') as file:
+        for entry in my_list:
+            file.write(str(entry) + '\n')
+
+
 def main():
     args = io_parse_arguments()
     input_file = args.i
@@ -37,7 +43,10 @@ def main():
     print(">>> File is good. Parse time: %.3f s" % parse_time)
     print(">>> Number of Events: {}".format(len(events)))
 
-    count = 0
+    count = False
+    _count = False
+
+    write_to_file(pmt_array.get_pmt_object_number(0).get_template_pmt_pulse(), "template.txt")
 
     for event_index, event in tqdm.tqdm(enumerate(events)):
 
@@ -49,15 +58,14 @@ def main():
                 pmt_waveform = PMT_Waveform(list(trace.firstChild.data.split(" ")), pmt_array.get_pmt_object_number(0))
                 print(pmt_waveform.get_pmt_pulse_peak_position(), pmt_waveform.get_pmt_object().get_pulse_time_threshold(),
                       pmt_waveform.get_pmt_pulse_charge())
-                if pmt_waveform.done_sweep:
-                    print('done')
 
-                if len(pmt_waveform.get_pmt_pulse_times()) > 0 and abs(pmt_waveform.get_pmt_pulse_charge()) < 100:
-                    plt.plot(pmt_waveform.get_pmt_waveform())
-                    plt.show()
-                    count += 1
+                if len(pmt_waveform.get_pmt_pulse_times()) > 4 and abs(pmt_waveform.get_pmt_pulse_charge()) < 100 and not count:
+                    write_to_file(pmt_waveform.get_pmt_waveform(), 'many_apulses.txt')
 
-                if count == 10:
+                if len(pmt_waveform.get_pmt_pulse_times()) > 1 and abs(pmt_waveform.get_pmt_pulse_charge()) < 100 and not count_:
+                    write_to_file(pmt_waveform.get_pmt_waveform(), 'one_apulse.txt')
+
+                if count == _count and count:
                     break
                 del pmt_waveform
 
