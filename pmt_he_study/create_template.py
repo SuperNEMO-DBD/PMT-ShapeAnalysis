@@ -12,6 +12,18 @@ def create_xml_file():
     pass
 
 
+def _pretty_print(current, parent=None, index=-1, depth=0):
+    for i, node in enumerate(current):
+        _pretty_print(node, current, i, depth + 1)
+    if parent is not None:
+        if index == 0:
+            parent.text = '\n' + ('\t' * depth)
+        else:
+            parent[index - 1].tail = '\n' + ('\t' * depth)
+        if index == len(parent) - 1:
+            current.tail = '\n' + ('\t' * (depth - 1))
+
+
 def main():
     args = io_parse_arguments()
     input_file = args.i
@@ -46,10 +58,8 @@ def main():
             if channel == 0:
                 pmt_waveform = PMT_Waveform(list(trace.firstChild.data.split(" ")), pmt_array.get_pmt_object_number(0))
 
-                if not pmt_waveform.done_sweep:
-                    continue
+                if pmt_waveform.done_sweep and len(pmt_waveform.get_pmt_pulse_times()) > 0 and counter < 1000:
 
-                if len(pmt_waveform.get_pmt_pulse_times()) > 0 and counter < 10000:
                     apulse_event = ET.SubElement(data, 'event')
                     apulse_event.set('ID', str(event_index))
                     apulse_event.set('apulse_num', str(len(pmt_waveform.get_pmt_pulse_times())))
@@ -61,10 +71,13 @@ def main():
                     apulse_times.text = " ".join([str(i) for i in pmt_waveform.get_pmt_pulse_times()])
 
                     counter += 1
+                else:
+                    pass
+                del pmt_waveform
 
-    tree = ET.ElementTree()
-    tree._setroot(data)
-    tree.write('apulses.xml')
+    _pretty_print(data)
+    tree = ET.ElementTree(data)
+    tree.write("apulses.xml")
 
 
 if __name__ == '__main__':
