@@ -75,7 +75,9 @@ def main():
                     pass
                 del pmt_waveform
 
-        if counter == 10000:
+        if counter % 100 == 0:
+            print(counter)
+        if counter == 1000:
             break
 
     _pretty_print(data)
