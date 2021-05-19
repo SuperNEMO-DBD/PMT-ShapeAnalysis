@@ -1,15 +1,9 @@
-import sys
-sys.path.insert(1, '..')
-
-from src.PMT_Array import PMT_Array
-from src.PMT_Object import PMT_Object
-from src.PMT_Waveform import PMT_Waveform
+from PMT_Classes import *
 from functions.data_reader_functions import process_xml_file_new
 from functions.other_functions import io_parse_arguments
 import matplotlib.pyplot as plt
 from xml.dom import minidom
-import time
-import tqdm
+import time, tqdm
 from scipy.signal import find_peaks
 import scipy.fft as fft
 import numpy as np
