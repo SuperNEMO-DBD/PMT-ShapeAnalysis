@@ -1,4 +1,7 @@
-from PMT_Classes import *
+import sys
+sys.path.insert(1, '..')
+
+from src.PMT_Classes import *
 from functions.other_functions import *
 import time, tqdm, xml
 
