@@ -55,11 +55,10 @@ def main():
                     apulse_event.set('apulse_num', str(len(pmt_waveform.get_pmt_pulse_times())))
                     apulse_waveform = ET.SubElement(apulse_event, 'waveform')
                     apulse_waveform.set('CH', str(channel))
-                    print(str(trace.firstChild.data))
-                    apulse_waveform.text(str(trace.firstChild.data))
+                    apulse_waveform.text = str(trace.firstChild.data)
                     apulse_times = ET.SubElement(apulse_event, 'apulse_times')
                     apulse_times.set('CH', str(channel))
-                    apulse_times.text(" ".join([str(i) for i in pmt_waveform.get_pmt_pulse_times()]))
+                    apulse_times.text = " ".join([str(i) for i in pmt_waveform.get_pmt_pulse_times()]
 
                     counter += 1
 
