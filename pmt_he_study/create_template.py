@@ -3,7 +3,9 @@ sys.path.insert(1, '..')
 
 from src.PMT_Classes import *
 from functions.other_functions import *
-import time, tqdm, xml
+import time, tqdm
+from xml.dom import minidom
+import xml.etree.ElementTree as ET
 
 
 def create_xml_file():
@@ -22,12 +24,12 @@ def main():
                                 ['Template_Ch0'])
     pmt_array.get_pmt_object_number(0).set_sweep_bool(True)
 
-    data = xml.etree.ElementTree.Element('data')
+    data = ET.Element('data')
 
     print(">>> Parsing the data file...")
     processing_start = time.time()
     # parse an xml file by name
-    xml_file = xml.dom.minidom.parse(input_file)
+    xml_file = minidom.parse(input_file)
     events = xml_file.getElementsByTagName('event')
     parse_time = time.time() - processing_start
     print(">>> File is good. Parse time: %.3f s" % parse_time)
@@ -48,18 +50,17 @@ def main():
                     continue
 
                 if len(pmt_waveform.get_pmt_pulse_times()) > 0 and counter < 10000:
-                    apulse_event = xml.etree.ElementTree.SubElement(data, 'event')
+                    apulse_event = ET.SubElement(data, 'event')
                     apulse_event.set('ID', str(event_index))
                     apulse_event.set('apulse_num', str(len(pmt_waveform.get_pmt_pulse_times())))
-                    apulse_waveform = xml.etree.ElementTree.SubElement(apulse_event, 'waveform')
+                    apulse_waveform = ET.SubElement(apulse_event, 'waveform')
                     apulse_waveform.text(trace.firstChild.data)
-                    apulse_times = xml.etree.ElementTree.SubElement(apulse_event, 'apulse_times')
+                    apulse_times = ET.SubElement(apulse_event, 'apulse_times')
                     apulse_times.text(" ".join([str(i) for i in pmt_waveform.get_pmt_pulse_times()]))
 
                     counter += 1
 
-
-    tree = xml.etree.ElementTree.ElementTree()
+    tree = ET.ElementTree()
     tree._setroot(data)
     tree.write('apulses.xml')
 
