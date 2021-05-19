@@ -58,7 +58,7 @@ def main():
             if channel == 0:
                 pmt_waveform = PMT_Waveform(list(trace.firstChild.data.split(" ")), pmt_array.get_pmt_object_number(0))
 
-                if pmt_waveform.done_sweep and len(pmt_waveform.get_pmt_pulse_times()) > 0 and counter < 1000:
+                if pmt_waveform.done_sweep and len(pmt_waveform.get_pmt_pulse_times()) > 0:
 
                     apulse_event = ET.SubElement(data, 'event')
                     apulse_event.set('ID', str(event_index))
@@ -74,6 +74,9 @@ def main():
                 else:
                     pass
                 del pmt_waveform
+
+        if counter == 10000:
+            break
 
     _pretty_print(data)
     tree = ET.ElementTree(data)
