@@ -55,10 +55,10 @@ def create_xml_file(input_file: str):
                     apulse_times.text = " ".join([str(i) for i in pmt_apulse_times])
                     apulse_shapes = ET.SubElement(apulse_event, 'apulse_shapes')
                     apulse_shapes.set('CH', str(channel))
-                    apulse_shapes.text = " ".join([str(i) for i in pmt_waveform.pmt_waveform_sweep_shape[pmt_apulse_times - sweep_start]])
+                    apulse_shapes.text = " ".join([str(i) for i in pmt_waveform.pmt_waveform_sweep_shape[pmt_apulse_times + sweep_start]])
                     apulse_amps = ET.SubElement(apulse_event, 'apulse_amps')
                     apulse_amps.set('CH', str(channel))
-                    apulse_amps.text = " ".join([str(i) for i in pmt_waveform.pmt_waveform_sweep_amp[pmt_apulse_times - sweep_start]])
+                    apulse_amps.text = " ".join([str(i) for i in pmt_waveform.pmt_waveform_sweep_amp[pmt_apulse_times + sweep_start]])
 
                     counter += 1
                 else:
