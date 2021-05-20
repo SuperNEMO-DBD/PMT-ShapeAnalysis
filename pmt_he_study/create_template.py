@@ -41,23 +41,24 @@ def create_xml_file(input_file: str):
 
                 if pmt_waveform.done_sweep and len(pmt_waveform.get_pmt_pulse_times()) > 0:
 
+                    pmt_apulse_times = np.array(pmt_waveform.get_pmt_pulse_times())
+                    sweep_start = pmt_waveform.get_pmt_object().get_sweep_range()[0]
+
                     apulse_event = ET.SubElement(data, 'event')
                     apulse_event.set('ID', str(event_index))
-                    apulse_event.set('apulse_num', str(len(pmt_waveform.get_pmt_pulse_times())))
+                    apulse_event.set('apulse_num', str(len(pmt_apulse_times)))
                     apulse_waveform = ET.SubElement(apulse_event, 'waveform')
                     apulse_waveform.set('CH', str(channel))
                     apulse_waveform.text = str(trace.firstChild.data)
                     apulse_times = ET.SubElement(apulse_event, 'apulse_times')
                     apulse_times.set('CH', str(channel))
-                    apulse_times.text = " ".join([str(i) for i in pmt_waveform.get_pmt_pulse_times()])
+                    apulse_times.text = " ".join([str(i) for i in pmt_apulse_times])
                     apulse_shapes = ET.SubElement(apulse_event, 'apulse_shapes')
                     apulse_shapes.set('CH', str(channel))
-                    apulse_shapes.text = " ".join([str(i) for i in pmt_waveform.pmt_waveform_sweep_shape[
-                        pmt_waveform.get_pmt_pulse_times()-pmt_waveform.get_pmt_object().get_sweep_range()[0]]])
+                    apulse_shapes.text = " ".join([str(i) for i in pmt_waveform.pmt_waveform_sweep_shape[pmt_apulse_times - sweep_start]])
                     apulse_amps = ET.SubElement(apulse_event, 'apulse_amps')
                     apulse_amps.set('CH', str(channel))
-                    apulse_amps.text = " ".join([str(i) for i in pmt_waveform.pmt_waveform_sweep_amp[
-                        pmt_waveform.get_pmt_pulse_times() - pmt_waveform.get_pmt_object().get_sweep_range()[0]]])
+                    apulse_amps.text = " ".join([str(i) for i in pmt_waveform.pmt_waveform_sweep_amp[pmt_apulse_times - sweep_start]])
 
                     counter += 1
                 else:
