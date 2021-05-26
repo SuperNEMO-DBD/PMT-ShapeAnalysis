@@ -1,7 +1,7 @@
 import numpy as np
 import scipy.fft as fft
 import matplotlib.pyplot as plt
-from scipy.signal import find_peaks
+from scipy.signal import find_peaks, hilbert, fftconvolve
 
 
 def parse_arguments():
@@ -74,11 +74,24 @@ def main():
     input_file = args.i
     template_file = args.t
 
-    data = np.loadtxt(input_file, unpack=True)
-    template = np.loadtxt(template_file, unpack=True)
+    x, data = np.loadtxt(input_file, unpack=True)
+    _, template = np.loadtxt(template_file, unpack=True)
 
-    conv = convolution(data[1], template[1])
-    fft_peaks = fft_convolution(data[1], template[1])
+    signal = data / np.sqrt(np.dot(data, data))
+    replica = template / np.sqrt(np.dot(template, template))
+    output = abs(hilbert(fftconvolve(signal, replica, mode='same')))
+
+    peaks, _ = find_peaks(output, height=0.0025, distance=int(replica.size/2))
+    nfft = len(replica)
+
+    plt.plot(x, data, label='data')
+    plt.plot(x[peaks], data[peaks], 'x')
+    plt.show()
+    plt.close()
+
+    for i, peak in enumerate(peaks):
+        plt.plot(x[peak-int(nfft/2):peak+int(nfft/2)],data[peak-int(nfft/2):peak+int(nfft/2)], label='data')
+        plt.show()
 
 
 if __name__ == '__main__':
