@@ -7,6 +7,10 @@ import time, tqdm
 from xml.dom import minidom
 import xml.etree.ElementTree as ET
 import matplotlib.pyplot as plt
+import numpy as np
+import scipy.fft as fft
+import matplotlib.pyplot as plt
+from scipy.signal import find_peaks, hilbert, fftconvolve, correlate, butter
 import ROOT
 
 
@@ -99,8 +103,8 @@ def main():
     pmt_array.apply_setting("../config_files/pmt_permeation_config_file.txt")
     pmt_array.set_pmt_templates('/Users/willquinn/Desktop/new_template.root',
                                 ['Template_Ch0', 'Template_Ch1'])
-    pmt_array.get_pmt_object_number(0).set_sweep_bool(True)
-    pmt_array.get_pmt_object_number(1).set_sweep_bool(True)
+    pmt_array.get_pmt_object_number(0).set_sweep_bool(False)
+    pmt_array.get_pmt_object_number(1).set_sweep_bool(False)
 
     print(">>> Parsing the data file...")
     processing_start = time.time()
@@ -124,32 +128,75 @@ def main():
     print(temp_peak, temp_peak_new)
 
     apulse_nums = []
-    average = np.array([0.0]*40)
-    tot = 0
+    average = [np.array([0.0]*40) for i in range(6)]
+    tot = [0] * 6
     apulse_amps = []
+    apulse_shapes = []
     counter = 0
     counter_ = 0
 
     for event_index, event in enumerate(events):
-        waveform = np.array([int(i) for i in event.find('waveform').text.split(" ")[:-1]])
-        pmt_waveform = PMT_Waveform([int(i) for i in event.find('waveform').text.split(" ")[:-1]],
-                                    pmt_array.get_pmt_object_number(0))
-        pmt_waveform_new = PMT_Waveform([int(i) for i in event.find('waveform').text.split(" ")[:-1]],
-                                        pmt_array.get_pmt_object_number(1))
+        waveform = [float(i) for i in event.find('waveform').text.split(" ")[:-1]]
+        pmt_waveform = PMT_Waveform(waveform, pmt_array.get_pmt_object_number(0))
+        waveform = np.array(waveform)
+        nfft = len(pmt_waveform.get_pmt_waveform_reduced()[800:])
+        template = pmt_array.get_pmt_object_number(0).get_template_pmt_pulse()
 
-        apulse_time = np.array(pmt_waveform.get_pmt_pulse_times(), dtype='i4')
-        apulse_time_new = np.array(pmt_waveform_new.get_pmt_pulse_times(), dtype='i4')
-        apulse_amp = pmt_waveform.pmt_waveform_sweep_amp
-        apulse_amp_new = pmt_waveform_new.pmt_waveform_sweep_amp
-        apulse_shape = pmt_waveform.pmt_waveform_sweep_shape
-        apulse_shape_new = pmt_waveform_new.pmt_waveform_sweep_shape
-        '''apulse_time = np.array([int(i) for i in event.find('apulse_times').text.split(" ")]) + 800
+        '''plt.plot(pmt_waveform.get_pmt_waveform_reduced())
+        plt.show()
+
+        template = pmt_array.get_pmt_object_number(0).get_template_pmt_pulse()
+        my_fft = fftconvolve(pmt_waveform.get_pmt_waveform_reduced()[800:], template, mode='same')
+
+        plt.plot(my_fft)
+        plt.show()
+
+        mf = np.convolve(pmt_waveform.get_pmt_waveform_reduced()[800:], template, mode='same')
+        plt.plot(mf)
+        plt.show()
+
+        cor = correlate(pmt_waveform.get_pmt_waveform_reduced()[800:], template, mode='same', method='fft')
+        plt.plot(cor)
+        plt.show()'''
+
+        plt.plot(fft.fft(template))
+        plt.show()
+
+        fSamp = 50
+        fSignal = fft.fft(pmt_waveform.get_pmt_waveform_reduced()[800:], nfft)
+        fScale = np.arange(- nfft/ 2, nfft /2, 1) * (fSamp / nfft)
+
+        LowPass = 5
+        Filter = np.zeros(nfft)
+        Query = (fScale < LowPass) & (fScale > -LowPass)
+        Filter[Query] = 1
+
+        plt.plot(Filter)
+        plt.show()
+
+        FilteredSignal = fft.ifft(fSignal * Filter)
+
+        plt.plot(FilteredSignal)
+        plt.show()
+
+        break
+        '''#pmt_waveform_new = PMT_Waveform([int(i) for i in event.find('waveform').text.split(" ")[:-1]],
+        #                                pmt_array.get_pmt_object_number(1))
+
+        #apulse_time = np.array(pmt_waveform.get_pmt_pulse_times(), dtype='i4')
+        #apulse_time_new = np.array(pmt_waveform_new.get_pmt_pulse_times(), dtype='i4')
+        #apulse_amp = pmt_waveform.pmt_waveform_sweep_amp
+        #apulse_amp_new = pmt_waveform_new.pmt_waveform_sweep_amp
+        #apulse_shape = pmt_waveform.pmt_waveform_sweep_shape
+        #apulse_shape_new = pmt_waveform_new.pmt_waveform_sweep_shape'''
+
+        apulse_time = np.array([int(i) for i in event.find('apulse_times').text.split(" ")]) + 800
         apulse_shape = np.array([float(i) for i in event.find('apulse_shapes').text.split(" ")])
         apulse_amp = np.array([float(i) for i in event.find('apulse_amps').text.split(" ")])
-        apulse_num = int(event.attrib['apulse_num'])'''
+        apulse_num = int(event.attrib['apulse_num'])
 
 
-        if len(apulse_time) != len(apulse_time_new):
+        '''if len(apulse_time) != len(apulse_time_new):
             if len(apulse_time) > len(apulse_time_new):
                 counter += 1
             if len(apulse_time) < len(apulse_time_new):
@@ -172,8 +219,8 @@ def main():
                     ax2.tick_params(axis='y')
                     ax2.axhline(pmt_array.get_pmt_object_number(0).get_setting("mf_shape_threshold"), 0,
                                 8000, ls='--', color='r')
-                    '''ax2.plot(t + temp_peak, apulse_shape[t_0], 'xr')
-                    ax2.plot(t + temp_peak, apulse_shape_new[t_0], 'xk')'''
+                    #ax2.plot(t + temp_peak, apulse_shape[t_0], 'xr')
+                    #ax2.plot(t + temp_peak, apulse_shape_new[t_0], 'xk')
                     fig.tight_layout()
                     plt.legend(loc='lower left')
                     plt.show()
@@ -194,28 +241,48 @@ def main():
                     ax2.tick_params(axis='y')
                     ax2.axhline(pmt_array.get_pmt_object_number(0).get_setting("mf_shape_threshold"), 0,
                                 8000, ls='--', color='r')
-                    '''ax2.plot(t + temp_peak_new, apulse_shape[t_0], 'xr')
-                    ax2.plot(t + temp_peak_new, apulse_shape_new[t_0 - abs(temp_peak_new - temp_peak)], 'xk')'''
+                    #ax2.plot(t + temp_peak_new, apulse_shape[t_0], 'xr')
+                    #ax2.plot(t + temp_peak_new, apulse_shape_new[t_0 - abs(temp_peak_new - temp_peak)], 'xk')
                     fig.tight_layout()
                     plt.legend(loc='lower left')
-                    plt.show()
-        '''for i,t in enumerate(apulse_time):
-            apulse_amps.append(apulse_amp[i])
-            if 0 in waveform[t:t+40]:
+                    plt.show()'''
+        for i, t in enumerate(apulse_time):
+            if 0 in waveform[t:t+40] or apulse_amp[i] > 60:
                 continue
-            scale = np.min(pmt_waveform.get_pmt_waveform_reduced()[t:t+40]) / np.min(pmt_array.get_pmt_object_number(0).get_template_pmt_pulse())
-            average += pmt_waveform.get_pmt_waveform_reduced()[t:t+40]
-            tot += 1'''
-    print(counter, counter_)
 
-    '''template = pmt_array.get_pmt_object_number(0).get_template_pmt_pulse()
+            # scale = np.min(pmt_waveform.get_pmt_waveform_reduced()[t:t+40]) / np.min(pmt_array.get_pmt_object_number(0).get_template_pmt_pulse())
+            average[int(apulse_amp[i] // 10)] += pmt_waveform.get_pmt_waveform_reduced()[t:t+40]
+            '''plt.plot(pmt_waveform.get_pmt_waveform_reduced()[t:t+40])
+            plt.show(block=False)
+            plt.pause(0.01)
+            plt.close()'''
+            apulse_shapes.append(apulse_shape[i])
+            apulse_amps.append(apulse_amp[i])
+            tot[int(apulse_amp[i] // 10)] += 1
+    '''#print(counter, counter_)
+    print(tot)
 
-    scale = np.min(average/tot)/np.min(pmt_array.get_pmt_object_number(0).get_template_pmt_pulse())
-    plt.plot(average[8:28]/tot, label='new')
-    plt.plot(template[8:28] * scale, label='old')
+    template = pmt_array.get_pmt_object_number(1).get_template_pmt_pulse()
+    x = np.array([i for i in range(40)])
+
+    for i in range(len(average)):
+        if tot[i] == 0:
+            continue
+
+        plt.plot(x, average[i]/np.sqrt(np.dot(average[i], average[i])), label=str(i * 10) + '-' + str((i+1) * 10))
+    scale = np.min(average[-1]/np.sqrt(np.dot(average[-1], average[-1]))) / np.min(pmt_array.get_pmt_object_number(1).get_template_pmt_pulse())
+    plt.plot(x - 1, template * scale, label='old template')
     plt.grid()
     plt.legend(loc='lower right')
+    plt.show()'''
+
+    '''plt.hist(apulse_shapes)
     plt.show()
+
+    plt.hist(apulse_amps)
+    plt.show()'''
+
+    '''
 
     hist = ROOT.TH1D('Template_Ch0', 'Template_Ch0', len(average[8:28]), 0, len(average[8:28]))
     hist_1 = ROOT.TH1D('Template_Ch1', 'Template_Ch1', len(template), 0, len(template))
@@ -234,5 +301,5 @@ def main():
 
 
 if __name__ == '__main__':
-    # main()
-    create_xml_file('/unix/nemo4/PMT_He_Study_nemo4/data/raw_xml_files/200404/A1400_B1400_t1128.xml')
+    main()
+    # create_xml_file('/unix/nemo4/PMT_He_Study_nemo4/data/raw_xml_files/200404/A1400_B1400_t1128.xml')

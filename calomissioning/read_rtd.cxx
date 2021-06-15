@@ -67,7 +67,7 @@ typedef struct {
 Double_t get_inner_product( std::vector<Double_t> &vec1, std::vector<Double_t> &vec2 );
 std::vector<std::vector<Double_t>> get_template_pulses( std::string template_file , Int_t n_temp , TEMP_INFO tmp_info);
 void update_temp_vector( std::vector<std::vector<Double_t>> &template_vectors, std::vector<Double_t> new_vector,
-                         TEMP_INFO tempInfo, Int_t OM_ID, CONF &config_object );
+        TEMP_INFO tempInfo, Int_t OM_ID, CONF &config_object );
 Int_t get_peak_cell( std::vector<Double_t> &vec );
 Double_t get_amplitude( std::vector<Double_t> &vec );
 void write_templates( std::vector<std::vector<Double_t>> &template_vectors );
@@ -175,7 +175,7 @@ int main(int argc, char **argv)
 
         // Define how many events per category (my_class) you wish,
         // Categories: MWALL = 0, XWALL = 1, GVETO = 2
-        int n_stop = 100000000;
+        int n_stop = 10000;
         int my_class;
 
         // Defien how many waveforms you want to use in the template averaging
@@ -249,7 +249,7 @@ int main(int argc, char **argv)
         // MF outputs - WARNING takes up a lot of storage space. I recommend only for testing and plots
         // tree.Branch("mf_amplitudes",&matchfilter.mf_amps);
         // tree.Branch("mf_shapes",&matchfilter.mf_shapes);
-        // tree.Branch("waveform",&waveform);
+        tree.Branch("waveform",&waveform);
 
         // Configuration for raw data reader
         snfee::io::multifile_data_reader::config_type reader_cfg;
@@ -392,7 +392,7 @@ int main(int argc, char **argv)
 				            {
 				                om_counter[my_class][eventn.side] ++;
 				                matchfilter = sweep(waveform, config_object, my_baseline, template_vectors[eventn.OM_ID]);
-				                tree.Fill();
+				                if (matchfilter.apulse_num > 0){tree.Fill();}
 	                        }
 			            }
 	                }
