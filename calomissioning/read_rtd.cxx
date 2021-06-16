@@ -209,7 +209,7 @@ int main(int argc, char **argv)
             }
 
         } else {
-            template_vectors = get_template_pulses( conf_object.temp_file, template_info.n_templates , template_info);
+            template_vectors = get_template_pulses( config_object.temp_file, template_info.n_templates , template_info);
         }
         sncabling::service snCabling;
         snCabling.initialize_simple();
