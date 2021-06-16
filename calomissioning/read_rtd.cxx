@@ -182,6 +182,9 @@ int main(int argc, char **argv)
         // The more you use the more the noise is smeared out
         int n_average = 1000;
 
+        // Read the config file and store the variables in the CONF object
+        CONF config_object = read_config( "/sps/nemo/scratch/wquinn/PMT-ShapeAnalysis/config_files/snemo_calo.conf" );
+
         // Initialise template vectors container
         // If you are creating them, set the vectors to be of the size in TEMP_INFO of ZEROS
         // Else read them from the file in the same directory called "templates.root"
@@ -206,16 +209,13 @@ int main(int argc, char **argv)
             }
 
         } else {
-            template_vectors = get_template_pulses( "conf_", template_info.n_templates , template_info);
+            template_vectors = get_template_pulses( conf_object.temp_file, template_info.n_templates , template_info);
         }
         sncabling::service snCabling;
         snCabling.initialize_simple();
 
         // Access to the calorimeter signal readout cabling map:
         const sncabling::calo_signal_cabling & caloSignalCabling = snCabling.get_calo_signal_cabling();
-
-        // Read the config file and store the variables in the CONF object
-        CONF config_object = read_config( "/sps/nemo/scratch/wquinn/PMT-ShapeAnalysis/config_files/snemo_calo.conf" );
 
         // Output ntuple creation and setup
         TFile* output_file = new TFile(output_file_name.c_str(), "RECREATE");
