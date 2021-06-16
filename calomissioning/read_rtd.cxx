@@ -175,7 +175,7 @@ int main(int argc, char **argv)
 
         // Define how many events per category (my_class) you wish,
         // Categories: MWALL = 0, XWALL = 1, GVETO = 2
-        int n_stop = 10000;
+        int n_stop = 100000;
         int my_class;
 
         // Defien how many waveforms you want to use in the template averaging
@@ -206,7 +206,7 @@ int main(int argc, char **argv)
             }
 
         } else {
-            template_vectors = get_template_pulses( "templates.root", template_info.n_templates , template_info);
+            template_vectors = get_template_pulses( "conf_", template_info.n_templates , template_info);
         }
         sncabling::service snCabling;
         snCabling.initialize_simple();
