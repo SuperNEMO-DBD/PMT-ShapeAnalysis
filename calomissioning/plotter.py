@@ -58,7 +58,7 @@ def sweep_example(om_text: str, template: np.array, waveform: np.array):
         ax_1.set_ylabel('a.u')
         ax_1.plot(test_x, template * test_norm, "r")
 
-        axs[2].plot(mf_x, mf_output, 'g.')
+        axs[2].plot(mf_x, mf_output, 'g')
         axs[2].set_xlabel("timestamp /ns")
         axs[2].set_ylabel("shape")
         axs[0].grid()
@@ -492,6 +492,7 @@ def draw_charge_apulse(charges: list, apulse_nums: list, run_num: str):
 
         hist.SetXTitle("charge /pC")
         hist.SetYTitle("afterpulse number")
+        hist.SetTitle("Charge vs AN " + om_id_string(i))
         hist.Draw("colztext")
         canvas.SetGrid()
         canvas.SaveAs(f"plots/charge_apulse_run{run_num}_ch{i}.png")
@@ -512,8 +513,8 @@ def main():
 
     print(">>> input file: ", input_file)
 
-    templates, comparison_template = get_templates(template_file, comparison=1)
-    draw_template_quality(comparison_template, templates)
+    # templates, comparison_template = get_templates(template_file, comparison=1)
+    # draw_template_quality(comparison_template, templates)
 
     # om_hvs = load_HV("/Users/willquinn/Desktop/SNEMO/calorimeter_equalized_04Mar2020.txt")
     # draw_HVs(om_hvs)
@@ -529,8 +530,8 @@ def main():
 
     i_event = 0
     for event in tree:
-        #baseline = event.baseline
-        #waveform = np.array(event.waveform)
+        # baseline = event.baseline
+        # waveform = np.array(event.waveform)
         OM_ID = event.OM_ID
 
         n_events[OM_ID] += 1
@@ -551,13 +552,14 @@ def main():
         main_pulse_time = event.main_pulse_time
         for i_pulse in list(event.apulse_times):
             apulse_times[OM_ID].append(i_pulse - main_pulse_time)
-            #print((i_pulse - main_pulse_time)/0.64)
+            # print((i_pulse - main_pulse_time)/0.64)
 
         for i_pulse in list(event.apulse_amplitudes):
             apulse_amplitudes[OM_ID].append(i_pulse)
 
         apulse_nums[OM_ID].append(event.apulse_num)
         '''if event.apulse_num > 4:
+            print(event.apulse_num)
             sweep_example(om_id_string(OM_ID), templates[OM_ID], waveform-baseline)
             break'''
         # mf_example(waveform-baseline, [np.array(event.mf_shapes), np.array(event.mf_amplitudes)],
@@ -566,14 +568,14 @@ def main():
         if not i_event % 100000:
             print(f">>> processed {i_event}/{tree.GetEntries()}")
 
-    draw_AAN(apulse_nums, run_num)
-    draw_PAR(apulse_nums, run_num)
-    draw_ATD(apulse_times, run_num)
-    draw_AAD(apulse_amplitudes, run_num)
-    draw_event_map(n_events, run_num)
+    # draw_AAN(apulse_nums, run_num)
+    # draw_PAR(apulse_nums, run_num)
+    # draw_ATD(apulse_times, run_num)
+    # draw_AAD(apulse_amplitudes, run_num)
+    # draw_event_map(n_events, run_num)
     # draw_HV_ATD(om_hvs, apulse_times, run_num)
-    draw_charges(charges, run_num)
-    draw_charge_apulse(charges, apulse_nums, run_num)
+    # draw_charges(charges, run_num)
+    # draw_charge_apulse(charges, apulse_nums, run_num)
 
     root_file.Close()
 
