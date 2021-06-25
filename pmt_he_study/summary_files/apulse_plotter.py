@@ -306,8 +306,8 @@ def main():
 
         plot_par(dates[i_om], par[i_om], output_directory, pmt_array.get_pmt_object_number(i_om), "")
         plot_par(dates[i_om], par_he[i_om], output_directory, pmt_array.get_pmt_object_number(i_om), "he")
-        plot_aan(dates[i_om], par[i_om], output_directory, pmt_array.get_pmt_object_number(i_om), "")
-        plot_aan(dates[i_om], par_he[i_om], output_directory, pmt_array.get_pmt_object_number(i_om), "he")
+        plot_aan(dates[i_om], aan[i_om], output_directory, pmt_array.get_pmt_object_number(i_om), "")
+        plot_aan(dates[i_om], aan_he[i_om], output_directory, pmt_array.get_pmt_object_number(i_om), "he")
 
     plot_par_ratio(dates, par, output_directory, "")
     plot_par_ratio(dates, par_he, output_directory, "he")
