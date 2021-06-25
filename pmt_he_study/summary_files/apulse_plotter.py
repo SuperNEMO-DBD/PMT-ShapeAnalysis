@@ -156,7 +156,7 @@ def plot_aan(date, aan, output_directory: str, pmt_object: PMT_Object, name: str
     plt.ylabel("Average afterpulse number")
     plt.title(pmt_object.get_pmt_id() + " AAN vs exposure time")
     plt.grid()
-    plt.ylim(0, 1.5)
+    # plt.ylim(0, 1.5)
     plt.legend(loc='upper left')
     plt.savefig(output_directory + "/summary_plots/" +
                 pmt_object.get_pmt_id() + "_aan_vs_time" + name)
