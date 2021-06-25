@@ -105,7 +105,7 @@ def read_file(date: str, voltage: int, root_file_name: str, pmt_array: PMT_Array
             "aan": aan,
             "aan_err": aan_err,
             "aan_he": aan_he,
-            "aan_err_he": aan_he_err
+            "aan_he_err": aan_he_err
         }
         apulse_info[i_om].append(pars)
 
