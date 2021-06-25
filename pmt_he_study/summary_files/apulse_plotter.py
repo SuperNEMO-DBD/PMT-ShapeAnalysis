@@ -296,8 +296,8 @@ def main():
             par_he[i_om].append(i_par_he)
             par_he_err[i_om].append(i_par_he_err/10)
             aan[i_om].append(i_aan)
-            aan_err[i_om].append(i_aan_he)
-            aan_he[i_om].append(i_aan_err)
+            aan_err[i_om].append(i_aan_err)
+            aan_he[i_om].append(i_aan_he)
             aan_he_err[i_om].append(i_aan_he_err)
 
             dates[i_om].append(int(date))
