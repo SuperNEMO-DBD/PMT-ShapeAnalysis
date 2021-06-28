@@ -19,6 +19,18 @@ from functions.other_functions import pmt_parse_arguments, fit, chi2, process_da
 from src.PMT_Classes import *
 
 
+def model_day(x, p0, p1, p2):
+    y = []
+    for i in range(len(x)):
+        t = x[i]*3600*24
+        temp = 0
+        for n in range(1,11):
+            temp += ((-1)**n/n**2)*(1 - np.exp(-(n**2)*(np.pi**2)*t/p1))
+        f2 = (2/np.pi**2)*p1*temp
+        y.append(p0*(t + f2) + p2)
+    return y
+
+
 def create_file(file_name: str):
     file = open(file_name, 'w')
     file.close()
@@ -121,10 +133,14 @@ def plot_par(date, par, output_directory: str, pmt_object: PMT_Object, name: str
         start = np.where(date == 1)[0][0]
     mid = np.where(date == 98)[0][0]
 
+    popt, pcov = curve_fit(f=model_day, xdata=date[mid + 1:], ydata=np.array(par[mid + 1:]),
+                           p0=[0.1, 1, 19], bounds=[[0, 0, 0], [1e5, 1e10, 100]])
+
     plt.figure(num=None, figsize=(9, 5), dpi=80, facecolor='w', edgecolor='k')
     plt.plot(date[:start + 1], np.array(par[:start + 1]), "g.", label="Atmospheric He")
     plt.plot(date[start + 1:mid + 1], np.array(par[start + 1:mid + 1]), "b.", label="1% He")
     plt.plot(date[mid + 1:], np.array(par[mid + 1:]), "r.", label="10% He")
+    plt.plot(date[mid + 1:], model_day(date[mid + 1:], *popt), 'k-', label='model')
     plt.axvline(date[start], 0, 100, ls='--', color='k')
     plt.axvline(date[mid], 0, 100, ls='--', color='k')
     plt.xlabel("exposure days relative to 06/11/2019")
@@ -135,6 +151,12 @@ def plot_par(date, par, output_directory: str, pmt_object: PMT_Object, name: str
     plt.legend(loc='upper left')
     plt.savefig(output_directory + "/summary_plots/" +
                 pmt_object.get_pmt_id() + "_par_vs_time" + name)
+
+    print('Param p{}: {:.2e} ± {:.1e}'.format(0, popt[0], np.sqrt(pcov[0, 0])))
+    print('Param p{}: {:.2e} ± {:.1e}'.format(1, popt[1], np.sqrt(pcov[1, 1])))
+    print('Param p{}: {:.2e} ± {:.1e}'.format(2, popt[2], np.sqrt(pcov[2, 2])))
+    # print('Chi2 is:', chi_2)
+
     plt.close()
 
 
@@ -146,10 +168,14 @@ def plot_aan(date, aan, output_directory: str, pmt_object: PMT_Object, name: str
         start = np.where(date == 1)[0][0]
     mid = np.where(date == 98)[0][0]
 
+    popt, pcov = curve_fit(f=model_day, xdata=date[mid + 1:], ydata=np.array(aan[mid + 1:]),
+                           p0=[0.01, 0.01, 0.8], bounds=[[0, 0, 0], [1e5, 1e10, 100]])
+
     plt.figure(num=None, figsize=(9, 5), dpi=80, facecolor='w', edgecolor='k')
     plt.plot(date[:start + 1], np.array(aan[:start + 1]), "g.", label="Atmospheric He")
     plt.plot(date[start + 1:mid + 1], np.array(aan[start + 1:mid + 1]), "b.", label="1% He")
     plt.plot(date[mid + 1:], np.array(aan[mid + 1:]), "r.", label="10% He")
+    plt.plot(date[mid + 1:], model_day(date[mid + 1:], *popt), 'k-', label='model')
     plt.axvline(date[start], 0, 100, ls='--', color='k')
     plt.axvline(date[mid], 0, 100, ls='--', color='k')
     plt.xlabel("exposure days relative to 06/11/2019")
