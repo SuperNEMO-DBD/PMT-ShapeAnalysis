@@ -274,8 +274,8 @@ def main():
 
     topology = [2, 1]
     pmt_array = PMT_Array(topology, run_id+"summary")
-    pmt_array.set_pmt_id(run_id + "_GAO607", 0)
-    pmt_array.set_pmt_id(run_id + "_GAO612", 1)
+    pmt_array.set_pmt_id("GAO607", 0)
+    pmt_array.set_pmt_id("GAO612", 1)
 
     # Set up the containers for the summary
     par = [[] for i in range(pmt_array.get_pmt_total_number())]
@@ -336,10 +336,10 @@ def main():
         plot_aan(dates[i_om], aan[i_om], output_directory, pmt_array.get_pmt_object_number(i_om), "")
         plot_aan(dates[i_om], aan_he[i_om], output_directory, pmt_array.get_pmt_object_number(i_om), "he")
 
-    plot_par_ratio(dates, par, output_directory, "")
-    plot_par_ratio(dates, par_he, output_directory, "he")
-    plot_aan_ratio(dates, aan, output_directory, "")
-    plot_aan_ratio(dates, aan_he, output_directory, "he")
+    plot_par_ratio(dates, par, output_directory, "_" + run_id)
+    plot_par_ratio(dates, par_he, output_directory, "_he_" + run_id)
+    plot_aan_ratio(dates, aan, output_directory, "_" + run_id)
+    plot_aan_ratio(dates, aan_he, output_directory, "_he_" + run_id)
 
 
 if __name__ == '__main__':
