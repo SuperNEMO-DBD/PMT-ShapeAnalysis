@@ -125,7 +125,7 @@ def read_file(date: str, voltage: int, root_file_name: str, pmt_array: PMT_Array
     return apulse_info
 
 
-def plot_par(date, par, output_directory: str, pmt_object: PMT_Object, name: str):
+def plot_par(date, par, output_directory: str, pmt_array: PMT_Array, name: str):
     date = process_date(date)
     try:
         start = np.where(date == 0)[0][0]
@@ -254,6 +254,7 @@ def main():
     ##############################
     args = pmt_parse_arguments()
     input_directory = args.i
+    run_id = args.c
     # config_file_name = args.c
     output_directory = args.o
     ##############################
@@ -272,9 +273,9 @@ def main():
         'formats': ['S100']}, unpack=True)
 
     topology = [2, 1]
-    pmt_array = PMT_Array(topology, "summary")
-    pmt_array.set_pmt_id("GAO607", 0)
-    pmt_array.set_pmt_id("GAO612", 1)
+    pmt_array = PMT_Array(topology, run_id+"summary")
+    pmt_array.set_pmt_id(run_id + "_GAO607", 0)
+    pmt_array.set_pmt_id(run_id + "_GAO612", 1)
 
     # Set up the containers for the summary
     par = [[] for i in range(pmt_array.get_pmt_total_number())]
