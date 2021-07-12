@@ -503,7 +503,7 @@ def draw_charge_apulse(charges: list, apulse_nums: list, run_num: str):
 def draw_npe_apulse(charges: list, apulse_nums: list, gains: list, run_num: str):
     ROOT.gStyle.SetOptStat(0)
     for i in range(len(charges)):
-    	if gain[i] == -1.:
+        if gains[i] == -1.:
             continue
             
         canvas = ROOT.TCanvas()
@@ -538,7 +538,7 @@ def get_gain(filename: str):
         val = float(line_list[-1].strip())
         if val == -1.0:
             gain[om] = -1
-	else:
+        else:
             ne = (1/val) * 1E4 / 1.602
             npe = (1/0.08388)**2
             gain[om] = ne/npe
