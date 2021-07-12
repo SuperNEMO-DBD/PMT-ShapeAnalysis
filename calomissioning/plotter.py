@@ -500,6 +500,46 @@ def draw_charge_apulse(charges: list, apulse_nums: list, run_num: str):
         del canvas
 
 
+def draw_npe_apulse(charges: list, apulse_nums: list, gains: list, run_num: str):
+    ROOT.gStyle.SetOptStat(0)
+    for i in range(len(charges)):
+        canvas = ROOT.TCanvas()
+        hist = ROOT.TH2D('npe_vs_aan_{}'.format(i), 'npe_vs_aan_{}'.format(i),
+                         10, 0, 500,
+                         10, 0, 10)
+        for j in range(len(charges[i])):
+            charge = (charges[i][j]/0.64)  # in pC
+            ne = charge / 1.602E-7
+            npe = ne/gains[i]
+            hist.Fill(npe, apulse_nums[i][j])
+
+        hist.SetXTitle("npe")
+        hist.SetYTitle("afterpulse number")
+        hist.SetTitle("NPE vs AN " + om_id_string(i))
+        hist.Draw("colztext")
+        canvas.SetGrid()
+        canvas.SaveAs("plots/npe_apulse_run{}_ch{}.png".format(run_num, i))
+        del hist
+        del canvas
+        
+        
+def get_gain(filename: str):
+    f = open(filename, "r")
+    fl = f.readlines()
+
+    gain = [0 for i in range(712)]
+
+    for line in fl:
+        line_list = line.split("\t")
+        om = int(line_list[0])
+        val = float(line_list[-1].strip())
+        ne = (1/val) * 1E-15
+        npe = (1/0.08388)**2
+        gain[om] = ne/npe
+
+    return gain
+
+
 def main():
     args = io_parse_arguments()
     input_file = args.i
@@ -576,6 +616,7 @@ def main():
     # draw_HV_ATD(om_hvs, apulse_times, run_num)
     # draw_charges(charges, run_num)
     # draw_charge_apulse(charges, apulse_nums, run_num)
+    draw_npe_apulse(charges, apulse_nums, gains, run_num)
 
     root_file.Close()
 
