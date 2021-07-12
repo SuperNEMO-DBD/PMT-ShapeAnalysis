@@ -356,6 +356,7 @@ CONF read_config( std::string filename )
             continue;
         }else{
             std::vector<std::string> settings = split( line, ':' );
+	    std::cout << settings.size() << std::endl;
             if ( settings[0] == "integration" ) { config.integration[0] = std::stod(settings[1]); config.integration[1] = std::stod(settings[2]); }
             else if ( settings[0] == "sweep_start" ) { config.sweep_start = std::stoi(settings[1]); }
             else if ( settings[0] == "pre_trigger" ) { config.pre_trigger = std::stoi(settings[1]); }

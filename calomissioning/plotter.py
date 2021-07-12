@@ -503,6 +503,9 @@ def draw_charge_apulse(charges: list, apulse_nums: list, run_num: str):
 def draw_npe_apulse(charges: list, apulse_nums: list, gains: list, run_num: str):
     ROOT.gStyle.SetOptStat(0)
     for i in range(len(charges)):
+    	if gain[i] == -1.:
+            continue
+            
         canvas = ROOT.TCanvas()
         hist = ROOT.TH2D('npe_vs_aan_{}'.format(i), 'npe_vs_aan_{}'.format(i),
                          10, 0, 500,
@@ -533,9 +536,12 @@ def get_gain(filename: str):
         line_list = line.split("\t")
         om = int(line_list[0])
         val = float(line_list[-1].strip())
-        ne = (1/val) * 1E-15
-        npe = (1/0.08388)**2
-        gain[om] = ne/npe
+        if val == -1.0:
+            gain[om] = -1
+	else:
+            ne = (1/val) * 1E4 / 1.602
+            npe = (1/0.08388)**2
+            gain[om] = ne/npe
 
     return gain
 
@@ -558,6 +564,8 @@ def main():
 
     # om_hvs = load_HV("/Users/willquinn/Desktop/SNEMO/calorimeter_equalized_04Mar2020.txt")
     # draw_HVs(om_hvs)
+
+    gains = get_gain("gains.txt")
 
     root_file = ROOT.TFile(input_file, "READ")
     tree = root_file.T
