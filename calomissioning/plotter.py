@@ -505,6 +505,8 @@ def draw_npe_apulse(charges: list, apulse_nums: list, gains: list, run_num: str)
     for i in range(len(charges)):
         if gains[i] == -1.:
             continue
+        if len(charges[i]) == 0:
+            continue
             
         canvas = ROOT.TCanvas()
         hist = ROOT.TH2D('npe_vs_aan_{}'.format(i), 'npe_vs_aan_{}'.format(i),
@@ -546,7 +548,7 @@ def get_gain(filename: str):
     return gain
 
 
-def draw_HV_ATD(charges: list, apulse_nums: list, gains: list, run_num: str):
+def draw_npe_apulse_tots(charges: list, apulse_nums: list, gains: list, run_num: str):
     ROOT.gStyle.SetOptStat(0)
     tot_5_canvas = ROOT.TCanvas()
     tot_8_canvas = ROOT.TCanvas()
@@ -674,7 +676,8 @@ def main():
     # draw_HV_ATD(om_hvs, apulse_times, run_num)
     # draw_charges(charges, run_num)
     # draw_charge_apulse(charges, apulse_nums, run_num)
-    draw_npe_apulse(charges, apulse_nums, gains, run_num)
+    # draw_npe_apulse(charges, apulse_nums, gains, run_num)
+    draw_npe_apulse_tots(charges, apulse_nums, gains, run_num)
 
     root_file.Close()
 
