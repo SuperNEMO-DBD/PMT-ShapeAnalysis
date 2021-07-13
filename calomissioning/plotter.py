@@ -508,7 +508,7 @@ def draw_npe_apulse(charges: list, apulse_nums: list, gains: list, run_num: str)
             
         canvas = ROOT.TCanvas()
         hist = ROOT.TH2D('npe_vs_aan_{}'.format(i), 'npe_vs_aan_{}'.format(i),
-                         10, 0, 500,
+                         40, 0, 2000,
                          10, 0, 10)
         for j in range(len(charges[i])):
             charge = (charges[i][j]/0.64)  # in pC
