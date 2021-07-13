@@ -552,8 +552,8 @@ def draw_npe_apulse_tots(charges: list, apulse_nums: list, gains: list, run_num:
     ROOT.gStyle.SetOptStat(0)
     tot_5_canvas = ROOT.TCanvas()
     tot_8_canvas = ROOT.TCanvas()
-    tot_5_hist = ROOT.TH1D("5inch_PMTs", "5inch_PMTs", 40, 0, 2000, 10, 0, 10)
-    tot_8_hist = ROOT.TH1D("8inch_PMTs", "8inch_PMTs", 40, 0, 2000, 10, 0, 10)
+    tot_5_hist = ROOT.TH2D("5inch_PMTs", "5inch_PMTs", 40, 0, 2000, 10, 0, 10)
+    tot_8_hist = ROOT.TH2D("8inch_PMTs", "8inch_PMTs", 40, 0, 2000, 10, 0, 10)
     
     for i in range(len(charges)):
         if gains[i] == -1.:
