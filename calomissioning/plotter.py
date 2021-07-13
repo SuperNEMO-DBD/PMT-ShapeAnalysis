@@ -546,6 +546,56 @@ def get_gain(filename: str):
     return gain
 
 
+def draw_HV_ATD(charges: list, apulse_nums: list, gains: list, run_num: str):
+    ROOT.gStyle.SetOptStat(0)
+    tot_5_canvas = ROOT.TCanvas()
+    tot_8_canvas = ROOT.TCanvas()
+    tot_5_hist = ROOT.TH1D("5inch_PMTs", "5inch_PMTs", 40, 0, 2000, 10, 0, 10)
+    tot_8_hist = ROOT.TH1D("8inch_PMTs", "8inch_PMTs", 40, 0, 2000, 10, 0, 10)
+    
+    for i in range(len(charges)):
+        if gains[i] == -1.:
+            continue
+        
+        pmt_type = get_pmt_type(i)
+        if pmt_type == 5:
+            for j in range(len(charges[i])):
+                charge = (charges[i][j]/0.64)  # in pC
+                ne = charge / 1.602E-7
+                npe = ne/gains[i]
+                tot_5_hist.Fill(npe, apulse_nums[i][j])
+        else:
+            for j in range(len(charges[i])):
+                charge = (charges[i][j]/0.64)  # in pC
+                ne = charge / 1.602E-7
+                npe = ne/gains[i]
+                tot_8_hist.Fill(npe, apulse_nums[i][j])
+
+    tot_5_canvas.cd()
+    tot_5_hist.Scale(1.0 / tot_5_hist.GetEntries())
+    tot_5_hist.Sumw2()
+    tot_5_hist.SetXTitle("npe")
+    tot_5_hist.SetYTitle("afterpulse number")
+    tot_5_hist.SetTitle("NPE vs AN 5in")
+    tot_5_hist.Draw("HIST")
+    tot_5_canvas.SetGrid()
+    tot_5_canvas.SaveAs(f"plots/h_npe_an_5tot_run{run_num}.png")
+    del tot_5_hist
+    del tot_5_canvas
+
+    tot_8_canvas.cd()
+    tot_8_hist.Scale(1.0 / tot_8_hist.GetEntries())
+    tot_8_hist.Sumw2()
+    tot_8_hist.SetXTitle("npe")
+    tot_8_hist.SetYTitle("afterpulse number")
+    tot_8_hist.SetTitle("NPE vs AN 8in")
+    tot_8_hist.Draw("HIST")
+    tot_8_canvas.SetGrid()
+    tot_8_canvas.SaveAs(f"plots/h_npe_an_8tot_run{run_num}.png")
+    del tot_8_hist
+    del tot_8_canvas
+    
+
 def main():
     args = io_parse_arguments()
     input_file = args.i
