@@ -579,7 +579,7 @@ def draw_npe_apulse_tots(charges: list, apulse_nums: list, gains: list, run_num:
     tot_5_hist.SetXTitle("npe")
     tot_5_hist.SetYTitle("afterpulse number")
     tot_5_hist.SetTitle("NPE vs AN 5in")
-    tot_5_hist.Draw("HIST")
+    tot_5_hist.Draw("colz")
     tot_5_canvas.SetGrid()
     tot_5_canvas.SaveAs(f"plots/h_npe_an_5tot_run{run_num}.png")
     del tot_5_hist
@@ -591,7 +591,7 @@ def draw_npe_apulse_tots(charges: list, apulse_nums: list, gains: list, run_num:
     tot_8_hist.SetXTitle("npe")
     tot_8_hist.SetYTitle("afterpulse number")
     tot_8_hist.SetTitle("NPE vs AN 8in")
-    tot_8_hist.Draw("HIST")
+    tot_8_hist.Draw("colz")
     tot_8_canvas.SetGrid()
     tot_8_canvas.SaveAs(f"plots/h_npe_an_8tot_run{run_num}.png")
     del tot_8_hist
