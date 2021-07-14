@@ -58,7 +58,7 @@ def sweep_example(om_text: str, template: np.array, waveform: np.array):
         ax_1.set_ylabel('a.u')
         ax_1.plot(test_x, template * test_norm, "r")
 
-        axs[2].plot(mf_x, mf_output, 'g.')
+        axs[2].plot(mf_x, mf_output, 'g')
         axs[2].set_xlabel("timestamp /ns")
         axs[2].set_ylabel("shape")
         axs[0].grid()
@@ -492,12 +492,111 @@ def draw_charge_apulse(charges: list, apulse_nums: list, run_num: str):
 
         hist.SetXTitle("charge /pC")
         hist.SetYTitle("afterpulse number")
+        hist.SetTitle("Charge vs AN " + om_id_string(i))
         hist.Draw("colztext")
         canvas.SetGrid()
         canvas.SaveAs(f"plots/charge_apulse_run{run_num}_ch{i}.png")
         del hist
         del canvas
 
+
+def draw_npe_apulse(charges: list, apulse_nums: list, gains: list, run_num: str):
+    ROOT.gStyle.SetOptStat(0)
+    for i in range(len(charges)):
+        if gains[i] == -1.:
+            continue
+        if len(charges[i]) == 0:
+            continue
+            
+        canvas = ROOT.TCanvas()
+        hist = ROOT.TH2D('npe_vs_aan_{}'.format(i), 'npe_vs_aan_{}'.format(i),
+                         40, 0, 2000,
+                         10, 0, 10)
+        for j in range(len(charges[i])):
+            charge = (charges[i][j]/0.64)  # in pC
+            ne = charge / 1.602E-7
+            npe = ne/gains[i]
+            hist.Fill(npe, apulse_nums[i][j])
+
+        hist.SetXTitle("npe")
+        hist.SetYTitle("afterpulse number")
+        hist.SetTitle("NPE vs AN " + om_id_string(i))
+        hist.Draw("colztext")
+        canvas.SetGrid()
+        canvas.SaveAs("plots/npe_apulse_run{}_ch{}.png".format(run_num, i))
+        del hist
+        del canvas
+        
+        
+def get_gain(filename: str):
+    f = open(filename, "r")
+    fl = f.readlines()
+
+    gain = [0 for i in range(712)]
+
+    for line in fl:
+        line_list = line.split("\t")
+        om = int(line_list[0])
+        val = float(line_list[-1].strip())
+        if val == -1.0:
+            gain[om] = -1
+        else:
+            ne = (1/val) * 1E4 / 1.602
+            npe = (1/0.08388)**2
+            gain[om] = ne/npe
+
+    return gain
+
+
+def draw_npe_apulse_tots(charges: list, apulse_nums: list, gains: list, run_num: str):
+    ROOT.gStyle.SetOptStat(0)
+    tot_5_canvas = ROOT.TCanvas()
+    tot_8_canvas = ROOT.TCanvas()
+    tot_5_hist = ROOT.TH2D("5inch_PMTs", "5inch_PMTs", 40, 0, 2000, 10, 0, 10)
+    tot_8_hist = ROOT.TH2D("8inch_PMTs", "8inch_PMTs", 40, 0, 2000, 10, 0, 10)
+    
+    for i in range(len(charges)):
+        if gains[i] == -1.:
+            continue
+        
+        pmt_type = get_pmt_type(i)
+        if pmt_type == 5:
+            for j in range(len(charges[i])):
+                charge = (charges[i][j]/0.64)  # in pC
+                ne = charge / 1.602E-7
+                npe = ne/gains[i]
+                tot_5_hist.Fill(npe, apulse_nums[i][j])
+        else:
+            for j in range(len(charges[i])):
+                charge = (charges[i][j]/0.64)  # in pC
+                ne = charge / 1.602E-7
+                npe = ne/gains[i]
+                tot_8_hist.Fill(npe, apulse_nums[i][j])
+
+    tot_5_canvas.cd()
+    tot_5_hist.Scale(1.0 / tot_5_hist.GetEntries())
+    tot_5_hist.Sumw2()
+    tot_5_hist.SetXTitle("npe")
+    tot_5_hist.SetYTitle("afterpulse number")
+    tot_5_hist.SetTitle("NPE vs AN 5in")
+    tot_5_hist.Draw("colz")
+    tot_5_canvas.SetGrid()
+    tot_5_canvas.SaveAs(f"plots/h_npe_an_5tot_run{run_num}.png")
+    del tot_5_hist
+    del tot_5_canvas
+
+    tot_8_canvas.cd()
+    tot_8_hist.Scale(1.0 / tot_8_hist.GetEntries())
+    tot_8_hist.Sumw2()
+    tot_8_hist.SetXTitle("npe")
+    tot_8_hist.SetYTitle("afterpulse number")
+    tot_8_hist.SetTitle("NPE vs AN 8in")
+    tot_8_hist.Draw("colz")
+    tot_8_canvas.SetGrid()
+    tot_8_canvas.SaveAs(f"plots/h_npe_an_8tot_run{run_num}.png")
+    del tot_8_hist
+    del tot_8_canvas
+    
 
 def main():
     args = io_parse_arguments()
@@ -512,11 +611,13 @@ def main():
 
     print(">>> input file: ", input_file)
 
-    templates, comparison_template = get_templates(template_file, comparison=1)
-    draw_template_quality(comparison_template, templates)
+    # templates, comparison_template = get_templates(template_file, comparison=1)
+    # draw_template_quality(comparison_template, templates)
 
     # om_hvs = load_HV("/Users/willquinn/Desktop/SNEMO/calorimeter_equalized_04Mar2020.txt")
     # draw_HVs(om_hvs)
+
+    gains = get_gain("gains.txt")
 
     root_file = ROOT.TFile(input_file, "READ")
     tree = root_file.T
@@ -529,8 +630,8 @@ def main():
 
     i_event = 0
     for event in tree:
-        #baseline = event.baseline
-        #waveform = np.array(event.waveform)
+        # baseline = event.baseline
+        # waveform = np.array(event.waveform)
         OM_ID = event.OM_ID
 
         n_events[OM_ID] += 1
@@ -551,13 +652,14 @@ def main():
         main_pulse_time = event.main_pulse_time
         for i_pulse in list(event.apulse_times):
             apulse_times[OM_ID].append(i_pulse - main_pulse_time)
-            #print((i_pulse - main_pulse_time)/0.64)
+            # print((i_pulse - main_pulse_time)/0.64)
 
         for i_pulse in list(event.apulse_amplitudes):
             apulse_amplitudes[OM_ID].append(i_pulse)
 
         apulse_nums[OM_ID].append(event.apulse_num)
         '''if event.apulse_num > 4:
+            print(event.apulse_num)
             sweep_example(om_id_string(OM_ID), templates[OM_ID], waveform-baseline)
             break'''
         # mf_example(waveform-baseline, [np.array(event.mf_shapes), np.array(event.mf_amplitudes)],
@@ -566,14 +668,16 @@ def main():
         if not i_event % 100000:
             print(f">>> processed {i_event}/{tree.GetEntries()}")
 
-    draw_AAN(apulse_nums, run_num)
-    draw_PAR(apulse_nums, run_num)
-    draw_ATD(apulse_times, run_num)
-    draw_AAD(apulse_amplitudes, run_num)
-    draw_event_map(n_events, run_num)
+    # draw_AAN(apulse_nums, run_num)
+    # draw_PAR(apulse_nums, run_num)
+    # draw_ATD(apulse_times, run_num)
+    # draw_AAD(apulse_amplitudes, run_num)
+    # draw_event_map(n_events, run_num)
     # draw_HV_ATD(om_hvs, apulse_times, run_num)
-    draw_charges(charges, run_num)
-    draw_charge_apulse(charges, apulse_nums, run_num)
+    # draw_charges(charges, run_num)
+    # draw_charge_apulse(charges, apulse_nums, run_num)
+    # draw_npe_apulse(charges, apulse_nums, gains, run_num)
+    draw_npe_apulse_tots(charges, apulse_nums, gains, run_num)
 
     root_file.Close()
 

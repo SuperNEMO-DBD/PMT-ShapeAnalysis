@@ -16,7 +16,19 @@ from scipy.optimize import curve_fit
 
 # import custom made classes
 from functions.other_functions import pmt_parse_arguments, fit, chi2, process_date, linear, gaus
-from src.PMT_Array import PMT_Array
+from src.PMT_Classes import *
+
+
+def model_day(x, p0, p1, p2):
+    y = []
+    for i in range(len(x)):
+        t = x[i]*3600*24
+        temp = 0
+        for n in range(1,11):
+            temp += ((-1)**n/n**2)*(1 - np.exp(-(n**2)*(np.pi**2)*t/p1))
+        f2 = (2/np.pi**2)*p1*temp
+        y.append(p0*(t + f2) + p2)
+    return y
 
 
 def create_file(file_name: str):
@@ -62,12 +74,12 @@ def read_file(date: str, voltage: int, root_file_name: str, pmt_array: PMT_Array
         apulse_time_hist = file.Get(date + "_" + pmt_array.get_pmt_object_number(i_om).get_pmt_id() +
                                     "_apulse_times_" + str(voltage) + "V")
         apulse_amplitude_hist = file.Get(date + "_" + pmt_array.get_pmt_object_number(i_om).get_pmt_id() +
-                                          "_apulse_amplitudes_" + str(voltage) + "V")
+                                         "_apulse_amplitudes_" + str(voltage) + "V")
 
         he_apulse_num_hist = file.Get(date + "_" + pmt_array.get_pmt_object_number(i_om).get_pmt_id() +
                                       "_he_apulse_num_" + str(voltage) + "V")
         he_apulse_amplitude_hist = file.Get(date + "_" + pmt_array.get_pmt_object_number(i_om).get_pmt_id() +
-                                         "_he_apulse_amplitudes_" + str(voltage) + "V")
+                                            "_he_apulse_amplitudes_" + str(voltage) + "V")
 
         try:
             apulse_num_hist.GetEntries()
@@ -82,28 +94,30 @@ def read_file(date: str, voltage: int, root_file_name: str, pmt_array: PMT_Array
         for i_bin in range(2, apulse_num_hist.GetNbinsX()):
             apulse_rate += apulse_num_hist.GetBinContent(i_bin)
 
-        apulse_rate = (apulse_rate/apulse_num_hist.GetEntries()) * 100
-        apulse_rate_err = (np.sqrt(1/apulse_rate + 1/apulse_num_hist.GetEntries())) * apulse_rate
+        par = (apulse_rate/apulse_num_hist.GetEntries()) * 100
+        par_err = (np.sqrt(1/apulse_rate + 1/apulse_num_hist.GetEntries())) * apulse_rate
 
         he_apulse_rate = 0
         for i_bin in range(2, he_apulse_num_hist.GetNbinsX()):
             he_apulse_rate += he_apulse_num_hist.GetBinContent(i_bin)
 
-        he_apulse_rate = (he_apulse_rate/apulse_num_hist.GetEntries()) * 100
-        he_apulse_rate_err = (np.sqrt(1/he_apulse_rate + 1/apulse_num_hist.GetEntries())) * he_apulse_rate
-        '''c1 = ROOT.TCanvas()
-        charge_hist.Draw()
-        bi_fit.Draw("same")
-        c1.SetGrid()
-        c1.Update()
-        ROOT.gStyle.SetOptFit(1)
-        c1.SaveAs(name)'''
+        par_he = (he_apulse_rate/apulse_num_hist.GetEntries()) * 100
+        par_he_err = (np.sqrt(1/he_apulse_rate + 1/apulse_num_hist.GetEntries())) * he_apulse_rate
+
+        aan = apulse_num_hist.GetMean()
+        aan_err = apulse_num_hist.GetMeanError()
+        aan_he = he_apulse_num_hist.GetMean()
+        aan_he_err = he_apulse_num_hist.GetMeanError()
 
         pars = {
-            "apulse_rate": apulse_rate,
-            "apulse_rate_err": apulse_rate_err,
-            "he_apulse_rate": he_apulse_rate,
-            "he_apulse_rate_err": he_apulse_rate_err
+            "par": par,
+            "par_err": par_err,
+            "par_he": par_he,
+            "par_he_err": par_he_err,
+            "aan": aan,
+            "aan_err": aan_err,
+            "aan_he": aan_he,
+            "aan_he_err": aan_he_err
         }
         apulse_info[i_om].append(pars)
 
@@ -111,11 +125,136 @@ def read_file(date: str, voltage: int, root_file_name: str, pmt_array: PMT_Array
     return apulse_info
 
 
+def plot_par(date, par, output_directory: str, pmt_object: PMT_Object, name: str):
+    date = process_date(date)
+    try:
+        start = np.where(date == 0)[0][0]
+    except:
+        start = np.where(date == 1)[0][0]
+    mid = np.where(date == 98)[0][0]
+
+    popt, pcov = curve_fit(f=model_day, xdata=date[mid + 1:], ydata=np.array(par[mid + 1:]),
+                           p0=[0.1, 1, 19], bounds=[[0, 0, 0], [1e5, 1e10, 100]])
+
+    plt.figure(num=None, figsize=(9, 5), dpi=80, facecolor='w', edgecolor='k')
+    plt.plot(date[:start + 1], np.array(par[:start + 1]), "g.", label="Atmospheric He")
+    plt.plot(date[start + 1:mid + 1], np.array(par[start + 1:mid + 1]), "b.", label="1% He")
+    plt.plot(date[mid + 1:], np.array(par[mid + 1:]), "r.", label="10% He")
+    plt.plot(date[mid + 1:], model_day(date[mid + 1:], *popt), 'k-', label='model')
+    plt.axvline(date[start], 0, 100, ls='--', color='k')
+    plt.axvline(date[mid], 0, 100, ls='--', color='k')
+    plt.xlabel("exposure days relative to 06/11/2019")
+    plt.ylabel("Afterpulse rate /%")
+    plt.title(pmt_object.get_pmt_id() + " PAR vs exposure time")
+    plt.grid()
+    plt.ylim(0, 100)
+    plt.legend(loc='upper left')
+    plt.savefig(output_directory + "/summary_plots/" +
+                pmt_object.get_pmt_id() + "_par_vs_time" + name)
+
+    print('Param p{}: {:.2e} ± {:.1e}'.format(0, popt[0], np.sqrt(pcov[0, 0])))
+    print('Param p{}: {:.2e} ± {:.1e}'.format(1, popt[1], np.sqrt(pcov[1, 1])))
+    print('Param p{}: {:.2e} ± {:.1e}'.format(2, popt[2], np.sqrt(pcov[2, 2])))
+    # print('Chi2 is:', chi_2)
+
+    plt.close()
+
+
+def plot_aan(date, aan, output_directory: str, pmt_object: PMT_Object, name: str):
+    date = process_date(date)
+    try:
+        start = np.where(date == 0)[0][0]
+    except:
+        start = np.where(date == 1)[0][0]
+    mid = np.where(date == 98)[0][0]
+
+    popt, pcov = curve_fit(f=model_day, xdata=date[mid + 1:], ydata=np.array(aan[mid + 1:]),
+                           p0=[0.01, 0.01, 0.8], bounds=[[0, 0, 0], [1e5, 1e10, 100]])
+
+    plt.figure(num=None, figsize=(9, 5), dpi=80, facecolor='w', edgecolor='k')
+    plt.plot(date[:start + 1], np.array(aan[:start + 1]), "g.", label="Atmospheric He")
+    plt.plot(date[start + 1:mid + 1], np.array(aan[start + 1:mid + 1]), "b.", label="1% He")
+    plt.plot(date[mid + 1:], np.array(aan[mid + 1:]), "r.", label="10% He")
+    plt.plot(date[mid + 1:], model_day(date[mid + 1:], *popt), 'k-', label='model')
+    plt.axvline(date[start], 0, 100, ls='--', color='k')
+    plt.axvline(date[mid], 0, 100, ls='--', color='k')
+    plt.xlabel("exposure days relative to 06/11/2019")
+    plt.ylabel("Average afterpulse number")
+    plt.title(pmt_object.get_pmt_id() + " AAN vs exposure time")
+    plt.grid()
+    # plt.ylim(0, 1.5)
+    plt.legend(loc='upper left')
+    plt.savefig(output_directory + "/summary_plots/" +
+                pmt_object.get_pmt_id() + "_aan_vs_time" + name)
+    plt.close()
+
+
+def plot_par_ratio(dates: list, par: list, output_directory: str, name: str):
+    # Plot ratio
+    x_date = []
+    ratio = []
+    ratio_err = []
+    for i in range(len(dates[0])):
+        for j in range(len(dates[1])):
+            if dates[0][i] == dates[1][j]:
+                x_date.append(dates[0][i])
+                if par[1][j] == 0:
+                    pass
+                else:
+                    ratio.append(par[0][i] / par[1][j])
+                break
+
+    x_date = process_date(x_date)
+
+    plt.plot(x_date, ratio, "k.")
+    plt.axvline(98, color="r", ls="--")
+    plt.axvline(0, color="b", ls="--")
+    plt.xlabel("exposure days relative to 06/11/2019")
+    plt.ylabel("Ratio PAR Ch0/Ch1")
+    plt.title("Ratio of PAR vs time")
+    plt.grid()
+    # plt.xlim(np.amin(np.array(x_date)), np.amax(np.array(x_date)))
+    # plt.ylim(0, 2)
+    plt.savefig(output_directory + "/summary_plots/par_ratio_vs_time" + name)
+    plt.close()
+
+
+def plot_aan_ratio(dates: list, aan: list, output_directory: str, name: str):
+    # Plot ratio
+    x_date = []
+    ratio = []
+    ratio_err = []
+    for i in range(len(dates[0])):
+        for j in range(len(dates[1])):
+            if dates[0][i] == dates[1][j]:
+                x_date.append(dates[0][i])
+                if aan[1][j] == 0:
+                    pass
+                else:
+                    ratio.append(aan[0][i] / aan[1][j])
+                break
+
+    x_date = process_date(x_date)
+
+    plt.plot(x_date, ratio, "k.")
+    plt.axvline(98, color="r", ls="--")
+    plt.axvline(0, color="b", ls="--")
+    plt.xlabel("exposure days relative to 06/11/2019")
+    plt.ylabel("Ratio AAN Ch0/Ch1")
+    plt.title("Ratio of AAN vs time")
+    plt.grid()
+    # plt.xlim(np.amin(np.array(x_date)), np.amax(np.array(x_date)))
+    # plt.ylim(0, 2)
+    plt.savefig(output_directory + "/summary_plots/aan_ratio_vs_time" + name)
+    plt.close()
+
+
 def main():
     # Handle the input arguments:
     ##############################
     args = pmt_parse_arguments()
     input_directory = args.i
+    run_id = args.c
     # config_file_name = args.c
     output_directory = args.o
     ##############################
@@ -134,26 +273,20 @@ def main():
         'formats': ['S100']}, unpack=True)
 
     topology = [2, 1]
-    pmt_array = PMT_Array(topology, "summary")
+    pmt_array = PMT_Array(topology, run_id+"summary")
     pmt_array.set_pmt_id("GAO607", 0)
     pmt_array.set_pmt_id("GAO612", 1)
 
-    '''# Set the cuts you wish to apply
-    # If you don't do this the defaults are used
-    if config_file_name is not None:
-        pmt_array.apply_setting(config_file_name)
-        # print_settings(pmt_array)'''
-
     # Set up the containers for the summary
-    apulse_rates = [[] for i in range(pmt_array.get_pmt_total_number())]
-    apulse_rates_err = [[] for i in range(pmt_array.get_pmt_total_number())]
-    he_apulse_rates = [[] for i in range(pmt_array.get_pmt_total_number())]
-    he_apulse_rates_err = [[] for i in range(pmt_array.get_pmt_total_number())]
+    par = [[] for i in range(pmt_array.get_pmt_total_number())]
+    par_err = [[] for i in range(pmt_array.get_pmt_total_number())]
+    par_he = [[] for i in range(pmt_array.get_pmt_total_number())]
+    par_he_err = [[] for i in range(pmt_array.get_pmt_total_number())]
+    aan = [[] for i in range(pmt_array.get_pmt_total_number())]
+    aan_err = [[] for i in range(pmt_array.get_pmt_total_number())]
+    aan_he = [[] for i in range(pmt_array.get_pmt_total_number())]
+    aan_he_err = [[] for i in range(pmt_array.get_pmt_total_number())]
     dates = [[] for i in range(pmt_array.get_pmt_total_number())]
-
-    out_files = [output_directory+'/apulse_num_ch0.txt', output_directory+'/apulse_num_ch1.txt']
-    create_file(out_files[0])
-    create_file(out_files[1])
 
     for i_file in tqdm.tqdm(range(filenames.size)):
         file = filenames[i_file][0].decode("utf-8")
@@ -175,127 +308,38 @@ def main():
             else:
                 continue
 
-            apulse_rate = apulse_info[i_om][0]["apulse_rate"]
-            he_apulse_rate = apulse_info[i_om][0]["he_apulse_rate"]
+            i_par = apulse_info[i_om][0]["par"]
+            i_par_he = apulse_info[i_om][0]["par_he"]
+            i_par_err = apulse_info[i_om][0]["par_err"]
+            i_par_he_err = apulse_info[i_om][0]["par_he_err"]
 
-            apulse_rate_err = apulse_info[i_om][0]["apulse_rate_err"]
-            he_apulse_rate_err = apulse_info[i_om][0]["he_apulse_rate_err"]
+            i_aan = apulse_info[i_om][0]["aan"]
+            i_aan_he = apulse_info[i_om][0]["aan_he"]
+            i_aan_err = apulse_info[i_om][0]["aan_err"]
+            i_aan_he_err = apulse_info[i_om][0]["aan_he_err"]
 
+            par[i_om].append(i_par)
+            par_err[i_om].append(i_par_err/10)
+            par_he[i_om].append(i_par_he)
+            par_he_err[i_om].append(i_par_he_err/10)
+            aan[i_om].append(i_aan)
+            aan_err[i_om].append(i_aan_err)
+            aan_he[i_om].append(i_aan_he)
+            aan_he_err[i_om].append(i_aan_he_err)
 
-            apulse_rates[i_om].append(apulse_rate)
-            apulse_rates_err[i_om].append(apulse_rate_err/10)
-            he_apulse_rates[i_om].append(he_apulse_rate)
-            he_apulse_rates_err[i_om].append(he_apulse_rate_err/10)
             dates[i_om].append(int(date))
 
-            write_to_file(out_files[i_om], '{},{},{},{},{}'.format(date, apulse_rate, apulse_rate_err, he_apulse_rate, he_apulse_rate_err))
-
-    # Plot individual summaries
     for i_om in range(pmt_array.get_pmt_total_number()):
 
-        if len(apulse_rates[i_om]) > 0:
-            pass
-        else:
-            continue
-        date = process_date(dates[i_om])
+        plot_par(dates[i_om], par[i_om], output_directory, pmt_array.get_pmt_object_number(i_om), "_" + run_id)
+        plot_par(dates[i_om], par_he[i_om], output_directory, pmt_array.get_pmt_object_number(i_om), "_he_" + run_id)
+        plot_aan(dates[i_om], aan[i_om], output_directory, pmt_array.get_pmt_object_number(i_om), "_" + run_id)
+        plot_aan(dates[i_om], aan_he[i_om], output_directory, pmt_array.get_pmt_object_number(i_om), "_he_" + run_id)
 
-        try:
-            start = np.where(date == 0)[0][0]
-        except:
-            start = np.where(date == 1)[0][0]
-        mid = np.where(date == 98)[0][0]
-
-        print(date)
-
-        print("start:", start)
-
-        plt.figure(num=None, figsize=(9, 5), dpi=80, facecolor='w', edgecolor='k')
-        plt.errorbar(date[:start + 1], np.array(apulse_rates[i_om][:start + 1]), yerr=np.array(apulse_rates_err[i_om][:start + 1]),
-                 fmt="g.", label="Atmospheric He")
-        plt.errorbar(date[start+1:mid + 1], np.array(apulse_rates[i_om][start+1:mid + 1]), yerr=np.array(apulse_rates_err[i_om][start+1:mid + 1]),
-                 fmt="b.", label="1% He")
-        plt.errorbar(date[mid+1:], np.array(apulse_rates[i_om][mid+1:]), yerr=np.array(apulse_rates_err[i_om][mid+1:]),
-                 fmt="r.", label="10% He")
-        plt.axvline(date[start], 0, 100, ls='--', color='k')
-        plt.axvline(date[mid], 0, 100, ls='--', color='k')
-        plt.xlabel("exposure days relative to 191106")
-        plt.ylabel("Afterpulse rate /%")
-        plt.title(pmt_array.get_pmt_object_number(i_om).get_pmt_id() + " afterpulse rate vs exposure time")
-        plt.grid()
-        plt.ylim(10,90)
-        plt.legend(loc='upper left')
-        plt.savefig(output_directory + "/summary_plots/" +
-                    pmt_array.get_pmt_object_number(i_om).get_pmt_id() + "_apulse_rate_vs_time")
-        plt.close()
-
-        plt.figure(num=None, figsize=(9, 5), dpi=80, facecolor='w', edgecolor='k')
-        plt.errorbar(date[:start + 1], np.array(he_apulse_rates[i_om][:start + 1]), yerr=np.array(he_apulse_rates_err[i_om][:start + 1]),
-                 fmt="g.", label="Atmospheric He")
-        plt.errorbar(date[start + 1:mid + 1], np.array(he_apulse_rates[i_om][start + 1:mid + 1]), yerr=np.array(he_apulse_rates_err[i_om][start + 1:mid + 1]),
-                 fmt="b.", label="1% He")
-        plt.errorbar(date[mid + 1:], np.array(he_apulse_rates[i_om][mid + 1:]), yerr=np.array(he_apulse_rates_err[i_om][mid + 1:]),
-                 fmt="r.", label="10% He")
-        plt.axvline(date[start], 0, 100, ls='--', color='k')
-        plt.axvline(date[mid], 0, 100, ls='--', color='k')
-        plt.xlabel("exposure days relative to 191106")
-        plt.ylabel("Normalised apulse number")
-        plt.title(pmt_array.get_pmt_object_number(i_om).get_pmt_id() + " afterpulse rate vs exposure time")
-        plt.grid()
-        # plt.ylim(150,300)
-        plt.legend(loc='lower right')
-        plt.savefig(output_directory + "/summary_plots/" +
-                    pmt_array.get_pmt_object_number(i_om).get_pmt_id() + "_he_apulse_rate_vs_time")
-        plt.close()
-
-    # Plot ratio
-    x_date = []
-    ratio = []
-    ratio_err = []
-    gain_ratio = []
-    he_ratio = []
-    he_ratio_err = []
-    for i in range(len(dates[0])):
-        for j in range(len(dates[1])):
-            if dates[0][i] == dates[1][j]:
-                x_date.append(dates[0][i])
-
-                if apulse_rates[1][j] == 0:
-                    pass
-                else:
-                    ratio.append(apulse_rates[0][i] / apulse_rates[1][j])
-
-                if he_apulse_rates[1][j] == 0:
-                    pass
-                else:
-                    he_ratio.append(he_apulse_rates[0][i] / he_apulse_rates[1][j])
-
-                break
-
-    x_date = process_date(x_date)
-
-    plt.plot(x_date, ratio, "k.")
-    plt.axvline(98, color="r", ls="--")
-    plt.axvline(0, color="b", ls="--")
-    plt.xlabel("exposure days relative to 191106")
-    plt.ylabel("Ratio apulse rate Ch0/Ch1")
-    plt.title("Ratio of after pulse rates of CH 0 & 1 vs time")
-    plt.grid()
-    #plt.xlim(np.amin(np.array(x_date)), np.amax(np.array(x_date)))
-    #plt.ylim(0, 2)
-    plt.savefig(output_directory + "/summary_plots/apulse_rate_ratio_vs_time")
-    plt.close()
-
-    plt.plot(x_date, he_ratio, "k.")
-    plt.axvline(98, color="r", ls="--")
-    plt.axvline(0, color="b", ls="--")
-    plt.xlabel("exposure days relative to 191106")
-    plt.ylabel("Ratio apulse rate Ch0/Ch1")
-    plt.title("Ratio of after pulse rates of CH 0 & 1 vs time")
-    plt.grid()
-    #plt.xlim(np.amin(np.array(x_date)), np.amax(np.array(x_date)))
-    # plt.ylim(0, 2)
-    plt.savefig(output_directory + "/summary_plots/he_apulse_rate_ratio_vs_time")
-    plt.close()
+    plot_par_ratio(dates, par, output_directory, "_" + run_id)
+    plot_par_ratio(dates, par_he, output_directory, "_he_" + run_id)
+    plot_aan_ratio(dates, aan, output_directory, "_" + run_id)
+    plot_aan_ratio(dates, aan_he, output_directory, "_he_" + run_id)
 
 
 if __name__ == '__main__':

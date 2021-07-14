@@ -188,7 +188,10 @@ def main():
     for i_file in tqdm.tqdm(range(filenames.size)):
         file = filenames[i_file][0].decode("utf-8")
 
-        read_tree(input_directory + "/" + file, pmt_array, output_directory, file.split(".root")[0] + "_output.root")
+        try:
+            read_tree(input_directory + "/" + file, pmt_array, output_directory, file.split(".root")[0] + "_output.root")
+        except:
+            print("error reading file:", input_directory + "/" + file)
 
 
 if __name__ == '__main__':
