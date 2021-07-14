@@ -392,7 +392,8 @@ int main(int argc, char **argv)
 				            {
 				                om_counter[my_class][eventn.side] ++;
 				                matchfilter = sweep(waveform, config_object, my_baseline, template_vectors[eventn.OM_ID]);
-				                if (matchfilter.apulse_num > 0){tree.Fill();}
+				                // if (matchfilter.apulse_num > 0){tree.Fill();}
+						tree.Fill();
 	                        }
 			            }
 	                }
