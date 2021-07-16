@@ -14,15 +14,19 @@ class calorimeter:
         self.nxwall = 128
         self.ngveto = 64
         self.nb_om = 712
+        self.content_err = []
         self.content = []
         self.ombox = []
         self.omid_text_v = []
         self.omnum_text_v = []
+        self.content_err_text_v = []
         self.content_text_v = []
 
         self.draw_omid = False
         self.draw_omnum = False
+        self.draw_content_err = False
         self.draw_content = False
+        self.draw_content_err_format = '± {:.0f}'
         self.draw_content_format = '{:.0f}'
 
         self.has_italy_data = False
@@ -30,6 +34,7 @@ class calorimeter:
 
         for omnum in range(self.nb_om):
             self.content.append(None)
+            self.content_err.append(None)
 
         self.range_min = -1
         self.range_max = -1
@@ -84,6 +89,12 @@ class calorimeter:
                     omnum_text.SetTextAlign(22)
                     self.omnum_text_v.append(omnum_text)
 
+                    content_err_text_string = '±'
+                    content_err_text = ROOT.TText(x1 + 0.5 * mw_sizex, y1 + 0.6 * mw_sizey, content_err_text_string)
+                    content_err_text.SetTextSize(0.014)
+                    content_err_text.SetTextAlign(22)
+                    self.content_err_text_v.append(content_err_text)
+
                     content_text = ROOT.TText(x1 + 0.5 * mw_sizex, y1 + 0.333 * mw_sizey, "")
                     content_text.SetTextSize(0.02)
                     content_text.SetTextAlign(22)
@@ -137,6 +148,12 @@ class calorimeter:
                         omnum_text.SetTextAlign(22)
                         self.omnum_text_v.append(omnum_text)
 
+                        content_err_text_string = '±'
+                        content_err_text = ROOT.TText(x1 + 0.5 * mw_sizex, y1 + 0.6 * mw_sizey, content_err_text_string)
+                        content_err_text.SetTextSize(0.014)
+                        content_err_text.SetTextAlign(22)
+                        self.content_err_text_v.append(content_err_text)
+
                         content_text = ROOT.TText(x1 + 0.5 * xw_sizex, y1 + 0.333 * xw_sizey, "")
                         content_text.SetTextSize(0.02)
                         content_text.SetTextAlign(22)
@@ -181,6 +198,12 @@ class calorimeter:
                     omnum_text.SetTextAlign(22)
                     self.omnum_text_v.append(omnum_text)
 
+                    content_err_text_string = '±'
+                    content_err_text = ROOT.TText(x1 + 0.5 * mw_sizex, y1 + 0.6 * mw_sizey, content_err_text_string)
+                    content_err_text.SetTextSize(0.014)
+                    content_err_text.SetTextAlign(22)
+                    self.content_err_text_v.append(content_err_text)
+
                     content_text = ROOT.TText(x1 + 0.5 * gv_sizex, y1 + 0.333 * gv_sizey, "")
                     content_text.SetTextSize(0.02)
                     content_text.SetTextAlign(22)
@@ -224,6 +247,10 @@ class calorimeter:
     def draw_omnum_label(self):
         self.draw_omnum = True
 
+    def draw_content_err_label(self, string: str):
+        self.draw_content_err_format = string
+        self.draw_content_err = True
+
     def draw_content_label(self, string: str):
         self.draw_content_format = string
         self.draw_content = True
@@ -236,6 +263,13 @@ class calorimeter:
                     ttext = self.content_text_v[omnum]
                     ttext.SetText(ttext.GetX(), ttext.GetY(), self.draw_content_format.format(self.content[omnum]))
 
+        if self.draw_content_err:
+            for omnum in range(self.nb_om):
+                if self.content[omnum] is not None:
+                    ttext = self.content_err_text_v[omnum]
+                    ttext.SetText(ttext.GetX(), ttext.GetY(),
+                                  self.draw_content_err_format.format(self.content_err[omnum]))
+
         '''// // // // // // /
         // Draw IT //
         // // // // // // /'''
@@ -246,39 +280,45 @@ class calorimeter:
         mw_side = 0
         for mw_column in range(20):
             for mw_row in range(13):
-                id = mw_side * 20 * 13 + mw_column * 13 + mw_row
-                self.ombox[id].Draw("l")
+                id_ = mw_side * 20 * 13 + mw_column * 13 + mw_row
+                self.ombox[id_].Draw("l")
                 if self.draw_omid:
-                    self.omid_text_v[id].Draw()
+                    self.omid_text_v[id_].Draw()
                 if self.draw_omnum:
-                    self.omnum_text_v[id].Draw()
-                if self.draw_content and self.content[id] is not None:
-                    self.content_text_v[id].Draw()
+                    self.omnum_text_v[id_].Draw()
+                if self.draw_content_err and self.content_err[id_] is not None:
+                    self.content_err_text_v[id_].Draw()
+                if self.draw_content and self.content[id_] is not None:
+                    self.content_text_v[id_].Draw()
 
         xw_side = 0
         for xw_wall in range(2):
             for xw_column in range(2):
                 for xw_row in range(16):
-                    id = 520 + xw_side * 2 * 2 * 16 + xw_wall * 2 * 16 + xw_column * 16 + xw_row
-                    self.ombox[id].Draw("l")
+                    id_ = 520 + xw_side * 2 * 2 * 16 + xw_wall * 2 * 16 + xw_column * 16 + xw_row
+                    self.ombox[id_].Draw("l")
                     if self.draw_omid:
-                        self.omid_text_v[id].Draw()
+                        self.omid_text_v[id_].Draw()
                     if self.draw_omnum:
-                        self.omnum_text_v[id].Draw()
-                    if self.draw_content and self.content[id] is not None:
-                        self.content_text_v[id].Draw()
+                        self.omnum_text_v[id_].Draw()
+                    if self.draw_content_err and self.content_err[id_] is not None:
+                        self.content_err_text_v[id_].Draw()
+                    if self.draw_content and self.content[id_] is not None:
+                        self.content_text_v[id_].Draw()
 
         gv_side = 0
         for gv_wall in range(2):
             for gv_column in range(16):
-                id = 520 + 128 + gv_side * 2 * 16 + gv_wall * 16 + gv_column
-                self.ombox[id].Draw("l")
+                id_ = 520 + 128 + gv_side * 2 * 16 + gv_wall * 16 + gv_column
+                self.ombox[id_].Draw("l")
                 if self.draw_omid:
-                    self.omid_text_v[id].Draw()
+                    self.omid_text_v[id_].Draw()
                 if self.draw_omnum:
-                    self.omnum_text_v[id].Draw()
-                if self.draw_content and self.content[id] is not None:
-                    self.content_text_v[id].Draw()
+                    self.omnum_text_v[id_].Draw()
+                if self.draw_content_err and self.content_err[id_] is not None:
+                    self.content_err_text_v[id_].Draw()
+                if self.draw_content and self.content[id_] is not None:
+                    self.content_text_v[id_].Draw()
 
         self.it_label.Draw()
         self.canvas_it.SetEditable(False)
@@ -293,39 +333,45 @@ class calorimeter:
         mw_side = 1
         for mw_column in range(20):
             for mw_row in range(13):
-                id = mw_side * 20 * 13 + mw_column * 13 + mw_row
-                self.ombox[id].Draw("l")
+                id_ = mw_side * 20 * 13 + mw_column * 13 + mw_row
+                self.ombox[id_].Draw("l")
                 if self.draw_omid:
-                    self.omid_text_v[id].Draw()
+                    self.omid_text_v[id_].Draw()
                 if self.draw_omnum:
-                    self.omnum_text_v[id].Draw()
-                if self.draw_content and self.content[id] is not None:
-                    self.content_text_v[id].Draw()
+                    self.omnum_text_v[id_].Draw()
+                if self.draw_content_err and self.content_err[id_] is not None:
+                    self.content_err_text_v[id_].Draw()
+                if self.draw_content and self.content[id_] is not None:
+                    self.content_text_v[id_].Draw()
 
         xw_side = 1
         for xw_wall in range(2):
             for xw_column in range(2):
                 for xw_row in range(16):
-                    id = 520 + xw_side * 2 * 2 * 16 + xw_wall * 2 * 16 + xw_column * 16 + xw_row
-                    self.ombox[id].Draw("l")
+                    id_ = 520 + xw_side * 2 * 2 * 16 + xw_wall * 2 * 16 + xw_column * 16 + xw_row
+                    self.ombox[id_].Draw("l")
                     if self.draw_omid:
-                        self.omid_text_v[id].Draw()
+                        self.omid_text_v[id_].Draw()
                     if self.draw_omnum:
-                        self.omnum_text_v[id].Draw()
-                    if self.draw_content and self.content[id] is not None:
-                        self.content_text_v[id].Draw()
+                        self.omnum_text_v[id_].Draw()
+                    if self.draw_content_err and self.content_err[id_] is not None:
+                        self.content_err_text_v[id_].Draw()
+                    if self.draw_content and self.content[id_] is not None:
+                        self.content_text_v[id_].Draw()
 
         gv_side = 1
         for gv_wall in range(2):
             for gv_column in range(16):
-                id = 520 + 128 + gv_side * 2 * 16 + gv_wall * 16 + gv_column
-                self.ombox[id].Draw("l")
+                id_ = 520 + 128 + gv_side * 2 * 16 + gv_wall * 16 + gv_column
+                self.ombox[id_].Draw("l")
                 if self.draw_omid:
-                    self.omid_text_v[id].Draw()
+                    self.omid_text_v[id_].Draw()
                 if self.draw_omnum:
-                    self.omnum_text_v[id].Draw()
-                if self.draw_content and self.content[id] is not None:
-                    self.content_text_v[id].Draw()
+                    self.omnum_text_v[id_].Draw()
+                if self.draw_content_err and self.content_err[id_] is not None:
+                    self.content_err_text_v[id_].Draw()
+                if self.draw_content and self.content[id_] is not None:
+                    self.content_text_v[id_].Draw()
 
         self.fr_label.Draw()
         self.canvas_fr.SetEditable(False)
@@ -361,6 +407,22 @@ class calorimeter:
             self.has_french_data = True
 
         self.content[omnum] = value
+
+    def set_err_content(self, omnum: int, value: float):
+        if 0 <= omnum < 260:
+            self.has_italy_data = True
+        elif omnum < 520:
+            self.has_french_data = True
+        elif omnum < 584:
+            self.has_italy_data = True
+        elif omnum < 648:
+            self.has_french_data = True
+        elif omnum < 680:
+            self.has_italy_data = True
+        elif omnum < 712:
+            self.has_french_data = True
+
+        self.content_err[omnum] = value
 
     def setcontent_(self, om_side: int, om_wall: int, om_column: int, om_row: int, value: float):
         omnum = -1

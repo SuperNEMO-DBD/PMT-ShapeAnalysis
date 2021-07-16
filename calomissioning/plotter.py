@@ -180,12 +180,30 @@ def get_templates(root_file: str, comparison: int):
 
 
 def draw_AAN(apulse_nums: list, run_num: str):
+    tot_5_canvas = ROOT.TCanvas()
+    tot_8_canvas = ROOT.TCanvas()
+    tot_5_hist = ROOT.TH1D("5inch_PMTs", "5inch_PMTs", 40, 0, 20)
+    tot_8_hist = ROOT.TH1D("8inch_PMTs", "8inch_PMTs", 40, 0, 2)
+
+    tot_5_canvas_it = ROOT.TCanvas()
+    tot_8_canvas_it = ROOT.TCanvas()
+    tot_5_hist_it = ROOT.TH1D("5inch_PMTs_it", "5inch_PMTs_it", 20, 0, 20)
+    tot_8_hist_it = ROOT.TH1D("8inch_PMTs_it", "8inch_PMTs_it", 20, 0, 2)
+
+    tot_5_canvas_fr = ROOT.TCanvas()
+    tot_8_canvas_fr = ROOT.TCanvas()
+    tot_5_hist_fr = ROOT.TH1D("5inch_PMTs_fr", "5inch_PMTs_fr", 20, 0, 20)
+    tot_8_hist_fr = ROOT.TH1D("8inch_PMTs_fr", "8inch_PMTs_fr", 20, 0, 2)
 
     for itype in ['5', '8', 'All']:
         sncalo = calorimeter(itype + "_aan_" + run_num)
-        sncalo.draw_omid_label()
+        # sncalo.draw_omid_label()
         sncalo.draw_content_label('{:.3f}')
+        sncalo.draw_content_err_label('± {:.3f}')
 
+        all_temp = []
+        fr_temp = []
+        it_temp = []
         for i in range(len(apulse_nums)):
             pmt_type = get_pmt_type(i)
             if itype == 'All':
@@ -194,15 +212,103 @@ def draw_AAN(apulse_nums: list, run_num: str):
                     continue
                 else:
                     sncalo.setcontent(i, aan)
+                    sncalo.set_err_content(i, np.sqrt(len(apulse_nums[i])))
+                    all_temp.append(aan)
+                    if get_pmt_wall(om_id_string(i)) == 1:
+                        fr_temp.append(aan)
+                    else:
+                        it_temp.append(aan)
             elif pmt_type == int(itype):
                 aan = float(np.average(apulse_nums[i]))
                 if str(aan) == 'nan':
                     continue
                 else:
                     sncalo.setcontent(i, aan)
+                    sncalo.set_err_content(i, np.sqrt(len(apulse_nums[i])))
+                    all_temp.append(aan)
+                    if get_pmt_wall(om_id_string(i)) == 1:
+                        fr_temp.append(aan)
+                    else:
+                        it_temp.append(aan)
 
+                    if pmt_type == 5:
+                        tot_5_hist.Fill(aan)
+                        if get_pmt_wall(om_id_string(i)) == 1:
+                            tot_5_hist_fr.Fill(aan)
+                        else:
+                            tot_5_hist_it.Fill(aan)
+                    else:
+                        tot_8_hist.Fill(aan)
+                        if get_pmt_wall(om_id_string(i)) == 1:
+                            tot_8_hist_fr.Fill(aan)
+                        else:
+                            tot_8_hist_it.Fill(aan)
+
+        print(itype, 'tot average val:', np.average(np.array(all_temp)))
+        print(itype, 'fr average val:', np.average(np.array(fr_temp)))
+        print(itype, 'it average val:', np.average(np.array(it_temp)))
         sncalo.draw()
         sncalo.save("plots")
+
+    tot_5_canvas.cd()
+    tot_5_hist.SetXTitle("aan")
+    tot_5_hist.SetFillColor(2)
+    tot_5_hist.SetTitle("AAN 5in")
+    tot_5_hist.Draw("HIST")
+    tot_5_canvas.SetGrid()
+    tot_5_canvas.SaveAs(f"plots/h_aan_5tot_run{run_num}.png")
+    del tot_5_hist
+    del tot_5_canvas
+
+    tot_8_canvas.cd()
+    tot_8_hist.SetXTitle("aan")
+    tot_8_hist.SetFillColor(2)
+    tot_8_hist.SetTitle("AAN 8in")
+    tot_8_hist.Draw("HIST")
+    tot_8_canvas.SetGrid()
+    tot_8_canvas.SaveAs(f"plots/h_aan_8tot_run{run_num}.png")
+    del tot_8_hist
+    del tot_8_canvas
+
+    tot_5_canvas_it.cd()
+    tot_5_hist_it.SetXTitle("aan")
+    tot_5_hist_it.SetFillColor(2)
+    tot_5_hist_it.SetTitle("AAN 5in")
+    tot_5_hist_it.Draw("HIST")
+    tot_5_canvas_it.SetGrid()
+    tot_5_canvas_it.SaveAs(f"plots/h_aan_5tot_it_run{run_num}.png")
+    del tot_5_hist_it
+    del tot_5_canvas_it
+
+    tot_8_canvas_it.cd()
+    tot_8_hist_it.SetXTitle("aan")
+    tot_8_hist_it.SetFillColor(2)
+    tot_8_hist_it.SetTitle("AAN 8in")
+    tot_8_hist_it.Draw("HIST")
+    tot_8_canvas_it.SetGrid()
+    tot_8_canvas_it.SaveAs(f"plots/h_aan_8tot_it_run{run_num}.png")
+    del tot_8_hist_it
+    del tot_8_canvas_it
+
+    tot_5_canvas_fr.cd()
+    tot_5_hist_fr.SetXTitle("aan")
+    tot_5_hist_fr.SetFillColor(2)
+    tot_5_hist_fr.SetTitle("AAN 5in")
+    tot_5_hist_fr.Draw("HIST")
+    tot_5_canvas_fr.SetGrid()
+    tot_5_canvas_fr.SaveAs(f"plots/h_aan_5tot_fr_run{run_num}.png")
+    del tot_5_hist_fr
+    del tot_5_canvas_fr
+
+    tot_8_canvas_fr.cd()
+    tot_8_hist_fr.SetXTitle("aan")
+    tot_8_hist_fr.SetFillColor(2)
+    tot_8_hist_fr.SetTitle("AAN 8in")
+    tot_8_hist_fr.Draw("HIST")
+    tot_8_canvas_fr.SetGrid()
+    tot_8_canvas_fr.SaveAs(f"plots/h_aan_8tot_fr_run{run_num}.png")
+    del tot_8_hist_fr
+    del tot_8_canvas_fr
 
 
 def draw_HVs(hvs: list):
@@ -218,11 +324,28 @@ def draw_HVs(hvs: list):
     sncalo.save("plots")
 
 
+def draw_gains(gains: list):
+    sncalo = calorimeter("gains")
+    sncalo.draw_omid_label()
+    sncalo.draw_content_label('{:.3f}')
+
+    for i in range(len(gains)):
+        if gains[i] != -1:
+            sncalo.setcontent(i, gains[i]/1000000)
+
+    sncalo.draw()
+    sncalo.save("plots")
+
+
 def draw_PAR(apulse_nums: list, run_num: str):
     for itype in ['5', '8', 'All']:
         sncalo = calorimeter(itype + "_par_" + run_num)
         sncalo.draw_omid_label()
         sncalo.draw_content_label('{:.3f}')
+
+        all_temp = []
+        fr_temp = []
+        it_temp = []
 
         for i in range(len(apulse_nums)):
             pmt_type = get_pmt_type(i)
@@ -232,12 +355,25 @@ def draw_PAR(apulse_nums: list, run_num: str):
                 else:
                     par = float(len(np.where(np.array(apulse_nums[i]) > 0)[0]) / len(apulse_nums[i]) * 100)
                     sncalo.setcontent(i, par)
+                    all_temp.append(par)
+                    if get_pmt_wall(om_id_string(i)) == 1:
+                        fr_temp.append(par)
+                    else:
+                        it_temp.append(par)
             elif pmt_type == int(itype):
                 if len(apulse_nums[i]) == 0:
                     continue
                 else:
                     par = float(len(np.where(np.array(apulse_nums[i]) > 0)[0]) / len(apulse_nums[i]) * 100)
                     sncalo.setcontent(i, par)
+                    all_temp.append(par)
+                    if get_pmt_wall(om_id_string(i)) == 1:
+                        fr_temp.append(par)
+                    else:
+                        it_temp.append(par)
+        print(itype, 'tot average val:', np.average(np.array(all_temp)))
+        print(itype, 'fr average val:', np.average(np.array(fr_temp)))
+        print(itype, 'it average val:', np.average(np.array(it_temp)))
 
         sncalo.draw()
         sncalo.save("plots")
@@ -315,6 +451,14 @@ def get_pmt_type(omnum: id):
     return pmt_type
 
 
+def get_pmt_wall(id_: str):
+    strip = id_.split(":")
+    strip_0 = strip[1].split(".")
+    wall = int(strip_0[0])
+
+    return wall
+
+
 def id_om_string(id_: str):
     om = 0
     strip = id_.split(":")
@@ -358,7 +502,7 @@ def draw_charges(charges: list, run_num):
         canvas = ROOT.TCanvas()
         hist = ROOT.TH1D(f"{om_id_string(i)}", f"{om_id_string(i)}", 40, 0, 1000)
         for j in range(len(charges[i])):
-            hist.Fill(charges[i][j])
+            hist.Fill(charges[i][j]/0.64)
         if hist.GetEntries() == 0:
             continue
         hist.SetXTitle("charge /pC")
@@ -368,6 +512,63 @@ def draw_charges(charges: list, run_num):
         canvas.SaveAs(f"plots/charge_run{run_num}_ch{i}.png")
         del hist
         del canvas
+
+
+def draw_baselines(baselines: list, run_num):
+    for i in range(len(baselines)):
+        if len(baselines[i]) == 0:
+            continue
+        canvas = ROOT.TCanvas()
+        hist = ROOT.TH1D(f"{om_id_string(i)}", f"{om_id_string(i)}", 40, 3540, 3550)
+        for j in range(len(baselines[i])):
+            hist.Fill(baselines[i][j])
+        if hist.GetEntries() == 0:
+            continue
+        hist.SetXTitle("baseline /mV")
+        hist.SetFillColor(2)
+        hist.Draw("HIST")
+        canvas.SetGrid()
+        canvas.SaveAs(f"plots/baseline_run{run_num}_ch{i}.png")
+        del hist
+        del canvas
+
+
+def draw_baselines_tots(baselines: list, run_num: str):
+    ROOT.gStyle.SetOptStat(0)
+    tot_5_canvas = ROOT.TCanvas()
+    tot_8_canvas = ROOT.TCanvas()
+    tot_5_hist = ROOT.TH1D("5inch_PMTs", "5inch_PMTs", 40, 3500, 3600)
+    tot_8_hist = ROOT.TH1D("8inch_PMTs", "8inch_PMTs", 40, 3500, 3600)
+
+    for i in range(len(baselines)):
+        if len(baselines[i]) == 0:
+            continue
+        # print(np.average(np.array(baselines[i])))
+        pmt_type = get_pmt_type(i)
+        if pmt_type == 5:
+            tot_5_hist.Fill(np.average(np.array(baselines[i])))
+        else:
+            tot_8_hist.Fill(np.average(np.array(baselines[i])))
+
+    tot_5_canvas.cd()
+    tot_5_hist.SetXTitle("baseline /mV")
+    tot_5_hist.SetFillColor(2)
+    tot_5_hist.SetTitle("Baseline 5in")
+    tot_5_hist.Draw("HIST")
+    tot_5_canvas.SetGrid()
+    tot_5_canvas.SaveAs(f"plots/h_baseline_5tot_run{run_num}.png")
+    del tot_5_hist
+    del tot_5_canvas
+
+    tot_8_canvas.cd()
+    tot_8_hist.SetXTitle("baseline /mV")
+    tot_8_hist.SetFillColor(2)
+    tot_8_hist.SetTitle("Baseline 8in")
+    tot_8_hist.Draw("HIST")
+    tot_8_canvas.SetGrid()
+    tot_8_canvas.SaveAs(f"plots/h_baseline_8tot_run{run_num}.png")
+    del tot_8_hist
+    del tot_8_canvas
 
 
 def draw_HV_ATD(hvs: list, apulse_times: list, run_num: str):
@@ -503,7 +704,7 @@ def draw_charge_apulse(charges: list, apulse_nums: list, run_num: str):
 def draw_npe_apulse(charges: list, apulse_nums: list, gains: list, run_num: str):
     ROOT.gStyle.SetOptStat(0)
     for i in range(len(charges)):
-        if gains[i] == -1.:
+        if gains[i] == -1:
             continue
         if len(charges[i]) == 0:
             continue
@@ -538,11 +739,14 @@ def get_gain(filename: str):
         line_list = line.split("\t")
         om = int(line_list[0])
         val = float(line_list[-1].strip())
-        if val == -1.0:
+        if val < 0:
             gain[om] = -1
         else:
             ne = (1/val) * 1E4 / 1.602
-            npe = (1/0.08388)**2
+            if get_pmt_type(om) == 5:
+                npe = (2.355 / 0.11) ** 2
+            else:
+                npe = (2.355 / 0.08388) ** 2
             gain[om] = ne/npe
 
     return gain
@@ -552,11 +756,11 @@ def draw_npe_apulse_tots(charges: list, apulse_nums: list, gains: list, run_num:
     ROOT.gStyle.SetOptStat(0)
     tot_5_canvas = ROOT.TCanvas()
     tot_8_canvas = ROOT.TCanvas()
-    tot_5_hist = ROOT.TH2D("5inch_PMTs", "5inch_PMTs", 40, 0, 2000, 10, 0, 10)
-    tot_8_hist = ROOT.TH2D("8inch_PMTs", "8inch_PMTs", 40, 0, 2000, 10, 0, 10)
+    tot_5_hist = ROOT.TH2D("5inch_PMTs", "5inch_PMTs", 40, 0, 8000, 20, 0, 20)
+    tot_8_hist = ROOT.TH2D("8inch_PMTs", "8inch_PMTs", 40, 0, 8000, 10, 0, 10)
     
     for i in range(len(charges)):
-        if gains[i] == -1.:
+        if gains[i] == -1. or gains[i] == 0:
             continue
         
         pmt_type = get_pmt_type(i)
@@ -565,13 +769,15 @@ def draw_npe_apulse_tots(charges: list, apulse_nums: list, gains: list, run_num:
                 charge = (charges[i][j]/0.64)  # in pC
                 ne = charge / 1.602E-7
                 npe = ne/gains[i]
-                tot_5_hist.Fill(npe, apulse_nums[i][j])
+                if apulse_nums[i][j] >= 0:
+                    tot_5_hist.Fill(npe, apulse_nums[i][j])
         else:
             for j in range(len(charges[i])):
                 charge = (charges[i][j]/0.64)  # in pC
                 ne = charge / 1.602E-7
                 npe = ne/gains[i]
-                tot_8_hist.Fill(npe, apulse_nums[i][j])
+                if apulse_nums[i][j] >= 0:
+                    tot_8_hist.Fill(npe, apulse_nums[i][j])
 
     tot_5_canvas.cd()
     tot_5_hist.Scale(1.0 / tot_5_hist.GetEntries())
@@ -612,17 +818,20 @@ def main():
     print(">>> input file: ", input_file)
 
     # templates, comparison_template = get_templates(template_file, comparison=1)
+    # draw_template(1, om_id_string(1), comparison_template)
     # draw_template_quality(comparison_template, templates)
 
     # om_hvs = load_HV("/Users/willquinn/Desktop/SNEMO/calorimeter_equalized_04Mar2020.txt")
     # draw_HVs(om_hvs)
 
-    gains = get_gain("gains.txt")
+    gains = get_gain("/Users/williamquinn/Desktop/SNEMO/gains.txt")
+    # draw_gains(gains)
 
     root_file = ROOT.TFile(input_file, "READ")
     tree = root_file.T
 
     charges = [[] for i in range(712)]
+    baselines = [[] for i in range(712)]
     apulse_nums = [[] for i in range(712)]
     apulse_times = [[] for i in range(712)]
     apulse_amplitudes = [[] for i in range(712)]
@@ -630,9 +839,12 @@ def main():
 
     i_event = 0
     for event in tree:
-        # baseline = event.baseline
+        baseline = event.baseline
         # waveform = np.array(event.waveform)
+        # plt.plot(waveform)
+        # plt.show()
         OM_ID = event.OM_ID
+        baselines[OM_ID].append(baseline)
 
         n_events[OM_ID] += 1
 
@@ -668,16 +880,18 @@ def main():
         if not i_event % 100000:
             print(f">>> processed {i_event}/{tree.GetEntries()}")
 
-    # draw_AAN(apulse_nums, run_num)
+    draw_AAN(apulse_nums, run_num)
     # draw_PAR(apulse_nums, run_num)
     # draw_ATD(apulse_times, run_num)
     # draw_AAD(apulse_amplitudes, run_num)
     # draw_event_map(n_events, run_num)
     # draw_HV_ATD(om_hvs, apulse_times, run_num)
     # draw_charges(charges, run_num)
+    # draw_baselines(baselines, run_num)
+    # draw_baselines_tots(baselines, run_num)
     # draw_charge_apulse(charges, apulse_nums, run_num)
     # draw_npe_apulse(charges, apulse_nums, gains, run_num)
-    draw_npe_apulse_tots(charges, apulse_nums, gains, run_num)
+    # draw_npe_apulse_tots(charges, apulse_nums, gains, run_num)
 
     root_file.Close()
 

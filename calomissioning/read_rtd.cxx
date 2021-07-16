@@ -36,7 +36,7 @@
 
 typedef struct {
     Int_t OM_ID, side, wall, col, row;
-    Double_t charge, baseline, amplitude;
+    Double_t charge, baseline, amplitude, raw_charge;
     bool is_main, is_xwall, is_gveto, is_fr, is_it;
 } EVENTN;
 
@@ -232,6 +232,7 @@ int main(int argc, char **argv)
         tree.Branch("event_num",&event_num);
         tree.Branch("OM_ID",&eventn.OM_ID);
         tree.Branch("charge",&eventn.charge);
+        tree.Branch("raw_charge",&eventn.charge);
         tree.Branch("baseline",&eventn.baseline);
         tree.Branch("amplitude",&eventn.amplitude);
         tree.Branch("is_gveto",&eventn.is_gveto);
@@ -373,7 +374,8 @@ int main(int argc, char **argv)
 
 	                    eventn.amplitude       = my_amplitude;
 	                    eventn.baseline        = my_baseline;
-	                    eventn.charge          = get_my_charge( config_object, waveform, my_baseline );
+	                    eventn.raw_charge      = get_my_charge( config_object, waveform, my_baseline );
+	                    eventn.charge          = (Double_t)ch_charge;
 
 	                    if ( do_template )
 	                    {
