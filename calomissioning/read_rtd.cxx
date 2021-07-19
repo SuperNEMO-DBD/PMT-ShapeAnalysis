@@ -232,7 +232,7 @@ int main(int argc, char **argv)
         tree.Branch("event_num",&event_num);
         tree.Branch("OM_ID",&eventn.OM_ID);
         tree.Branch("charge",&eventn.charge);
-        tree.Branch("raw_charge",&eventn.charge);
+        tree.Branch("raw_charge",&eventn.raw_charge);
         tree.Branch("baseline",&eventn.baseline);
         tree.Branch("amplitude",&eventn.amplitude);
         tree.Branch("is_gveto",&eventn.is_gveto);
