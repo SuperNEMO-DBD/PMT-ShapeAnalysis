@@ -36,7 +36,7 @@
 
 typedef struct {
     Int_t OM_ID, side, wall, col, row;
-    Double_t charge, baseline, amplitude, raw_charge;
+    Double_t charge, baseline, amplitude, raw_charge, raw_amplitude;
     bool is_main, is_xwall, is_gveto, is_fr, is_it;
 } EVENTN;
 
@@ -235,6 +235,7 @@ int main(int argc, char **argv)
         tree.Branch("raw_charge",&eventn.raw_charge);
         tree.Branch("baseline",&eventn.baseline);
         tree.Branch("amplitude",&eventn.amplitude);
+        tree.Branch("raw_amplitude",&eventn.raw_amplitude);
         tree.Branch("is_gveto",&eventn.is_gveto);
         tree.Branch("is_main",&eventn.is_main);
         tree.Branch("is_xwall",&eventn.is_xwall);
@@ -372,7 +373,8 @@ int main(int argc, char **argv)
 	                    Double_t my_baseline    = get_baseline( waveform , config_object);
 	                    Double_t my_amplitude   = get_amplitude( waveform ) - my_baseline;
 
-	                    eventn.amplitude       = my_amplitude;
+	                    eventn.raw_amplitude   = my_amplitude;
+	                    eventn.amplitude       = (Double_t)ch_peak;
 	                    eventn.baseline        = my_baseline;
 	                    eventn.raw_charge      = get_my_charge( config_object, waveform, my_baseline );
 	                    eventn.charge          = (Double_t)ch_charge;
@@ -390,7 +392,7 @@ int main(int argc, char **argv)
 	                                config_object );
 	                        average_counter[eventn.OM_ID]++;
 	                    }else{
-	                        if ( my_amplitude < -50 )
+	                        if ( my_amplitude < 0 )
 				            {
 				                om_counter[my_class][eventn.side] ++;
 				                matchfilter = sweep(waveform, config_object, my_baseline, template_vectors[eventn.OM_ID]);

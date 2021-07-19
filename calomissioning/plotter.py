@@ -495,7 +495,7 @@ def load_HV(input_file: str):
     return hvs
 
 
-def draw_charges(charges: list, run_num):
+def draw_raw_charges(charges: list, run_num):
     for i in range(len(charges)):
         if len(charges[i]) == 0:
             continue
@@ -503,6 +503,25 @@ def draw_charges(charges: list, run_num):
         hist = ROOT.TH1D(f"{om_id_string(i)}", f"{om_id_string(i)}", 40, 0, 1000)
         for j in range(len(charges[i])):
             hist.Fill(charges[i][j]/0.64)
+        if hist.GetEntries() == 0:
+            continue
+        hist.SetXTitle("charge /pC")
+        hist.SetFillColor(2)
+        hist.Draw("HIST")
+        canvas.SetGrid()
+        canvas.SaveAs(f"plots/raw_charge_run{run_num}_ch{i}.png")
+        del hist
+        del canvas
+
+
+def draw_charges(charges: list, run_num):
+    for i in range(len(charges)):
+        if len(charges[i]) == 0:
+            continue
+        canvas = ROOT.TCanvas()
+        hist = ROOT.TH1D(f"{om_id_string(i)}", f"{om_id_string(i)}", 40, 0, 100)
+        for j in range(len(charges[i])):
+            hist.Fill(charges[i][j]/1000)  # convert to pC
         if hist.GetEntries() == 0:
             continue
         hist.SetXTitle("charge /pC")
@@ -830,6 +849,7 @@ def main():
     root_file = ROOT.TFile(input_file, "READ")
     tree = root_file.T
 
+    raw_charges = [[] for i in range(712)]
     charges = [[] for i in range(712)]
     baselines = [[] for i in range(712)]
     apulse_nums = [[] for i in range(712)]
@@ -849,6 +869,7 @@ def main():
         n_events[OM_ID] += 1
 
         #print(-event.charge)
+        raw_charges[OM_ID].append(-event.raw_charge)
         charges[OM_ID].append(-event.charge)
 
         '''if -event.charge > 1000:
@@ -880,13 +901,14 @@ def main():
         if not i_event % 100000:
             print(f">>> processed {i_event}/{tree.GetEntries()}")
 
-    draw_AAN(apulse_nums, run_num)
+    # draw_AAN(apulse_nums, run_num)
     # draw_PAR(apulse_nums, run_num)
     # draw_ATD(apulse_times, run_num)
     # draw_AAD(apulse_amplitudes, run_num)
     # draw_event_map(n_events, run_num)
     # draw_HV_ATD(om_hvs, apulse_times, run_num)
-    # draw_charges(charges, run_num)
+    # draw_raw_charges(raw_charges, run_num)
+    draw_charges(charges, run_num)
     # draw_baselines(baselines, run_num)
     # draw_baselines_tots(baselines, run_num)
     # draw_charge_apulse(charges, apulse_nums, run_num)
