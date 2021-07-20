@@ -533,6 +533,44 @@ def draw_charges(charges: list, run_num):
         del canvas
 
 
+def draw_amplitudes(amps: list, run_num):
+    for i in range(len(amps)):
+        if len(amps[i]) == 0:
+            continue
+        canvas = ROOT.TCanvas()
+        hist = ROOT.TH1D(f"{om_id_string(i)}", f"{om_id_string(i)}", 40, 0, 1000)
+        for j in range(len(amps[i])):
+            hist.Fill(amps[i][j])  # convert to pC
+        if hist.GetEntries() == 0:
+            continue
+        hist.SetXTitle("amplitude /mV")
+        hist.SetFillColor(2)
+        hist.Draw("HIST")
+        canvas.SetGrid()
+        canvas.SaveAs(f"plots/amplitude_run{run_num}_ch{i}.png")
+        del hist
+        del canvas
+
+
+def draw_raw_amplitudes(amps: list, run_num):
+    for i in range(len(amps)):
+        if len(amps[i]) == 0:
+            continue
+        canvas = ROOT.TCanvas()
+        hist = ROOT.TH1D(f"{om_id_string(i)}", f"{om_id_string(i)}", 40, 0, 4096)
+        for j in range(len(amps[i])):
+            hist.Fill(amps[i][j])  # convert to pC
+        if hist.GetEntries() == 0:
+            continue
+        hist.SetXTitle("amplitude /mV")
+        hist.SetFillColor(2)
+        hist.Draw("HIST")
+        canvas.SetGrid()
+        canvas.SaveAs(f"plots/raw_amplitude_run{run_num}_ch{i}.png")
+        del hist
+        del canvas
+
+
 def draw_baselines(baselines: list, run_num):
     for i in range(len(baselines)):
         if len(baselines[i]) == 0:
@@ -850,6 +888,8 @@ def main():
     tree = root_file.T
 
     raw_charges = [[] for i in range(712)]
+    amplitudes = [[] for i in range(712)]
+    raw_amplitudes = [[] for i in range(712)]
     charges = [[] for i in range(712)]
     baselines = [[] for i in range(712)]
     apulse_nums = [[] for i in range(712)]
@@ -871,6 +911,8 @@ def main():
         #print(-event.charge)
         raw_charges[OM_ID].append(-event.raw_charge)
         charges[OM_ID].append(-event.charge)
+        amplitudes[OM_ID].append(-event.amplitude)
+        raw_amplitudes[OM_ID].append(-event.raw_amplitude)
 
         '''if -event.charge > 1000:
             plot_waveform(waveform, baseline, OM_ID)
@@ -908,12 +950,14 @@ def main():
     # draw_event_map(n_events, run_num)
     # draw_HV_ATD(om_hvs, apulse_times, run_num)
     # draw_raw_charges(raw_charges, run_num)
-    draw_charges(charges, run_num)
+    # draw_charges(charges, run_num)
+    # draw_amplitudes(amplitudes, run_num)
+    # draw_raw_amplitudes(raw_amplitudes, run_num)
     # draw_baselines(baselines, run_num)
     # draw_baselines_tots(baselines, run_num)
     # draw_charge_apulse(charges, apulse_nums, run_num)
     # draw_npe_apulse(charges, apulse_nums, gains, run_num)
-    # draw_npe_apulse_tots(charges, apulse_nums, gains, run_num)
+    draw_npe_apulse_tots(charges, apulse_nums, gains, run_num)
 
     root_file.Close()
 

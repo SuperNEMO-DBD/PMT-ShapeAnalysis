@@ -36,7 +36,7 @@
 
 typedef struct {
     Int_t OM_ID, side, wall, col, row;
-    Double_t charge, baseline, amplitude, raw_charge, raw_amplitude;
+    Double_t charge, baseline, amplitude, raw_charge, raw_amplitude, raw_baseline;
     bool is_main, is_xwall, is_gveto, is_fr, is_it;
 } EVENTN;
 
@@ -92,19 +92,19 @@ bool debug = true;
 
 void usage()
 {
-    std::clog<<std::endl;
-    std::clog<<"+--------------------------------------------------+"<<std::endl;
-    std::clog<<"| SuperNEMO calorimeter commissioning tutorial lv0 |"<<std::endl;
-    std::clog<<"+--------------------------------------------------+"<<std::endl;
+    std::cout<<std::endl;
+    std::cout<<"+--------------------------------------------------+"<<std::endl;
+    std::cout<<"| SuperNEMO calorimeter commissioning tutorial lv0 |"<<std::endl;
+    std::cout<<"+--------------------------------------------------+"<<std::endl;
 
-    std::clog<<">>> How to use: "<<std::endl;
-    std::clog<<">>> -help "<<std::endl;
-    std::clog<<">>> -i  -  std::string /input/file/path/.gz "<<std::endl;
-    std::clog<<">>> -o  -  std::string /output/file/path/.root "<<std::endl;
-    std::clog<<">>> -t  -  BOOL create template, def:false "<<std::endl;
-    //std::clog<<">>> -OM -  INT def: 1000 (no plots), chosen OM to plot examples "<<std::endl;
-    //std::clog<<">>> -W  -  BOOL analyse waveforms def:false "<<std::endl;
-    std::clog<<std::endl;
+    std::cout<<">>> How to use: "<<std::endl;
+    std::cout<<">>> -help "<<std::endl;
+    std::cout<<">>> -i  -  std::string /input/file/path/.gz "<<std::endl;
+    std::cout<<">>> -o  -  std::string /output/file/path/.root "<<std::endl;
+    std::cout<<">>> -t  -  BOOL create template, def:false "<<std::endl;
+    //std::cout<<">>> -OM -  INT def: 1000 (no plots), chosen OM to plot examples "<<std::endl;
+    //std::cout<<">>> -W  -  BOOL analyse waveforms def:false "<<std::endl;
+    std::cout<<std::endl;
 }
 
 // Main program
@@ -154,11 +154,11 @@ int main(int argc, char **argv)
     
         if (input_file_name.length() < 1)
         {
-	        std::clog<<"Invalid input file"<<std::endl;
+	        std::cout<<"Invalid input file"<<std::endl;
 	        return 0;
         }
 
-        std::clog<<"Input file name : "<<input_file_name<<std::endl;
+        std::cout<<"Input file name : "<<input_file_name<<std::endl;
 
         // std::vector<Double_t> energy_coefs = read_energy_coef("/sps/nemo/scratch/wquinn/PMT-ShapeAnalysis/calomissioning/energy_coefs.csv");
 
@@ -184,6 +184,23 @@ int main(int argc, char **argv)
 
         // Read the config file and store the variables in the CONF object
         CONF config_object = read_config( "/sps/nemo/scratch/wquinn/PMT-ShapeAnalysis/config_files/snemo_calo.conf" );
+        const double tdc2ns = snfee::model::feb_constants::SAMLONG_DEFAULT_TDC_LSB_NS;
+        const double adc2mv = snfee::model::feb_constants::SAMLONG_ADC_VOLTAGE_LSB_MV;
+
+        std::cout<<"Settings:"          <<std::endl;
+        std::cout<<"tdc2ns: "           <<tdc2ns<<std::endl;
+        std::cout<<"adc2mv: "           <<adc2mv<<std::endl;
+        std::cout<<"sweep_start: "      <<conf_object.sweep_start<<std::endl;
+        std::cout<<"pre_trigger: "      <<conf_object.pre_trigger<<std::endl;
+        std::cout<<"trigger: "          <<conf_object.trigger<<std::endl;
+        std::cout<<"trig_tolerance: "   <<conf_object.trig_tolerance<<std::endl;
+        std::cout<<"apulse_time_cut: "  <<conf_object.apulse_time_cut<<std::endl;
+        std::cout<<"shape_cut: "        <<conf_object.shape_cut<<std::endl;
+        std::cout<<"amp_cut: "          <<conf_object.amp_cut<<std::endl;
+        std::cout<<"charge_cut: "       <<conf_object.charge_cut<<std::endl;
+        std::cout<<"resistance: "       <<conf_object.resistance<<std::endl;
+        std::cout<<"integration: "      <<conf_object.integration[0]<<"-"<<integration[1]<<std::endl;
+        std::cout<<"template_file: "    <<conf_object.template_file<<std::endl;
 
         // Initialise template vectors container
         // If you are creating them, set the vectors to be of the size in TEMP_INFO of ZEROS
@@ -234,6 +251,7 @@ int main(int argc, char **argv)
         tree.Branch("charge",&eventn.charge);
         tree.Branch("raw_charge",&eventn.raw_charge);
         tree.Branch("baseline",&eventn.baseline);
+        tree.Branch("raw_baseline",&eventn.raw_baseline);
         tree.Branch("amplitude",&eventn.amplitude);
         tree.Branch("raw_amplitude",&eventn.raw_amplitude);
         tree.Branch("is_gveto",&eventn.is_gveto);
@@ -277,7 +295,7 @@ int main(int argc, char **argv)
             int32_t trigger_id = rtd.get_trigger_id();
             int32_t run_id     = rtd.get_run_id();
       
-            if(rtd_counter %10000 == 0 )std::clog<<"In Run : "<<run_id<<" Trigger # "<<trigger_id <<std::endl;
+            if(rtd_counter %10000 == 0 )std::cout<<"In Run : "<<run_id<<" Trigger # "<<trigger_id <<std::endl;
       
             std::size_t calo_counter = 0;
             // Loop on calo hit records in the RTD data object:
@@ -374,10 +392,11 @@ int main(int argc, char **argv)
 	                    Double_t my_amplitude   = get_amplitude( waveform ) - my_baseline;
 
 	                    eventn.raw_amplitude   = my_amplitude;
-	                    eventn.amplitude       = (Double_t)ch_peak;
-	                    eventn.baseline        = my_baseline;
+	                    eventn.amplitude       = (Double_t)ch_peak * adc2mv / 8.0;
+	                    eventn.baseline        = (Double_t)ch_baseline * adc2mv / 16.0;
+	                    eventn.raw_baseline    = my_baseline;
 	                    eventn.raw_charge      = get_my_charge( config_object, waveform, my_baseline );
-	                    eventn.charge          = (Double_t)ch_charge;
+	                    eventn.charge          = 0.001 * (Double_t)ch_charge * adc2mv * tdc2ns / conf_object.resistance;
 
 	                    if ( do_template )
 	                    {
@@ -408,7 +427,7 @@ int main(int argc, char **argv)
                 om_counter[1][1] >= n_stop && om_counter[2][0] >= n_stop && om_counter[2][1] >= n_stop){ break; }
         }   //end of file
     
-        std::clog<<"Events processed : " << rtd_counter<< " entries" << std::endl;
+        std::cout<<"Events processed : " << rtd_counter<< " entries" << std::endl;
         output_file->cd();
         output_file->Write();
         output_file->Close();
