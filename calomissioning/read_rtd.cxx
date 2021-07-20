@@ -190,17 +190,17 @@ int main(int argc, char **argv)
         std::cout<<"Settings:"          <<std::endl;
         std::cout<<"tdc2ns: "           <<tdc2ns<<std::endl;
         std::cout<<"adc2mv: "           <<adc2mv<<std::endl;
-        std::cout<<"sweep_start: "      <<conf_object.sweep_start<<std::endl;
-        std::cout<<"pre_trigger: "      <<conf_object.pre_trigger<<std::endl;
-        std::cout<<"trigger: "          <<conf_object.trigger<<std::endl;
-        std::cout<<"trig_tolerance: "   <<conf_object.trig_tolerance<<std::endl;
-        std::cout<<"apulse_time_cut: "  <<conf_object.apulse_time_cut<<std::endl;
-        std::cout<<"shape_cut: "        <<conf_object.shape_cut<<std::endl;
-        std::cout<<"amp_cut: "          <<conf_object.amp_cut<<std::endl;
-        std::cout<<"charge_cut: "       <<conf_object.charge_cut<<std::endl;
-        std::cout<<"resistance: "       <<conf_object.resistance<<std::endl;
-        std::cout<<"integration: "      <<conf_object.integration[0]<<"-"<<conf_object.integration[1]<<std::endl;
-        std::cout<<"template_file: "    <<conf_object.template_file<<std::endl;
+        std::cout<<"sweep_start: "      <<config_object.sweep_start<<std::endl;
+        std::cout<<"pre_trigger: "      <<config_object.pre_trigger<<std::endl;
+        std::cout<<"trigger: "          <<config_object.trigger<<std::endl;
+        std::cout<<"trig_tolerance: "   <<config_object.trig_tolerance<<std::endl;
+        std::cout<<"apulse_time_cut: "  <<config_object.apulse_time_cut<<std::endl;
+        std::cout<<"shape_cut: "        <<config_object.shape_cut<<std::endl;
+        std::cout<<"amp_cut: "          <<config_object.amp_cut<<std::endl;
+        std::cout<<"charge_cut: "       <<config_object.charge_cut<<std::endl;
+        std::cout<<"resistance: "       <<config_object.resistance<<std::endl;
+        std::cout<<"integration: "      <<config_object.integration[0]<<"-"<<config_object.integration[1]<<std::endl;
+        std::cout<<"template_file: "    <<config_object.template_file<<std::endl;
 
         // Initialise template vectors container
         // If you are creating them, set the vectors to be of the size in TEMP_INFO of ZEROS
