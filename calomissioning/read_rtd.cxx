@@ -396,7 +396,7 @@ int main(int argc, char **argv)
 	                    eventn.baseline        = (Double_t)ch_baseline * adc2mv / 16.0;
 	                    eventn.raw_baseline    = my_baseline;
 	                    eventn.raw_charge      = get_my_charge( config_object, waveform, my_baseline );
-	                    eventn.charge          = 0.001 * (Double_t)ch_charge * adc2mv * tdc2ns / conf_object.resistance;
+	                    eventn.charge          = 0.001 * (Double_t)ch_charge * adc2mv * tdc2ns;
 
 	                    if ( do_template )
 	                    {
