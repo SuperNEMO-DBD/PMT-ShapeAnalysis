@@ -199,7 +199,7 @@ int main(int argc, char **argv)
         std::cout<<"amp_cut: "          <<conf_object.amp_cut<<std::endl;
         std::cout<<"charge_cut: "       <<conf_object.charge_cut<<std::endl;
         std::cout<<"resistance: "       <<conf_object.resistance<<std::endl;
-        std::cout<<"integration: "      <<conf_object.integration[0]<<"-"<<integration[1]<<std::endl;
+        std::cout<<"integration: "      <<conf_object.integration[0]<<"-"<<conf_object.integration[1]<<std::endl;
         std::cout<<"template_file: "    <<conf_object.template_file<<std::endl;
 
         // Initialise template vectors container
