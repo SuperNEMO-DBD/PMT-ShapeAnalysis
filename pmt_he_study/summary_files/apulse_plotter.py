@@ -150,7 +150,7 @@ def plot_par(date, par, output_directory: str, pmt_object: PMT_Object, name: str
     plt.ylim(0, 100)
     plt.legend(loc='upper left')
     plt.savefig(output_directory + "/summary_plots/" +
-                pmt_object.get_pmt_id() + "_par_vs_time" + name)
+                pmt_object.get_pmt_id() + "_par_vs_time" + name + ".pdf")
 
     print('Param p{}: {:.2e} ± {:.1e}'.format(0, popt[0], np.sqrt(pcov[0, 0])))
     print('Param p{}: {:.2e} ± {:.1e}'.format(1, popt[1], np.sqrt(pcov[1, 1])))
@@ -185,7 +185,7 @@ def plot_aan(date, aan, output_directory: str, pmt_object: PMT_Object, name: str
     # plt.ylim(0, 1.5)
     plt.legend(loc='upper left')
     plt.savefig(output_directory + "/summary_plots/" +
-                pmt_object.get_pmt_id() + "_aan_vs_time" + name)
+                pmt_object.get_pmt_id() + "_aan_vs_time" + name + ".pdf")
     plt.close()
 
 
@@ -215,7 +215,7 @@ def plot_par_ratio(dates: list, par: list, output_directory: str, name: str):
     plt.grid()
     # plt.xlim(np.amin(np.array(x_date)), np.amax(np.array(x_date)))
     # plt.ylim(0, 2)
-    plt.savefig(output_directory + "/summary_plots/par_ratio_vs_time" + name)
+    plt.savefig(output_directory + "/summary_plots/par_ratio_vs_time" + name + ".pdf")
     plt.close()
 
 
@@ -245,7 +245,7 @@ def plot_aan_ratio(dates: list, aan: list, output_directory: str, name: str):
     plt.grid()
     # plt.xlim(np.amin(np.array(x_date)), np.amax(np.array(x_date)))
     # plt.ylim(0, 2)
-    plt.savefig(output_directory + "/summary_plots/aan_ratio_vs_time" + name)
+    plt.savefig(output_directory + "/summary_plots/aan_ratio_vs_time" + name + ".pdf")
     plt.close()
 
 
