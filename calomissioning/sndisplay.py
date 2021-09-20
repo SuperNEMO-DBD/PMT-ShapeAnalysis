@@ -226,17 +226,6 @@ class calorimeter:
 
         self.palette_index = ROOT.TColor.CreateGradientColorTable(nRGBs, stops, red, green, blue, 100)
 
-    '''enum
-    {
-        AUTO,
-        FULL,
-        FULL_ITALY,
-        FULL_FRANCE,
-        MW_ITALY,
-        MW_FRANCE,
-        XW_MOUNTAIN,
-        XW_TUNNEL}'''
-
     def setrange(self, xmin: float, xmax: float):
         self.range_min = xmin
         self.range_max = xmax
@@ -492,6 +481,452 @@ class calorimeter:
     def save(self, location: str):
         self.canvas_it.SaveAs(location + "/" + self.name + '_it.png')
         self.canvas_fr.SaveAs(location + "/" + self.name + '_fr.png')
+
+
+class tracker:
+
+    def __init__(self, new_name: str):
+        self.name = new_name
+        self.canvas = None
+        self.draw_cellid = False
+        self.draw_cellnum = False
+        self.draw_content = False
+        self.draw_content_format = '{:.0f}'  # "%.0f"
+        self.range_min = -1
+        self.range_max = -1
+        self.nb_cell = 2034
+        self.content = [None for i in range(self.nb_cell)]
+        self.spacerx = 0.0125
+        self.spacery = 0.0500
+        self.cell_sizex = (1-2 * self.spacerx) / 113.0
+        self.cell_sizey = (1-3 * self.spacery) / (9 * 2)
+        self.cellbox = []
+        self.cellid_text_v = []
+        self.cellnum_text_v = []
+        self.content_text_v =[]
+
+        '''// // // // // // // // // // // // //
+        // CELLS initialisation //
+        // // // // // // // // // // // // //'''
+
+        for cell_side in range(2):
+            for cell_row in range(113):
+                for cell_layer in range(9):
+                    cellnum = cell_side * 113 * 9 + cell_row * 9 + cell_layer
+
+                    x1 = self.spacerx + cell_row * self.cell_sizex
+                    y1 = self.spacery
+
+                    if cell_side == 0:
+                        y1 += 9 * self.cell_sizey + self.spacery + cell_layer * self.cell_sizey
+                    else:
+                        y1 += (8-cell_layer) * self.cell_sizey
+
+                    x2 = x1 + self.cell_sizex
+                    y2 = y1 + self.cell_sizey
+
+                    box = ROOT.TBox(x1, y1, x2, y2)
+                    box.SetFillColor(0)
+                    box.SetLineWidth(1)
+                    self.cellbox.append(box)
+
+                    cellid_string = "M:{}.{}.{}".format(cell_side, cell_layer, cell_row)
+                    cellid_text = ROOT.TText(x1+0.5 * self.cell_sizex, y1+0.667 * self.cell_sizey, cellid_string)
+                    cellid_text.SetTextSize(0.01)
+                    cellid_text.SetTextAlign(22)
+                    self.cellid_text_v.append(cellid_text)
+
+                    cellnum_string = "{}".format(cellnum)
+                    cellnum_text = ROOT.TText(x1+0.5 * self.cell_sizex, y1+0.333 * self.cell_sizey, cellnum_string)
+                    cellnum_text.SetTextSize(0.01)
+                    cellnum_text.SetTextAlign(22)
+                    self.cellnum_text_v.append(cellnum_text)
+
+                    content_text = ROOT.TText(x1+0.5 * self.cell_sizex, y1+0.333 * self.cell_sizey, "")
+                    content_text.SetTextSize(0.01)
+                    content_text.SetTextAlign(22)
+                    self.content_text_v.append(content_text)
+
+        self.it_label = ROOT.TText(self.spacerx, 2.25 * self.spacery+2 * 9 * self.cell_sizey, "ITALY")
+        self.it_label.SetTextSize(0.036)
+
+        self.fr_label = ROOT.TText(self.spacerx, 0.25 * self.spacery, "FRANCE")
+        self.fr_label.SetTextSize(0.036)
+
+        nRGBs = 6
+        stops = np.array([0.00, 0.20, 0.40, 0.60, 0.80, 1.00], dtype='float64')
+        red = np.array([0.25, 0.00, 0.20, 1.00, 1.00, 0.90], dtype='float64')
+        green = np.array([0.25, 0.80, 1.00, 1.00, 0.80, 0.00], dtype='float64')
+        blue = np.array([1.00, 1.00, 0.20, 0.00, 0.00, 0.00], dtype='float64')
+
+        self.palette_index = ROOT.TColor.CreateGradientColorTable(nRGBs, stops, red, green, blue, 100)
+
+    def setrange(self, zmin: float, zmax: float):
+        self.range_min = zmin
+        self.range_max = zmax
+
+    def draw_cellid_label(self):
+        self.draw_cellid = True
+
+    def draw_cellnum_label(self):
+        self.draw_cellnum = True
+
+    def draw_content_label(self, string: str):
+        self.draw_content_format = string
+        self.draw_content = True
+
+    def draw(self):
+        if self.canvas is None:
+            name = "C_{}".format(self.name)
+            self.canvas = ROOT.TCanvas(name, name, 1500, 300)
+
+        if self.draw_content:
+            for cellnum in range(self.nb_cell):
+                ttext = self.content_text_v[cellnum]
+                ttext.SetText(ttext.GetX(), ttext.GetY(), self.draw_content_format.format(self.content[cellnum]))
+
+        self.canvas.cd()
+        self.canvas.SetEditable(True)
+
+        for cell_side in range(2):
+            for cell_row in range(113):
+                for cell_layer in range(9):
+                    cellnum = cell_side * 113 * 9 + cell_row * 9 + cell_layer
+                    self.cellbox[cellnum].Draw("l")
+                    if self.draw_cellid:
+                        self.cellid_text_v[cellnum].Draw()
+
+                    if self.draw_cellnum:
+                        self.cellnum_text_v[cellnum].Draw()
+
+                    if self.draw_content and self.content[cellnum] != 0:
+                        self.content_text_v[cellnum].Draw()
+
+        self.it_label.Draw()
+        self.fr_label.Draw()
+
+        self.canvas.SetEditable(False)
+
+        self.update()
+
+    def reset(self):
+        for cellnum in range(self.nb_cell):
+            self.content[cellnum] = 0
+            self.cellbox[cellnum].SetFillColor(0)
+
+        self.canvas.Modified()
+        self.canvas.Update()
+
+        ROOT.gSystem.ProcessEvents()
+
+    def getcontent(self, cellnum: int):
+        return self.content[cellnum]
+
+    def setcontent(self, cellnum: int, value: float):
+        if cellnum < self.nb_cell:
+            self.content[cellnum] = value
+        else:
+            print("*** wrong cell ID\n")
+
+    def setcontent_(self, cell_side: int, cell_row: int, cell_layer: int, value: float):
+        cellnum = cell_side * 9 * 113 + cell_row * 9 + cell_layer
+        self.setcontent(cellnum, value)
+
+    def fill(self, cellnum: int, value =1):
+        self.setcontent(cellnum, self.content[cellnum] + value)
+
+    def update(self):
+        content_min = self.content[0]
+        content_max = self.content[0]
+
+        for cellnum in range(1, self.nb_cell):
+            if self.content[cellnum] < content_min:
+                content_min = self.content[cellnum]
+            if self.content[cellnum] > content_max:
+                content_max = self.content[cellnum]
+
+        content_min = 0
+        if self.range_min != -1:
+            content_min = self.range_min
+        if self.range_max != -1:
+            content_max = self.range_max
+
+        for cellnum in range(self.nb_cell):
+            if self.content[cellnum] is not None:
+                color_index = np.floor(99 * (self.content[cellnum] - content_min) / (content_max - content_min))
+                if color_index < 0:
+                    color_index = 0
+                elif color_index >= 100:
+                    color_index = 99
+                self.cellbox[cellnum].SetFillColor(int(self.palette_index + color_index))
+            else:
+                self.cellbox[cellnum].SetFillColor(14)
+
+        self.canvas.Modified()
+        self.canvas.Update()
+
+        ROOT.gSystem.ProcessEvents()
+
+    def save(self, location: str):
+        self.canvas.SaveAs(location + "/" + self.name + '_tr.pdf')
+
+
+class demonstrator:
+
+    def __init__(self, new_name: str):
+        self.name = new_name
+        self.demonstrator_canvas = None
+        self.range_min = -1
+        self.range_max = -1
+
+        '''// TOP_VIEW //'''
+
+        self.spacerx = 0.0125
+        self.spacery = 0.0250
+
+        self.mw_sizey = (1 - 2 * self.spacery) / (2.0 + 4 * 1.035 + 0.313)
+        self.xw_sizey = 1.035 * self.mw_sizey
+        self.se_sizey = 0.313 * self.mw_sizey
+        self.gg_sizey = (1 - 2 * self.spacery - 2 * self.mw_sizey - self.se_sizey) / 18.0
+
+        self.mw_sizex = (1 - 2 * self.spacerx) / (20 + 2 * 0.5 * 0.720)
+        self.xw_sizex = (1 - 2 * self.spacerx - 20 * self.mw_sizex)
+        self.se_sizex = (1 - 2 * self.spacerx - 2 * self.xw_sizex)
+        self.gg_sizex = self.se_sizex / 113.0
+
+        self.top_om_content = []
+        self.top_om_box = []
+        self.top_om_text = []
+        self.top_gg_content = []
+        self.top_gg_box = []
+        self.top_gg_ellipse = []
+
+        '''// MW(columnonly)'''
+
+        for mw_side in range(2):
+            for mw_column in range(20):
+                x1 = self.spacerx + 0.5 * self.xw_sizex + mw_column * self.mw_sizex
+                y1 = self.spacery + (1-mw_side) * (self.mw_sizey+4 * self.xw_sizey+self.se_sizey)
+                x2 = x1 + self.mw_sizex
+                y2 = y1 + self.mw_sizey
+
+                self.top_om_content.append(0)
+
+                box = ROOT.TBox(x1, y1, x2, y2)
+                box.SetFillColor(0)
+                box.SetLineWidth(1)
+                self.top_om_box.append(box)
+
+                omid_string = "M:{}.{}.*".format(mw_side, mw_column)
+                omid_text = ROOT.TText(x1+0.5 * self.mw_sizex, y1+0.667 * self.mw_sizey, omid_string)
+                omid_text.SetTextSize(0.032)
+                omid_text.SetTextAlign(22)
+                self.top_om_text.append(omid_text)
+
+        '''// XW (column only)'''
+
+        for xw_side in range(2):
+            for xw_wall in range(2):
+                for xw_column in range(2):
+                    omnum = 40 + xw_side * 2 * 2 + xw_wall * 2 + xw_column
+
+                    x1 = self.spacerx + xw_wall * (self.xw_sizex+113 * self.gg_sizex)
+                    x2 = x1 + self.xw_sizex
+                    y1 = self.spacery + self.mw_sizey
+
+                    if xw_side == 0:
+                        y1 += 2 * self.xw_sizey + self.se_sizey + xw_column * self.xw_sizey
+                    else:
+                        y1 += (1-xw_column) * self.xw_sizey
+
+                    y2 = y1 + self.xw_sizey
+
+                    self.top_om_content.append(0)
+
+                    box = ROOT.TBox(x1, y1, x2, y2)
+                    box.SetFillColor(0)
+                    box.SetLineWidth(1)
+                    self.top_om_box.append(box)
+
+                    omid_string = "X:{}.{}.{}.*".format(xw_side, xw_wall, xw_column)
+                    omid_text = ROOT.TText(x1+0.5 * self.xw_sizex, y1+0.6 * self.xw_sizey, omid_string)
+                    omid_text.SetTextSize(0.032)
+                    omid_text.SetTextAlign(22)
+                    self.top_om_text.append(omid_text)
+
+        for gg_side in range(2):
+            for gg_row in range(113):
+                for gg_layer in range(9):
+                    ggnum = gg_side * 113 * 9 + gg_row * 9 + gg_layer
+                    x1 = self.spacerx + self.xw_sizex + gg_row * self.gg_sizex
+
+                    y1 = self.spacery + self.mw_sizey
+                    if gg_side == 0:
+                        y1 += 9 * self.gg_sizey + self.se_sizey + gg_layer * self.gg_sizey
+                    else:
+                        y1 += (8-gg_layer) * self.gg_sizey
+
+                    x2 = x1 + self.gg_sizex
+                    y2 = y1 + self.gg_sizey
+
+                    self.top_gg_content.append(0)
+
+                    box = ROOT.TBox(x1, y1, x2, y2)
+                    box.SetFillColor(0)
+                    box.SetLineWidth(1)
+                    self.top_gg_box.append(box)
+
+                    ellipse = ROOT.TEllipse((x1+x2) / 2, (y1+y2) / 2, self.gg_sizex / 2, self.gg_sizey / 2)
+                    ellipse.SetFillColor(0)
+                    ellipse.SetLineWidth(1)
+                    self.top_gg_ellipse.append(ellipse)
+
+        nRGBs = 6
+        stops = np.array([0.00, 0.20, 0.40, 0.60, 0.80, 1.00], dtype='float64')
+        red = np.array([0.25, 0.00, 0.20, 1.00, 1.00, 0.90], dtype='float64')
+        green = np.array([0.25, 0.80, 1.00, 1.00, 0.80, 0.00], dtype='float64')
+        blue = np.array([1.00, 1.00, 0.20, 0.00, 0.00, 0.00], dtype='float64')
+
+        self.palette_index = ROOT.TColor.CreateGradientColorTable(nRGBs, stops, red, green, blue, 100)
+
+    def setrange(self, zmin: float, zmax: float):
+        self.range_min = zmin
+        self.range_max = zmax
+
+    def draw_top(self):
+        if self.demonstrator_canvas is None:
+            name = "C_demonstrator_{}".format(self.name)
+            self.demonstrator_canvas = ROOT.TCanvas(name, name, 1800, 450)
+
+        for mw_side in range(2):
+            for mw_column in range(20):
+                top_om_num = mw_side * 20 + mw_column
+                self.top_om_box[top_om_num].Draw("l")
+                self.top_om_text[top_om_num].Draw()
+
+        for xw_side in range(2):
+            for xw_wall in range(2):
+                for xw_column in range(2):
+                    top_om_num = 40 + xw_side * 2 * 2 + xw_wall * 2 + xw_column
+                    self.top_om_box[top_om_num].Draw("l")
+                    self.top_om_text[top_om_num].Draw()
+
+        for gg_side in range(2):
+            for gg_row in range(113):
+                for gg_layer in range(9):
+                    top_gg_num = gg_side * 113 * 9 + gg_row * 9 + gg_layer
+                    self.top_gg_box[top_gg_num].Draw("l")
+                    self.top_gg_ellipse[top_gg_num].Draw("l")
+
+        self.update()
+
+    def setomcontent(self, om_num: int, value: float):
+        top_om_num = -1
+        if om_num < 260:  # // MW IT
+            om_side = 0
+            om_column = (om_num / 13)
+            top_om_num = om_side * 20 + om_column
+        elif om_num < 520:  # // MW IT
+            om_side = 1
+            om_column = (om_num-260) / 13
+            top_om_num = om_side * 20 + om_column
+        elif om_num < 648:  # // XW
+            if om_num < 584:
+                om_side = 0
+            else:
+                om_side = 1
+            # om_side = (om_num < 584) ? 0: 1
+            om_wall = (om_num - 520 - om_side * 64) / 32
+            om_column = (om_num - 520 - om_side * 64 - om_wall * 32) / 16
+            top_om_num = 40 + om_side * 2 * 2 + om_wall * 2 + om_column
+
+        self.top_om_content[top_om_num] = value
+
+    def setggcontent(self, cell_num: int, value: float):
+        if cell_num < 2034:
+            self.top_gg_content[cell_num] = value
+        else:
+            print("*** wrong cell ID\n")
+
+    def setggcontent_(self, cell_side: int, cell_row: int, cell_layer: int, value: float):
+        cell_num = cell_side * 9 * 113 + cell_row * 9 + cell_layer
+        self.setggcontent(cell_num, value)
+
+    def setggcolor(self, cell_num: int, colour: ROOT.TColor):
+        if cell_num < 2034:
+            self.top_gg_ellipse[cell_num].SetFillColor(colour)
+        else:
+            print("*** wrong cell ID\n")
+
+    def setggcolor_(self, cell_side: int, cell_row: int, cell_layer: int, color: ROOT.TColor):
+        cell_num = cell_side * 9 * 113 + cell_row * 9 + cell_layer
+        self.setggcolor(cell_num, color)
+
+    def reset(self):
+        for om in range(len(self.top_om_content)):
+            self.top_om_content[om] = 0
+            self.top_om_box[om].SetFillColor(0)
+
+        for gg in range(len(self.top_gg_content)):
+            self.top_gg_content[gg] = 0
+            self.top_gg_ellipse[gg].SetFillColor(0)
+
+        self.demonstrator_canvas.Modified()
+        self.demonstrator_canvas.Update()
+
+        ROOT.gSystem.ProcessEvents()
+
+    def update(self):
+        top_content_min = self.top_om_content[0]
+        top_content_max = self.top_om_content[0]
+
+        for om in range(len(self.top_om_content)):
+            if self.top_om_content[om] < top_content_min:
+                top_content_min = self.top_om_content[om]
+            if self.top_om_content[om] > top_content_max:
+                top_content_max = self.top_om_content[om]
+
+        for gg in range(len(self.top_gg_content)):
+            if self.top_gg_content[gg] < top_content_min:
+                top_content_min = self.top_gg_content[gg]
+            if self.top_gg_content[gg] > top_content_max:
+                top_content_max = self.top_gg_content[gg]
+
+        top_content_min = 0
+        if self.range_min != -1:
+            top_content_min = self.range_min
+        if self.range_max != -1:
+            top_content_max = self.range_max
+
+        for om in range(len(self.top_om_content)):
+            if self.top_om_content[om] != 0:
+                color_index = np.floor(99 * (self.top_om_content[om]-top_content_min) / (top_content_max-top_content_min))
+                if color_index < 0:
+                    color_index = 0
+                elif color_index >= 100:
+                    color_index = 99
+                self.top_om_box[om].SetFillColor(self.palette_index + color_index)
+            else:
+                self.top_om_box[om].SetFillColor(0)
+
+        for gg in range(len(self.top_gg_content)):
+            if self.top_gg_content[gg] != 0:
+                color_index = np.floor(99 * (self.top_gg_content[gg]-top_content_min) / (top_content_max-top_content_min))
+                if color_index < 0:
+                    color_index = 0
+                elif color_index >= 100:
+                    color_index = 99
+                self.top_gg_ellipse[gg].SetFillColor(self.palette_index + color_index)
+            else:
+                self.top_gg_ellipse[gg].SetFillColor(0)
+
+        self.demonstrator_canvas.Modified()
+        self.demonstrator_canvas.Update()
+
+        ROOT.gSystem.ProcessEvents()
+
+    def save(self, location: str):
+        self.demonstrator_canvas.SaveAs(location + "/" + self.name + '_d.png')
 
 
 def sndisplay_test():

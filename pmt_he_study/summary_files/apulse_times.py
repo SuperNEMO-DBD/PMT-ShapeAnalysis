@@ -33,7 +33,7 @@ def main():
     num_average = 7
     re_bin = 10
     number_total_weeks = 60
-    last_temp = [[],[]]
+    last_temp = [[], []]
     x_og = []
     num_in_week = [[0 for i in range(number_total_weeks+1)],[0 for i in range(number_total_weeks+1)]]
     apulse_num_y = [[[] for i in range(10)],[[] for i in range(10)]]

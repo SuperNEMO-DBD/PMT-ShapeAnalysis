@@ -502,10 +502,10 @@ def draw_raw_charges(charges: list, run_num):
         canvas = ROOT.TCanvas()
         hist = ROOT.TH1D(f"{om_id_string(i)}", f"{om_id_string(i)}", 40, 0, 1000)
         for j in range(len(charges[i])):
-            hist.Fill(charges[i][j]/0.64)
+            hist.Fill(charges[i][j])
         if hist.GetEntries() == 0:
             continue
-        hist.SetXTitle("charge /pC")
+        hist.SetXTitle("charge /adc.tdc")
         hist.SetFillColor(2)
         hist.Draw("HIST")
         canvas.SetGrid()
@@ -519,9 +519,9 @@ def draw_charges(charges: list, run_num):
         if len(charges[i]) == 0:
             continue
         canvas = ROOT.TCanvas()
-        hist = ROOT.TH1D(f"{om_id_string(i)}", f"{om_id_string(i)}", 40, 0, 100)
+        hist = ROOT.TH1D(f"{om_id_string(i)}", f"{om_id_string(i)}", 40, 0, 10)
         for j in range(len(charges[i])):
-            hist.Fill(charges[i][j]/1000)  # convert to pC
+            hist.Fill(charges[i][j])  # convert to pC
         if hist.GetEntries() == 0:
             continue
         hist.SetXTitle("charge /pC")
@@ -562,7 +562,7 @@ def draw_raw_amplitudes(amps: list, run_num):
             hist.Fill(amps[i][j])  # convert to pC
         if hist.GetEntries() == 0:
             continue
-        hist.SetXTitle("amplitude /mV")
+        hist.SetXTitle("amplitude /adc")
         hist.SetFillColor(2)
         hist.Draw("HIST")
         canvas.SetGrid()
@@ -743,10 +743,10 @@ def draw_charge_apulse(charges: list, apulse_nums: list, run_num: str):
     for i in range(len(charges)):
         canvas = ROOT.TCanvas()
         hist = ROOT.TH2D(f'charge_vs_aan_{i}', f'charge_vs_aan_{i}',
-                         40, 0, 500/0.64,
+                         40, 0, 100,
                          10, 0, 10)
         for j in range(len(charges[i])):
-            hist.Fill(charges[i][j]/0.64, apulse_nums[i][j])
+            hist.Fill(charges[i][j], apulse_nums[i][j])
 
         hist.SetXTitle("charge /pC")
         hist.SetYTitle("afterpulse number")
@@ -771,7 +771,7 @@ def draw_npe_apulse(charges: list, apulse_nums: list, gains: list, run_num: str)
                          40, 0, 2000,
                          10, 0, 10)
         for j in range(len(charges[i])):
-            charge = (charges[i][j]/0.64)  # in pC
+            charge = (charges[i][j])  # in pC
             ne = charge / 1.602E-7
             npe = ne/gains[i]
             hist.Fill(npe, apulse_nums[i][j])
@@ -813,8 +813,8 @@ def draw_npe_apulse_tots(charges: list, apulse_nums: list, gains: list, run_num:
     ROOT.gStyle.SetOptStat(0)
     tot_5_canvas = ROOT.TCanvas()
     tot_8_canvas = ROOT.TCanvas()
-    tot_5_hist = ROOT.TH2D("5inch_PMTs", "5inch_PMTs", 40, 0, 8000, 20, 0, 20)
-    tot_8_hist = ROOT.TH2D("8inch_PMTs", "8inch_PMTs", 40, 0, 8000, 10, 0, 10)
+    tot_5_hist = ROOT.TH2D("5inch_PMTs", "5inch_PMTs", 40, 0, 100, 20, 0, 20)
+    tot_8_hist = ROOT.TH2D("8inch_PMTs", "8inch_PMTs", 40, 0, 100, 10, 0, 10)
     
     for i in range(len(charges)):
         if gains[i] == -1. or gains[i] == 0:
@@ -823,14 +823,14 @@ def draw_npe_apulse_tots(charges: list, apulse_nums: list, gains: list, run_num:
         pmt_type = get_pmt_type(i)
         if pmt_type == 5:
             for j in range(len(charges[i])):
-                charge = (charges[i][j]/0.64)  # in pC
+                charge = (charges[i][j])  # in pC
                 ne = charge / 1.602E-7
                 npe = ne/gains[i]
                 if apulse_nums[i][j] >= 0:
                     tot_5_hist.Fill(npe, apulse_nums[i][j])
         else:
             for j in range(len(charges[i])):
-                charge = (charges[i][j]/0.64)  # in pC
+                charge = (charges[i][j])  # in pC
                 ne = charge / 1.602E-7
                 npe = ne/gains[i]
                 if apulse_nums[i][j] >= 0:
@@ -950,7 +950,7 @@ def main():
     # draw_event_map(n_events, run_num)
     # draw_HV_ATD(om_hvs, apulse_times, run_num)
     # draw_raw_charges(raw_charges, run_num)
-    # draw_charges(charges, run_num)
+    draw_charges(charges, run_num)
     # draw_amplitudes(amplitudes, run_num)
     # draw_raw_amplitudes(raw_amplitudes, run_num)
     # draw_baselines(baselines, run_num)

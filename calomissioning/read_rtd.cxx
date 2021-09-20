@@ -184,8 +184,8 @@ int main(int argc, char **argv)
 
         // Read the config file and store the variables in the CONF object
         CONF config_object = read_config( "/sps/nemo/scratch/wquinn/PMT-ShapeAnalysis/config_files/snemo_calo.conf" );
-        const double tdc2ns = snfee::model::feb_constants::SAMLONG_DEFAULT_TDC_LSB_NS;
-        const double adc2mv = snfee::model::feb_constants::SAMLONG_ADC_VOLTAGE_LSB_MV;
+        // const double tdc2ns = snfee::model::feb_constants::SAMLONG_DEFAULT_TDC_LSB_NS;
+        // const double adc2mv = snfee::model::feb_constants::SAMLONG_ADC_VOLTAGE_LSB_MV;
 
         std::cout<<"Settings:"          <<std::endl;
         std::cout<<"tdc2ns: "           <<tdc2ns<<std::endl;
@@ -321,8 +321,8 @@ int main(int argc, char **argv)
 	                bool    ch_ht           {ch_data.is_ht()};            // High threshold flag
 	                int32_t ch_baseline     {ch_data.get_baseline()};     // Computed baseline       (LSB: ADC unit/16)
 	                int32_t ch_peak         {ch_data.get_peak()};         // Computed peak amplitude (LSB: ADC unit/8)
-	                int32_t ch_peak_cell    {ch_data.get_peak_cell()};    // Computed peak cell
 	                int32_t ch_charge       {ch_data.get_charge()};       // Computed charge
+	                int32_t ch_peak_cell    {ch_data.get_peak_cell()};    // Computed peak cell
 	                int32_t ch_rising_cell  {ch_data.get_rising_cell()};  // Computed rising cell
 	                int32_t ch_falling_cell {ch_data.get_falling_cell()}; // Computed falling cell
 
@@ -416,7 +416,7 @@ int main(int argc, char **argv)
 				                om_counter[my_class][eventn.side] ++;
 				                matchfilter = sweep(waveform, config_object, my_baseline, template_vectors[eventn.OM_ID]);
 				                // if (matchfilter.apulse_num > 0){tree.Fill();}
-						tree.Fill();
+						        tree.Fill();
 	                        }
 			            }
 	                }
@@ -895,13 +895,13 @@ MATCHFILTER sweep( std::vector<Double_t> &vec, CONF &config, Double_t baseline, 
         }
     }
 
-    temp_mf.apulse_amplitudes = apulse_amp_vec;
-    temp_mf.apulse_shapes = apulse_shape_vec;
-    temp_mf.apulse_times = apulse_time_vec;
-    temp_mf.mf_amps = amp_convolution;
-    temp_mf.mf_shapes = shape_convolution;
-    temp_mf.main_pulse_time = get_main_pulse(config, shape_convolution);
-    temp_mf.apulse_num = (Int_t)apulse_time_vec.size();
+    temp_mf.apulse_amplitudes   = apulse_amp_vec;
+    temp_mf.apulse_shapes       = apulse_shape_vec;
+    temp_mf.apulse_times        = apulse_time_vec;
+    temp_mf.mf_amps             = amp_convolution;
+    temp_mf.mf_shapes           = shape_convolution;
+    temp_mf.main_pulse_time     = get_main_pulse(config, shape_convolution);
+    temp_mf.apulse_num          = (Int_t)apulse_time_vec.size();
     return temp_mf;
 }
 CONF read_config( std::string filename )
