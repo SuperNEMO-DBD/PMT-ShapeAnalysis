@@ -184,10 +184,8 @@ int main(int argc, char **argv)
 
         // Contains event info
         Int_t event_num = 0;
-        event_
         EVENTN eventn;
         TEMP_INFO temp_info;
-        MATCHFILTER matchfilter;
         std::vector<Double_t> waveform;
 
         TTree tree("T","Tree containing simulated vertex data");
