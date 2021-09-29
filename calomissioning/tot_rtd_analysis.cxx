@@ -30,6 +30,7 @@
 #include <sncabling/calo_hv_id.h>
 #include <sncabling/calo_hv_cabling.h>
 #include <sncabling/label.h>
+#include<sncabling/tracker_signal_id.h>
 
 #include <sncabling/service.h>
 #include <sncabling/calo_signal_cabling.h>
@@ -194,11 +195,11 @@ int main(int argc, char **argv)
         // Branches for the om
         tree.Branch("OM_IDs",&eventn.OM_IDs);
         tree.Branch("OM_charges",&eventn.OM_charges);
-        tree.Branch("OM_raw_charges",&eventn.OM_raw_charge);
-        tree.Branch("OM_baselines",&eventn.OM_baseline);
-        tree.Branch("OM_raw_baselines",&eventn.OM_raw_baseline);
-        tree.Branch("OM_amplitudes",&eventn.OM_amplitude);
-        tree.Branch("OM_raw_amplitudes",&eventn.OM_raw_amplitude);
+        tree.Branch("OM_raw_charges",&eventn.OM_raw_charges);
+        tree.Branch("OM_baselines",&eventn.OM_baselines);
+        tree.Branch("OM_raw_baselines",&eventn.OM_raw_baselines);
+        tree.Branch("OM_amplitudes",&eventn.OM_amplitudes);
+        tree.Branch("OM_raw_amplitudes",&eventn.OM_raw_amplitudes);
 
         // Branches for the tracker
         tree.Branch("TR_ID",&eventn.TR_IDs);
