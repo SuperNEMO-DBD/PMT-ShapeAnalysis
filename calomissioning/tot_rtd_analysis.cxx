@@ -336,7 +336,7 @@ int main(int argc, char **argv)
 	            } //end of channels
             }//end of calohit
 
-            for (const snfee::data::tracker_hit_record & tracker_hit : tracker_hits )
+            for (const snfee::data::tracker_hit_record & tracker_hit : tracker_hit )
             {
                 track_counter++;
 
@@ -347,7 +347,7 @@ int main(int argc, char **argv)
                 int32_t channel_num = tracker_hit.get_channel_num();    // Chip number (0-53)
 
                 sncabling::tracker_signal_id tracker_channel_id (sncabling::TRACKER_SIGNAL_CHANNEL, crate_num, board_num, chip_num, channel_num);
-                const sncabling::tracker_cabling & tracker_cabling = cabling_service.get_tracker_cabling();
+                const sncabling::tracker_cabling & tracker_cabling = snCabling.get_tracker_cabling();
 
                 int side_num, row_num, layer_num, TR_ID;
 
