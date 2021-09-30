@@ -338,7 +338,7 @@ int main(int argc, char **argv)
 
             //const auto & p_calo_hit : rtd.get_calo_hits()
             // for (const snfee::data::tracker_hit_record & tracker_hit : tracker_hits )
-            for ( const snfee::data::tracker_hit_record & tracker_hits : rtd.get_calo_hits())
+            for ( const auto & tracker_hits : rtd.get_tracker_hits())
             {
                 track_counter++;
 
