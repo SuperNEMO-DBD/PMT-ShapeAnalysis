@@ -336,10 +336,14 @@ int main(int argc, char **argv)
 	            } //end of channels
             }//end of calohit
 
-            for (const snfee::data::tracker_hit_record & tracker_hit : tracker_hit )
+            //const auto & p_calo_hit : rtd.get_calo_hits()
+            // for (const snfee::data::tracker_hit_record & tracker_hit : tracker_hits )
+            for ( const auto tracker_hits : rtd.get_calo_hits())
             {
                 track_counter++;
 
+                const snfee::data::tracker_hit_record & tracker_hit = *tracker_hits;
+                
                 int32_t tracker_hit_num = tracker_hit.get_hit_num();
                 int32_t crate_num = tracker_hit.get_crate_num();        // Crate number (0-2)
                 int32_t board_num = tracker_hit.get_board_num();        // Board number (0-20)
