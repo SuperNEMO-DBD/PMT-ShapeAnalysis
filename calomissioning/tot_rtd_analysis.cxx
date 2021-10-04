@@ -441,6 +441,22 @@ int main(int argc, char **argv)
                 tree.Fill();
             }
 
+            eventn = {};
+            /*eventn.OM_amplitudes.clear();
+            eventn.OM_IDs.clear();
+            eventn.OM_baselines.clear();
+            eventn.OM_charges.clear();
+            eventn.OM_raw_amplitudes.clear();
+            eventn.OM_raw_baselines.clear();
+            eventn.OM_raw_charges.clear();
+            eventn.R0s.clear();
+            eventn.R1s.clear();
+            eventn.R2s.clear();
+            eventn.R3s.clear();
+            eventn.R4s.clear();
+            eventn.R5s.clear();
+            eventn.R6s.clear();
+            eventn.TR_IDs.clear();*/
             //tracks.clear();
             //optmod.clear();
             //eventn.clear();
