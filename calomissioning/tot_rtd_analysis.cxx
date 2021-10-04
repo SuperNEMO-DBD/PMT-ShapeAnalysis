@@ -242,7 +242,7 @@ int main(int argc, char **argv)
             int32_t trigger_id = rtd.get_trigger_id();
             int32_t run_id     = rtd.get_run_id();
       
-            if(rtd_counter %10000 == 0 )std::cout<<"In Run : "<<run_id<<" Trigger # "<<trigger_id <<std::endl;
+            if(rtd_counter %1000 == 0 )std::cout<<"In Run : "<<run_id<<" Trigger # "<<trigger_id <<std::endl;
       
             std::size_t calo_counter = 0;
             std::size_t track_counter = 0;
