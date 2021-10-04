@@ -32,6 +32,8 @@
 #include <sncabling/calo_hv_cabling.h>
 #include <sncabling/label.h>
 #include <sncabling/tracker_signal_id.h>
+#include <sncabling/tracker_cabling.h>
+#include <sncabling/gg_cell_id.h>
 
 #include <sncabling/service.h>
 #include <sncabling/calo_signal_cabling.h>
