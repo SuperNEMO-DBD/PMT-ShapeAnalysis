@@ -178,7 +178,7 @@ int main(int argc, char **argv)
         // std::cout<<"charge_cut: "       <<config_object.charge_cut<<std::endl;
         std::cout<<"resistance: "       <<config_object.resistance<<std::endl;
         // std::cout<<"integration: "      <<config_object.integration[0]<<"-"<<config_object.integration[1]<<std::endl;
-        std::cout<<"template_file: "    <<config_object.template_file<<std::endl;
+        // std::cout<<"template_file: "    <<config_object.template_file<<std::endl;
 
         sncabling::service snCabling;
         snCabling.initialize_simple();
