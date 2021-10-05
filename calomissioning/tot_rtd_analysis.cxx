@@ -193,6 +193,7 @@ int main(int argc, char **argv)
         tree.Branch("event_num",&event_num);
 
         // Branches for the om
+        tree.Branch("OM_tdcs",&eventn.calo_tdc);
         tree.Branch("OM_IDs",&eventn.OM_IDs);
         tree.Branch("OM_charges",&eventn.OM_charges);
         tree.Branch("OM_raw_charges",&eventn.OM_raw_charges);
