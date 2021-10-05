@@ -38,11 +38,6 @@
 #include <sncabling/service.h>
 #include <sncabling/calo_signal_cabling.h>
 
-typedef struct {
-    Int_t OM_ID, side, wall, col, row;
-    Double_t charge, baseline, amplitude, raw_charge, raw_amplitude, raw_baseline;
-    bool is_main, is_xwall, is_gveto, is_fr, is_it;
-} OPTMOD;
 
 typedef struct {
     std::vector<Int_t> OM_IDs;
@@ -227,8 +222,6 @@ int main(int argc, char **argv)
         std::size_t rtd_counter = 0;
         while ( rtd_source.has_record_tag() )
         {
-            TRACKS tracks;
-            OPTMOD optmod;
             rtd_counter++;
       
             // Load the next RTD object:
@@ -270,46 +263,26 @@ int main(int argc, char **argv)
 	                int32_t ch_falling_cell {ch_data.get_falling_cell()}; // Computed falling cell
 
 	                sncabling::calo_signal_id readout_id(sncabling::CALOSIGNAL_CHANNEL, crate_num, board_num, snfee::model::feb_constants::SAMLONG_NUMBER_OF_CHANNELS * chip_num + ichannel);
+
+                    Int_t OM_ID;
 	  
 	                if (caloSignalCabling.has_channel(readout_id))
 	                {
 	                    const sncabling::om_id & calo_id = caloSignalCabling.get_om(readout_id);
-                        
-                        optmod.is_main = false;
-	                    optmod.is_gveto = false;
-	                    optmod.is_xwall = false;
-	                    optmod.is_fr = false;
-	                    optmod.is_it = false;
 
                         if (calo_id.is_main())
                         {
-                            optmod.side = calo_id.get_side();
-                            optmod.col = calo_id.get_column();
-                            optmod.row = calo_id.get_row();
-                            optmod.OM_ID = optmod.row + optmod.col*13 + optmod.side*260;
-                            optmod.is_main = true;
+                            OM_ID = calo_id.get_row() + calo_id.get_column()*13 +  calo_id.get_side()*260;
                             my_class = 0;
                         }
                         else if (calo_id.is_xwall()) {
-                            optmod.side = calo_id.get_side();
-                            optmod.wall = calo_id.get_wall();
-                            optmod.col = calo_id.get_column();
-                            optmod.row = calo_id.get_row();
-                            optmod.OM_ID = 520 + optmod.side*64 + optmod.wall*32  + optmod.col*16 + optmod.row;
-                            optmod.is_xwall = true;
+                            OM_ID = 520 + calo_id.get_side()*64 + calo_id.get_wall()*32 + calo_id.get_column()*16 + calo_id.get_row();
                             my_class = 1;
                         }
                         else if (calo_id.is_gveto()) {
-                            optmod.side = calo_id.get_side();
-                            optmod.wall = calo_id.get_wall();
-                            optmod.col = calo_id.get_column();
-                            optmod.OM_ID = 520 + 128 + optmod.side*32 + optmod.wall*16 + optmod.col;
-                            optmod.is_gveto = true;
+                            OM_ID = 520 + 128 + calo_id.get_side()*32 + calo_id.get_wall()*16 + calo_id.get_column();
                             my_class = 2;
                         }
-
-                        if ( optmod.side == 1 ){ optmod.is_fr = true; }
-                        else{ optmod.is_it = true; }
                         
 	                    uint16_t waveform_number_of_samples = calo_hit.get_waveform_number_of_samples();
 	                    // std::vector<Double_t> waveform_adc;
@@ -327,7 +300,7 @@ int main(int argc, char **argv)
 	                    eventn.OM_raw_baselines.push_back(my_baseline);
 	                    eventn.OM_raw_charges.push_back(get_my_charge( config_object, waveform, my_baseline ));
 	                    eventn.OM_charges.push_back(0.001 * (Double_t)ch_charge * adc2mv * tdc2ns);
-                        eventn.OM_IDs.push_back(optmod.OM_ID);
+                        eventn.OM_IDs.push_back(OM_ID);
 			            
 	                }
 	            } //end of channels
