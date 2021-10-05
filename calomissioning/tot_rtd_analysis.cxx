@@ -40,6 +40,7 @@
 
 
 typedef struct {
+    std::vector<Double_t> calo_tdc;
     std::vector<Int_t> OM_IDs;
     std::vector<Double_t> OM_charges;
     std::vector<Double_t> OM_baselines;
@@ -313,6 +314,7 @@ int main(int argc, char **argv)
 	                    eventn.OM_raw_charges.push_back(get_my_charge( config_object, waveform, my_baseline ));
 	                    eventn.OM_charges.push_back(0.001 * (Double_t)ch_charge * adc2mv * tdc2ns);
                         eventn.OM_IDs.push_back(OM_ID);
+                        eventn.calo_tdc.push_back((Double_t)tdc*tdc2ns);
 			            
 	                }
 	            } //end of channels

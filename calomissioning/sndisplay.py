@@ -530,14 +530,14 @@ class tracker:
                     box.SetLineWidth(1)
                     self.cellbox.append(box)
 
-                    cellid_string = "M:{}.{}.{}".format(cell_side, cell_layer, cell_row)
+                    cellid_string = "{}.{}.{}".format(cell_side, cell_layer, cell_row)
                     cellid_text = ROOT.TText(x1+0.5 * self.cell_sizex, y1+0.667 * self.cell_sizey, cellid_string)
                     cellid_text.SetTextSize(0.01)
                     cellid_text.SetTextAlign(22)
                     self.cellid_text_v.append(cellid_text)
 
                     cellnum_string = "{}".format(cellnum)
-                    cellnum_text = ROOT.TText(x1+0.5 * self.cell_sizex, y1+0.333 * self.cell_sizey, cellnum_string)
+                    cellnum_text = ROOT.TText(x1+0.5 * self.cell_sizex, y1+0.667 * self.cell_sizey, cellnum_string)
                     cellnum_text.SetTextSize(0.01)
                     cellnum_text.SetTextAlign(22)
                     self.cellnum_text_v.append(cellnum_text)
