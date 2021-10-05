@@ -413,7 +413,7 @@ int main(int argc, char **argv)
         std::cout << "File closed" << std::endl;
 
         error_code = EXIT_SUCCESS;
-        exit();
+        exit(1);
 
 
     } catch (std::exception & error)
