@@ -390,24 +390,24 @@ int main(int argc, char **argv)
                     {
                     case snfee::data::tracker_hit_record::TIMESTAMP_ANODE_R0:
                         tracks.R0 = timestamp_category;
-                        eventn.R0s.push_back(timestamp_category);
+                        eventn.R0s.push_back(timestamp);
                         eventn.TR_IDs.push_back(TR_ID);
                         break;
                     case snfee::data::tracker_hit_record::TIMESTAMP_ANODE_R1:
                         tracks.R1 = timestamp_category;
-                        eventn.R1s.push_back(timestamp_category);
+                        eventn.R1s.push_back(timestamp);
                         break;
                     case snfee::data::tracker_hit_record::TIMESTAMP_ANODE_R2:
                         tracks.R2 = timestamp_category;
-                        eventn.R2s.push_back(timestamp_category);
+                        eventn.R2s.push_back(timestamp);
                         break;
                     case snfee::data::tracker_hit_record::TIMESTAMP_ANODE_R3:
                         tracks.R3 = timestamp_category;
-                        eventn.R3s.push_back(timestamp_category);
+                        eventn.R3s.push_back(timestamp);
                         break;
                     case snfee::data::tracker_hit_record::TIMESTAMP_ANODE_R4:
                         tracks.R4 = timestamp_category;
-                        eventn.R4s.push_back(timestamp_category);
+                        eventn.R4s.push_back(timestamp);
                         break;
                     default:
                         break;
@@ -442,24 +442,6 @@ int main(int argc, char **argv)
             }
 
             eventn = {};
-            /*eventn.OM_amplitudes.clear();
-            eventn.OM_IDs.clear();
-            eventn.OM_baselines.clear();
-            eventn.OM_charges.clear();
-            eventn.OM_raw_amplitudes.clear();
-            eventn.OM_raw_baselines.clear();
-            eventn.OM_raw_charges.clear();
-            eventn.R0s.clear();
-            eventn.R1s.clear();
-            eventn.R2s.clear();
-            eventn.R3s.clear();
-            eventn.R4s.clear();
-            eventn.R5s.clear();
-            eventn.R6s.clear();
-            eventn.TR_IDs.clear();*/
-            //tracks.clear();
-            //optmod.clear();
-            //eventn.clear();
             event_num++;
         }   //end of file
     
@@ -468,6 +450,8 @@ int main(int argc, char **argv)
         output_file->Write();
         output_file->Close();
         std::cout << "File closed" << std::endl;
+
+        error_code = EXIT_SUCCESS;
 
 
     } catch (std::exception & error)
