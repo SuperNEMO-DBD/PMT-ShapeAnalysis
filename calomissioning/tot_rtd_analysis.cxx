@@ -45,11 +45,6 @@ typedef struct {
 } OPTMOD;
 
 typedef struct {
-    Int_t TR_ID;
-    Double_t R0, R1, R2, R3, R4, R5, R6;
-} TRACKS;
-
-typedef struct {
     std::vector<Int_t> OM_IDs;
     std::vector<Double_t> OM_charges;
     std::vector<Double_t> OM_baselines;
@@ -205,7 +200,7 @@ int main(int argc, char **argv)
         tree.Branch("OM_raw_amplitudes",&eventn.OM_raw_amplitudes);
 
         // Branches for the tracker
-        tree.Branch("TR_ID",&eventn.TR_IDs);
+        tree.Branch("TR_IDs",&eventn.TR_IDs);
         tree.Branch("TR_R0",&eventn.R0s);
         tree.Branch("TR_R1",&eventn.R1s);
         tree.Branch("TR_R2",&eventn.R2s);
@@ -364,8 +359,8 @@ int main(int argc, char **argv)
                     side_num    = tracker_cell_id.get_side();   // [0-1]
                     row_num     = tracker_cell_id.get_row();    // [0-112]
                     layer_num   = tracker_cell_id.get_layer();  // [0-8]
-                }
-                tracks.TR_ID = side_num * 113 * 9 + row_num * 9 + layer_num;
+                    TR_ID = side_num * 113 * 9 + row_num * 9 + layer_num;
+                }else{ TR_ID = 4000; }
 
                 snfee::data::tracker_hit_record::channel_category_type channel_category = tracker_hit.get_channel_category();
                 // snfee::data::tracker_hit_record::CHANNEL_ANODE
@@ -389,24 +384,19 @@ int main(int argc, char **argv)
                     switch (timestamp_category)
                     {
                     case snfee::data::tracker_hit_record::TIMESTAMP_ANODE_R0:
-                        tracks.R0 = timestamp_category;
                         eventn.R0s.push_back(timestamp);
                         eventn.TR_IDs.push_back(TR_ID);
                         break;
                     case snfee::data::tracker_hit_record::TIMESTAMP_ANODE_R1:
-                        tracks.R1 = timestamp_category;
                         eventn.R1s.push_back(timestamp);
                         break;
                     case snfee::data::tracker_hit_record::TIMESTAMP_ANODE_R2:
-                        tracks.R2 = timestamp_category;
                         eventn.R2s.push_back(timestamp);
                         break;
                     case snfee::data::tracker_hit_record::TIMESTAMP_ANODE_R3:
-                        tracks.R3 = timestamp_category;
                         eventn.R3s.push_back(timestamp);
                         break;
                     case snfee::data::tracker_hit_record::TIMESTAMP_ANODE_R4:
-                        tracks.R4 = timestamp_category;
                         eventn.R4s.push_back(timestamp);
                         break;
                     default:
@@ -452,6 +442,7 @@ int main(int argc, char **argv)
         std::cout << "File closed" << std::endl;
 
         error_code = EXIT_SUCCESS;
+        break;
 
 
     } catch (std::exception & error)
