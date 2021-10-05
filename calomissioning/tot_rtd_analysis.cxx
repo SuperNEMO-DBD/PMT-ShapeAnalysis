@@ -381,11 +381,9 @@ int main(int argc, char **argv)
                     switch (timestamp_category)
                     {
                     case snfee::data::tracker_hit_record::TIMESTAMP_CATHODE_R5:
-                        tracks.R5 = timestamp_category;
                         eventn.R5s.push_back(timestamp_category);
                         break;
                     case snfee::data::tracker_hit_record::TIMESTAMP_CATHODE_R6:
-                        tracks.R6 = timestamp_category;
                         eventn.R6s.push_back(timestamp_category);
                         break;
                     
