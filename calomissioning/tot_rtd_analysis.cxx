@@ -47,7 +47,11 @@ typedef struct {
     std::vector<Double_t> OM_raw_charges;
     std::vector<Double_t> OM_raw_amplitudes;
     std::vector<Double_t> OM_raw_baselines;
-    std::vector<Int_t> TR_IDs_anode;
+    std::vector<Int_t> TR_IDs_anode0;
+    std::vector<Int_t> TR_IDs_anode1;
+    std::vector<Int_t> TR_IDs_anode2;
+    std::vector<Int_t> TR_IDs_anode3;
+    std::vector<Int_t> TR_IDs_anode4;
     std::vector<Int_t> TR_IDs_cathode5;
     std::vector<Int_t> TR_IDs_cathode6;
     std::vector<Double_t> R0s;
@@ -197,7 +201,11 @@ int main(int argc, char **argv)
         tree.Branch("OM_raw_amplitudes",&eventn.OM_raw_amplitudes);
 
         // Branches for the tracker
-        tree.Branch("TR_IDs_anode",&eventn.TR_IDs_anode);
+        tree.Branch("TR_IDs_anode0",&eventn.TR_IDs_anode0);
+        tree.Branch("TR_IDs_anode1",&eventn.TR_IDs_anode1);
+        tree.Branch("TR_IDs_anode2",&eventn.TR_IDs_anode2);
+        tree.Branch("TR_IDs_anode3",&eventn.TR_IDs_anode3);
+        tree.Branch("TR_IDs_anode4",&eventn.TR_IDs_anode4);
         tree.Branch("TR_IDs_cathode5",&eventn.TR_IDs_cathode5);
         tree.Branch("TR_IDs_cathode6",&eventn.TR_IDs_cathode6);
         tree.Branch("TR_R0",&eventn.R0s);
@@ -362,19 +370,23 @@ int main(int argc, char **argv)
                     {
                     case snfee::data::tracker_hit_record::TIMESTAMP_ANODE_R0:
                         eventn.R0s.push_back(timestamp);
-                        eventn.TR_IDs_anode.push_back(TR_ID);
+                        eventn.TR_IDs_anode0.push_back(TR_ID);
                         break;
                     case snfee::data::tracker_hit_record::TIMESTAMP_ANODE_R1:
                         eventn.R1s.push_back(timestamp);
+                        eventn.TR_IDs_anode1.push_back(TR_ID);
                         break;
                     case snfee::data::tracker_hit_record::TIMESTAMP_ANODE_R2:
                         eventn.R2s.push_back(timestamp);
+                        eventn.TR_IDs_anode2.push_back(TR_ID);
                         break;
                     case snfee::data::tracker_hit_record::TIMESTAMP_ANODE_R3:
                         eventn.R3s.push_back(timestamp);
+                        eventn.TR_IDs_anode3.push_back(TR_ID);
                         break;
                     case snfee::data::tracker_hit_record::TIMESTAMP_ANODE_R4:
                         eventn.R4s.push_back(timestamp);
+                        eventn.TR_IDs_anode4.push_back(TR_ID);
                         break;
                     default:
                         break;
