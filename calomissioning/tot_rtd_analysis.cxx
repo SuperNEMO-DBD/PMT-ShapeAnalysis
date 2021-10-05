@@ -47,7 +47,9 @@ typedef struct {
     std::vector<Double_t> OM_raw_charges;
     std::vector<Double_t> OM_raw_amplitudes;
     std::vector<Double_t> OM_raw_baselines;
-    std::vector<Int_t> TR_IDs;
+    std::vector<Int_t> TR_IDs_anode;
+    std::vector<Int_t> TR_IDs_cathode5;
+    std::vector<Int_t> TR_IDs_cathode6;
     std::vector<Double_t> R0s;
     std::vector<Double_t> R1s;
     std::vector<Double_t> R2s;
@@ -195,7 +197,9 @@ int main(int argc, char **argv)
         tree.Branch("OM_raw_amplitudes",&eventn.OM_raw_amplitudes);
 
         // Branches for the tracker
-        tree.Branch("TR_IDs",&eventn.TR_IDs);
+        tree.Branch("TR_IDs_anode",&eventn.TR_IDs_anode);
+        tree.Branch("TR_IDs_cathode5",&eventn.TR_IDs_cathode5);
+        tree.Branch("TR_IDs_cathode6",&eventn.TR_IDs_cathode6);
         tree.Branch("TR_R0",&eventn.R0s);
         tree.Branch("TR_R1",&eventn.R1s);
         tree.Branch("TR_R2",&eventn.R2s);
@@ -358,7 +362,7 @@ int main(int argc, char **argv)
                     {
                     case snfee::data::tracker_hit_record::TIMESTAMP_ANODE_R0:
                         eventn.R0s.push_back(timestamp);
-                        eventn.TR_IDs.push_back(TR_ID);
+                        eventn.TR_IDs_anode.push_back(TR_ID);
                         break;
                     case snfee::data::tracker_hit_record::TIMESTAMP_ANODE_R1:
                         eventn.R1s.push_back(timestamp);
@@ -381,10 +385,12 @@ int main(int argc, char **argv)
                     switch (timestamp_category)
                     {
                     case snfee::data::tracker_hit_record::TIMESTAMP_CATHODE_R5:
-                        eventn.R5s.push_back(timestamp_category);
+                        eventn.R5s.push_back(timestamp);
+                        eventn.TR_IDs_cathode5.push_back(TR_ID);
                         break;
                     case snfee::data::tracker_hit_record::TIMESTAMP_CATHODE_R6:
-                        eventn.R6s.push_back(timestamp_category);
+                        eventn.R6s.push_back(timestamp);
+                        eventn.TR_IDs_cathode6.push_back(TR_ID);
                         break;
                     
                     default:
