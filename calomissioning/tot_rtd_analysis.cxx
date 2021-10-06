@@ -315,7 +315,7 @@ int main(int argc, char **argv)
 	                    eventn.OM_raw_charges.push_back(get_my_charge( config_object, waveform, my_baseline ));
 	                    eventn.OM_charges.push_back(0.001 * (Double_t)ch_charge * adc2mv * tdc2ns);
                         eventn.OM_IDs.push_back(OM_ID);
-                        eventn.calo_tdc.push_back((Double_t)tdc*tdc2ns);
+                        eventn.calo_tdc.push_back((Double_t)tdc*6.25); // 1 TDC unit = 6.25 ns
 			            
 	                }
 	            } //end of channels
@@ -363,7 +363,7 @@ int main(int argc, char **argv)
                 // snfee::data::tracker_hit_record::TIMESTAMP_CATHODE_R5    (BOTTOM) \ if category is
                 // snfee::data::tracker_hit_record::TIMESTAMP_CATHODE_R6       (TOP) / CHANNEL_CATHODE
 
-                uint64_t timestamp = tracker_hit.get_timestamp(); // 1 TDC unit = 12.5 ns
+                uint64_t timestamp = tracker_hit.get_timestamp() * 12.5; // 1 TDC unit = 12.5 ns
 
                 switch (channel_category)
                 {
