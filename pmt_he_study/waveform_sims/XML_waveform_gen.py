@@ -291,7 +291,7 @@ if __name__ == "__main__":
 
         if loop == 'y':
             '''
-      for i in range(n_files):
+        for i in range(n_files):
         #position = ap_distribution[randint(0,len(ap_distribution)-1)]
         #config['afterpulses']['position'] = str(position)
         config['afterpulses']['counter'] = str(i)
