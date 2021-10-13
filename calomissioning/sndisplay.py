@@ -530,14 +530,14 @@ class tracker:
                     box.SetLineWidth(1)
                     self.cellbox.append(box)
 
-                    cellid_string = "M:{}.{}.{}".format(cell_side, cell_layer, cell_row)
+                    cellid_string = "{}.{}.{}".format(cell_side, cell_layer, cell_row)
                     cellid_text = ROOT.TText(x1+0.5 * self.cell_sizex, y1+0.667 * self.cell_sizey, cellid_string)
                     cellid_text.SetTextSize(0.01)
                     cellid_text.SetTextAlign(22)
                     self.cellid_text_v.append(cellid_text)
 
                     cellnum_string = "{}".format(cellnum)
-                    cellnum_text = ROOT.TText(x1+0.5 * self.cell_sizex, y1+0.333 * self.cell_sizey, cellnum_string)
+                    cellnum_text = ROOT.TText(x1+0.5 * self.cell_sizex, y1+0.667 * self.cell_sizey, cellnum_string)
                     cellnum_text.SetTextSize(0.01)
                     cellnum_text.SetTextAlign(22)
                     self.cellnum_text_v.append(cellnum_text)
@@ -582,8 +582,9 @@ class tracker:
 
         if self.draw_content:
             for cellnum in range(self.nb_cell):
-                ttext = self.content_text_v[cellnum]
-                ttext.SetText(ttext.GetX(), ttext.GetY(), self.draw_content_format.format(self.content[cellnum]))
+                if self.content[cellnum] is not None:
+                    ttext = self.content_text_v[cellnum]
+                    ttext.SetText(ttext.GetX(), ttext.GetY(), self.draw_content_format.format(self.content[cellnum]))
 
         self.canvas.cd()
         self.canvas.SetEditable(True)
@@ -599,7 +600,7 @@ class tracker:
                     if self.draw_cellnum:
                         self.cellnum_text_v[cellnum].Draw()
 
-                    if self.draw_content and self.content[cellnum] != 0:
+                    if self.draw_content and self.content[cellnum] is not None:
                         self.content_text_v[cellnum].Draw()
 
         self.it_label.Draw()
@@ -633,13 +634,18 @@ class tracker:
         self.setcontent(cellnum, value)
 
     def fill(self, cellnum: int, value =1):
-        self.setcontent(cellnum, self.content[cellnum] + value)
+        if self.content[cellnum] is None:
+            self.setcontent(cellnum, value)
+        else:
+            self.setcontent(cellnum, self.content[cellnum] + value)
 
     def update(self):
         content_min = self.content[0]
         content_max = self.content[0]
 
         for cellnum in range(1, self.nb_cell):
+            if self.content[cellnum] is None:
+                continue
             if self.content[cellnum] < content_min:
                 content_min = self.content[cellnum]
             if self.content[cellnum] > content_max:
