@@ -50,7 +50,7 @@ def main(path, output):
 
     for ifile in files:
         broken = ifile.split("_")
-        inserted = broken[4]
+        inserted = broken[-1].split(".")[0].strip()
         n_pulses.append(int(inserted))
 
         ap_num = int(get_pulses(path, ifile))
