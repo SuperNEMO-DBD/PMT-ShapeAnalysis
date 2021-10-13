@@ -27,7 +27,13 @@ def get_pulses(path, filename):
     root_file.cd()
 
     hist = root_file.Get("110011_GAO607_apulse_times_1400V")
-    total = hist.GetEntries()
+
+    try:
+        total = hist.GetEntries()
+    except AttributeError:
+        print(full_path)
+        root_file.ls()
+        raise AttributeError
 
     return total
 
