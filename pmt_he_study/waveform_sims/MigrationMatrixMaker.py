@@ -68,3 +68,4 @@ if __name__ == "__main__":
     else:
         folder_path = sys.argv[1]
         image_name = sys.argv[2]
+        main(folder_path, image_name)
