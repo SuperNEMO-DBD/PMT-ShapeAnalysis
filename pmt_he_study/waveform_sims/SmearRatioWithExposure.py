@@ -199,7 +199,7 @@ def main(path, name):
                 plt.grid()
                 plt.xlabel("apulse number")
                 plt.ylabel("normalised counts")
-                plt.legend(loc='upeer right')
+                plt.legend(loc='upper right')
                 plt.savefig("plots/{}_apnum_fit.pdf".format(i_date))
                 plt.close()
 
