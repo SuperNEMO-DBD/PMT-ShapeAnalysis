@@ -14,14 +14,23 @@ from scipy.stats import chisquare
 
 def directory_list(folder_path):
     files = []
-    if os.path.exists(folder_path):
+    filenames = open(folder_path + "/filenames.txt", "r")
+    fl = filenames.readlines()
+    for index, line in enumerate(fl):
+        if len(line.split(".")) > 0:
+            filename = line.strip()
+            files.append(filename)
+        else:
+            continue
+    return files
+    '''if os.path.exists(folder_path):
         for filename in os.listdir(folder_path):
             if fnmatch.fnmatch(filename, '*1400*'):
                 files.append(filename)
         return files
     else:
         print("Folder not found")
-        sys.exit()
+        sys.exit()'''
 
 
 def gaussian(x, mu, sd, A):
