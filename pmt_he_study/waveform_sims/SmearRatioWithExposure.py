@@ -145,7 +145,7 @@ def func_form(t, A, B, C):
 
 def main(path, name):
     files = directory_list(path)
-    del files[0]
+    # del files[0]
     dates = []
     ratio = []
 
