@@ -198,10 +198,10 @@ def main(path, name):
                 x = np.linspace(-0.5, 20.5, 100)
 
                 fig = plt.figure(figsize=(9, 6), facecolor='white')
-                plt.bar(bins + 0.5, real_values, width=1, color='blue', label='data')
-                plt.plot(bins + 0.5, start_values, "r.", label='start values')
+                plt.bar(bins, real_values, width=1, color='blue', label='data')
+                plt.plot(bins, start_values, "r.", label='start values')
                 plt.plot(x, gaussian(x, new_real_mean, sd, A), "r--")
-                plt.plot(bins + 0.5, transformed_values, "g.", label='smeared values')
+                plt.plot(bins, transformed_values, "g.", label='smeared values')
                 plt.grid()
                 plt.xlabel("apulse number")
                 plt.ylabel("normalised counts")
