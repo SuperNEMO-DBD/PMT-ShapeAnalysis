@@ -143,6 +143,11 @@ def func_form(t, A, B, C):
     return A * (1 - 1 / (1 + B * exp))
 
 
+def new_func_form(t, A, B, C, D):
+    exp = np.exp(-C * (t - D))
+    return A * (1 - 1 / (1 + B * exp))
+
+
 def main(path, name):
     files = directory_list(path)
     # del files[0]
@@ -182,6 +187,16 @@ def main(path, name):
 
                     print("{} Done".format(i_date))
                     print(smear_mean / dist_mean)
+
+                    fig = plt.figure(figsize=(9, 6), facecolor='white')
+                    plt.bar(bins, real_values, width=1, color='blue', label='data')
+                    plt.plot(bins, start_values, "r.", label='start values')
+                    plt.plot(bins, transformed_values, "g.", label='smeared values')
+                    plt.savefig(path + "plots/{}_apnum_fit.pdf".format(i_date))
+                    plt.grid()
+                    plt.xlabel("apulse number")
+                    plt.ylabel("normalised counts")
+                    plt.close()
                 except:
                     print("{} Not fitted".format(i_date))
 
