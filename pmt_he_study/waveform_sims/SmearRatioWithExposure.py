@@ -189,13 +189,14 @@ def main(path, name):
                     print(smear_mean / dist_mean)
 
                     fig = plt.figure(figsize=(9, 6), facecolor='white')
-                    plt.bar(bins, real_values, width=1, color='blue', label='data')
-                    plt.plot(bins, start_values, "r.", label='start values')
-                    plt.plot(bins, transformed_values, "g.", label='smeared values')
-                    plt.savefig("plots/{}_apnum_fit.pdf".format(i_date))
+                    plt.bar(bins + 0.5, real_values, width=1, color='blue', label='data')
+                    plt.plot(bins + 0.5, start_values, "r.", label='start values')
+                    plt.plot(bins + 0.5, transformed_values, "g.", label='smeared values')
                     plt.grid()
                     plt.xlabel("apulse number")
                     plt.ylabel("normalised counts")
+                    plt.legend(loc='upeer right')
+                    plt.savefig("plots/{}_apnum_fit.pdf".format(i_date))
                     plt.close()
                 except:
                     print("{} Not fitted".format(i_date))
