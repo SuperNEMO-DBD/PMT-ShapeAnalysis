@@ -165,7 +165,7 @@ def main(path, name):
                 err = np.sqrt(freq) / sum(freq)
 
                 try:
-                    popt, pcov = curve_fit(gaus_mod, bins, real_values, sigma=err, maxfev=2000)
+                    popt, pcov = curve_fit(gaus_mod, bins, real_values, sigma=err, maxfev=10000)
                     real_mean = popt[0]
                     sd = popt[1]
                     A = popt[2]
