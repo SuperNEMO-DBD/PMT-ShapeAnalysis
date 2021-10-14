@@ -169,6 +169,7 @@ def main(path, name):
                     real_mean = popt[0]
                     sd = popt[1]
                     A = popt[2]
+                    print(popt)
 
                     start_values = gaussian(bins, real_mean, sd, A)
                     transformed_values = dist_smear(start_values)
