@@ -192,9 +192,12 @@ def main(path, name):
                 print("{} Done".format(i_date))
                 print(smear_mean / dist_mean)
 
+                x = np.linspace(-0.5, 20.5, 100)
+
                 fig = plt.figure(figsize=(9, 6), facecolor='white')
                 plt.bar(bins + 0.5, real_values, width=1, color='blue', label='data')
                 plt.plot(bins + 0.5, start_values, "r.", label='start values')
+                plt.plot(x, gaussian(x, new_real_mean, sd, A), "r--")
                 plt.plot(bins + 0.5, transformed_values, "g.", label='smeared values')
                 plt.grid()
                 plt.xlabel("apulse number")
