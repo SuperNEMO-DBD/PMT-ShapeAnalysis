@@ -188,7 +188,7 @@ def main(path, name):
 
                 dist_mean = mean_calc(bins, start_values)
                 smear_mean = mean_calc(bins, transformed_values)
-                print(real_mean, new_real_mean, dist_mean, smear_mean)
+                # print(real_mean, new_real_mean, dist_mean, smear_mean)
 
                 ratio.append(smear_mean / dist_mean)
                 dates.append(int(i_date))
