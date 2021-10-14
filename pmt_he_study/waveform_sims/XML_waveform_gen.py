@@ -98,7 +98,7 @@ def ap_template(config):
         for j in range(len(norm_temp)):
             single_ap[position - 1 + j] = int(norm_temp[j] * scale_factor)
 
-        single_ap = single_ap * scale_factor
+        single_ap = single_ap
         all_aps = all_aps + single_ap
 
     return all_aps.astype(int)
