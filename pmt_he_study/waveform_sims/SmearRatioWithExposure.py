@@ -171,35 +171,37 @@ def main(path, name):
 
                 try:
                     popt, pcov = curve_fit(gaus_mod, bins, real_values, sigma=err, maxfev=10000)
-                    new_real_mean = popt[0]
-                    sd = popt[1]
-                    A = popt[2]
-
-                    start_values = gaussian(bins, new_real_mean, sd, A)
-                    transformed_values = dist_smear(start_values)
-
-                    dist_mean = mean_calc(bins, start_values)
-                    smear_mean = mean_calc(bins, transformed_values)
-                    print(real_mean, new_real_mean, dist_mean, smear_mean)
-
-                    ratio.append(smear_mean / dist_mean)
-                    dates.append(int(i_date))
-
-                    print("{} Done".format(i_date))
-                    print(smear_mean / dist_mean)
-
-                    fig = plt.figure(figsize=(9, 6), facecolor='white')
-                    plt.bar(bins + 0.5, real_values, width=1, color='blue', label='data')
-                    plt.plot(bins + 0.5, start_values, "r.", label='start values')
-                    plt.plot(bins + 0.5, transformed_values, "g.", label='smeared values')
-                    plt.grid()
-                    plt.xlabel("apulse number")
-                    plt.ylabel("normalised counts")
-                    plt.legend(loc='upeer right')
-                    plt.savefig("plots/{}_apnum_fit.pdf".format(i_date))
-                    plt.close()
                 except:
                     print("{} Not fitted".format(i_date))
+                    continue
+
+                new_real_mean = popt[0]
+                sd = popt[1]
+                A = popt[2]
+
+                start_values = gaussian(bins, new_real_mean, sd, A)
+                transformed_values = dist_smear(start_values)
+
+                dist_mean = mean_calc(bins, start_values)
+                smear_mean = mean_calc(bins, transformed_values)
+                print(real_mean, new_real_mean, dist_mean, smear_mean)
+
+                ratio.append(smear_mean / dist_mean)
+                dates.append(int(i_date))
+
+                print("{} Done".format(i_date))
+                print(smear_mean / dist_mean)
+
+                fig = plt.figure(figsize=(9, 6), facecolor='white')
+                plt.bar(bins + 0.5, real_values, width=1, color='blue', label='data')
+                plt.plot(bins + 0.5, start_values, "r.", label='start values')
+                plt.plot(bins + 0.5, transformed_values, "g.", label='smeared values')
+                plt.grid()
+                plt.xlabel("apulse number")
+                plt.ylabel("normalised counts")
+                plt.legend(loc='upeer right')
+                plt.savefig("plots/{}_apnum_fit.pdf".format(i_date))
+                plt.close()
 
     st_date = str(np.min(dates))
     days = day_extractor(dates)
