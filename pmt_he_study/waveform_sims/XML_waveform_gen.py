@@ -28,7 +28,7 @@ def extract_ap_times():
     ap_times = []
     for event in tree:
         for value in event.apulse_times:
-            if value > 1400 and value < 2000:
+            if 1400 < value < 2000:
                 ap_times.append(value)
 
     if image == "y":
@@ -50,7 +50,7 @@ def ap_template(config):
     max_pos = int(config['afterpulses']['max_pos'])
 
     temp_path = config['ap_template']['file_path']
-    scale_factor = float(config['ap_template']['scale_factor'])
+    # scale_factor = float(config['ap_template']['scale_factor'])
 
     file = ROOT.TFile(temp_path, "READ")
     file.cd()
@@ -58,8 +58,13 @@ def ap_template(config):
     # if spacing == "sampled":
     #  ap_distribution = extract_ap_times()
 
-    temp = file.Get("Template_Ch0")
-
+    template = file.Get("Template_Ch0")
+    temp = []
+    for i in range(1, template.GetNbinsX() + 1):
+        temp.append(template.GetBinContent(i))
+    temp = np.array(temp)
+    norm_temp = temp/np.sqrt(np.dot(temp, temp))
+    norm_temp_amp = -1*np.min(norm_temp)
     all_aps = np.zeros(7168)
 
     # first = True
@@ -72,7 +77,8 @@ def ap_template(config):
         first = False
         '''
         randomN = randint(0, 20)
-        scale_factor = 0.0002 + 0.00002 * randomN
+        # scale_factor = 0.0002 + 0.00002 * randomN
+        scale_factor = (10 + randomN)/norm_temp_amp
         # config['ap_template']['scale_factor'] = str(scale)
 
         single_ap = np.zeros(7168)
@@ -89,8 +95,8 @@ def ap_template(config):
         if spacing == 'spaced':
             position = 2000 + i * int(config['afterpulses']['space_dist'])
 
-        for i in range(temp.GetNbinsX()):
-            single_ap[position - 1 + i] = int(temp.GetBinContent(i))
+        for j in range(len(norm_temp)):
+            single_ap[position - 1 + j] = int(norm_temp[j])
 
         single_ap = single_ap * scale_factor
         all_aps = all_aps + single_ap
