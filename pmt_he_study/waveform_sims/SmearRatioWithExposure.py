@@ -166,16 +166,16 @@ def main(path, name):
 
                 try:
                     popt, pcov = curve_fit(gaus_mod, bins, real_values, sigma=err, maxfev=10000)
-                    new_real_mean = popt[0]
+                    real_mean = popt[0]
                     sd = popt[1]
                     A = popt[2]
 
-                    start_values = gaussian(bins, new_real_mean, sd, A)
+                    start_values = gaussian(bins, real_mean, sd, A)
                     transformed_values = dist_smear(start_values)
 
                     dist_mean = mean_calc(bins, start_values)
                     smear_mean = mean_calc(bins, transformed_values)
-                    print(real_mean, new_real_mean, dist_mean, smear_mean)
+                    print(real_mean, real_mean, dist_mean, smear_mean)
 
                     ratio.append(smear_mean / dist_mean)
                     dates.append(int(i_date))
