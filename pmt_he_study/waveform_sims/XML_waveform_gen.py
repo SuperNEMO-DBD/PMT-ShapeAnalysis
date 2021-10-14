@@ -79,7 +79,6 @@ def ap_template(config):
         randomN = randint(0, 20)
         # scale_factor = 0.0002 + 0.00002 * randomN
         scale_factor = (10 + randomN)/norm_temp_amp
-        print(scale_factor)
         # config['ap_template']['scale_factor'] = str(scale)
 
         single_ap = np.zeros(7168)
@@ -97,7 +96,7 @@ def ap_template(config):
             position = 2000 + i * int(config['afterpulses']['space_dist'])
 
         for j in range(len(norm_temp)):
-            single_ap[position - 1 + j] = int(norm_temp[j])
+            single_ap[position - 1 + j] = int(norm_temp[j] * scale_factor)
 
         single_ap = single_ap * scale_factor
         all_aps = all_aps + single_ap
