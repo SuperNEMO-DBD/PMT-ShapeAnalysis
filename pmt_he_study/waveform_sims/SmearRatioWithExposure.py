@@ -195,7 +195,7 @@ def main(path, name):
 
                 print("{} Done".format(i_date), "Ratio", smear_mean / dist_mean)
 
-                x = np.linspace(-0.5, 20.5, 100)
+                x = np.linspace(0, 19, 100)
 
                 fig = plt.figure(figsize=(9, 6), facecolor='white')
                 plt.bar(bins, real_values, width=1, color='blue', label='data')
