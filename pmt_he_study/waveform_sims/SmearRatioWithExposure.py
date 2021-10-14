@@ -165,12 +165,16 @@ def main(path, name):
             else:
 
                 bins, real_values, real_mean, freq = get_bins_values(path + i_file)
+                bins = bins + 0.5  # the bin centre is the one that needs to be used
 
                 freq = [0.000001 if x == 0 else x for x in freq]
                 err = np.sqrt(freq) / sum(freq)
 
                 try:
-                    popt, pcov = curve_fit(gaus_mod, bins, real_values, sigma=err, maxfev=10000)
+                    p_guess = [0, 1, 1]
+                    p_bounds = [[0, 0, 0], [20, 20, 10]]
+                    popt, pcov = curve_fit(gaus_mod, bins, real_values, sigma=err, maxfev=2000,
+                                           p0=p_guess, bounds=p_bounds)
                 except:
                     print("{} Not fitted".format(i_date))
                     continue
@@ -189,8 +193,7 @@ def main(path, name):
                 ratio.append(smear_mean / dist_mean)
                 dates.append(int(i_date))
 
-                print("{} Done".format(i_date))
-                print(smear_mean / dist_mean)
+                print("{} Done".format(i_date), "Ratio", smear_mean / dist_mean)
 
                 x = np.linspace(-0.5, 20.5, 100)
 
