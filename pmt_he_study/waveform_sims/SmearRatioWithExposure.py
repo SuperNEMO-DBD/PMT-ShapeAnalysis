@@ -192,7 +192,7 @@ def main(path, name):
                     plt.bar(bins, real_values, width=1, color='blue', label='data')
                     plt.plot(bins, start_values, "r.", label='start values')
                     plt.plot(bins, transformed_values, "g.", label='smeared values')
-                    plt.savefig(path + "plots/{}_apnum_fit.pdf".format(i_date))
+                    plt.savefig("plots/{}_apnum_fit.pdf".format(i_date))
                     plt.grid()
                     plt.xlabel("apulse number")
                     plt.ylabel("normalised counts")
