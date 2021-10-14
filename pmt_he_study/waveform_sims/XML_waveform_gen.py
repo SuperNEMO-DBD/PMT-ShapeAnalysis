@@ -79,6 +79,7 @@ def ap_template(config):
         randomN = randint(0, 20)
         # scale_factor = 0.0002 + 0.00002 * randomN
         scale_factor = (10 + randomN)/norm_temp_amp
+        print(scale_factor)
         # config['ap_template']['scale_factor'] = str(scale)
 
         single_ap = np.zeros(7168)
