@@ -197,7 +197,7 @@ def main(path, name):
 
                 x = np.linspace(0, 19, 100)
 
-                fig = plt.figure(figsize=(9, 6), facecolor='white')
+                '''fig = plt.figure(figsize=(9, 6), facecolor='white')
                 plt.bar(bins, real_values, width=1, color='blue', label='data')
                 plt.plot(bins, start_values, "r.", label='start values')
                 plt.plot(x, gaussian(x, new_real_mean, sd, A), "r--")
@@ -207,7 +207,7 @@ def main(path, name):
                 plt.ylabel("normalised counts")
                 plt.legend(loc='upper right')
                 plt.savefig("plots/{}_apnum_fit.pdf".format(i_date))
-                plt.close()
+                plt.close()'''
 
     st_date = str(np.min(dates))
     days = day_extractor(dates)
@@ -222,27 +222,33 @@ def main(path, name):
 
     error = ratio * 0.01
 
-    popt, pcov = curve_fit(func_form, days, ratio, maxfev=2000, sigma=error)
+    '''popt, pcov = curve_fit(func_form, days, ratio, maxfev=2000, sigma=error)
+    A = popt[0]
+    B = popt[1]
+    C = popt[2]'''
+
+    popt, pcov = curve_fit(new_func_form, days, ratio, maxfev=2000, sigma=error)
     A = popt[0]
     B = popt[1]
     C = popt[2]
+    D = popt[3]
 
     # A = 0.97
     # B = 11645
     # C = 0.01
 
-    print(A)
-    print(B)
-    print(C)
+    for i_popt in popt:
+        print(i_popt)
 
     print(pcov)
 
-    for g in pcov:
-        print(g)
+    '''for g in pcov:
+        print(g)'''
 
     days = np.sort(days)
 
-    fitting = func_form(days, A, B, C)
+    # fitting = func_form(days, A, B, C)
+    fitting = func_form(days, *popt)
     chi_value = mychi(fitting, ratio, error) / 3
     residuals = ratio - fitting
 
@@ -261,12 +267,14 @@ def main(path, name):
 
     ax0.set_ylabel("Efficiency factor")
     ax0.legend(loc="lower left")
+    ax0.set_grid()
 
     ax1.scatter(days, residuals, color="k", s=1)
     ax1.set_xlabel("Days since " + st_date[4:6] + "/" + st_date[2:4] + "/" + st_date[0:2])
     ax1.set_ylabel("Residuals")
     # ax1.hlines(0,xmin=0,xmax=, color="y", linestyles="dashed")
     ax1.axhline(0, color="y", ls="--")
+    ax1.set_grid()
 
     fig.tight_layout()
     fig.savefig(name + ".pdf")
