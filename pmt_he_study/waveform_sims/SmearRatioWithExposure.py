@@ -36,7 +36,7 @@ def directory_list(folder_path):
 
 def write_to_file(name, data):
     file = open(name, "w")
-    for i in range(data[0]):
+    for i in range(len(data[0])):
         file.write('{}, {}'.format(data[0][i], data[1][i]))
     file.close()
 
@@ -203,7 +203,7 @@ def main(path, name):
 
                 # print("{} Done".format(i_date), "Ratio", smear_mean / dist_mean)
 
-                x = np.linspace(0, 19, 100)
+                # x = np.linspace(0, 19, 100)
 
                 '''fig = plt.figure(figsize=(9, 6), facecolor='white')
                 plt.bar(bins, real_values, width=1, color='blue', label='data')
