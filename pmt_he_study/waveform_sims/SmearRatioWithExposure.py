@@ -144,9 +144,9 @@ def func_form(t, A, B, C):
     return A * (1 - 1 / (1 + B * exp))
 
 
-def new_func_form(t, A, B, C, D):
-    exp = np.exp(-C * (t - D))
-    return A * (1 - 1 / (1 + B * exp))
+def new_func_form(t, A, B, C):
+    exp = np.exp(-C * (t - B))
+    return A * (1 - 1 / (1 + exp))
 
 
 def main(path, name):
@@ -228,7 +228,9 @@ def main(path, name):
     B = popt[1]
     C = popt[2]'''
 
-    popt, pcov = curve_fit(new_func_form, days, ratio, maxfev=2000, sigma=error)
+    popt, pcov = curve_fit(new_func_form, days, ratio, maxfev=2000, sigma=error,
+                           p0=[0.9, ],
+                           bounds=[[], []])
     A = popt[0]
     B = popt[1]
     C = popt[2]
