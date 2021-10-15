@@ -155,7 +155,7 @@ def main(path, name):
     dates = []
     ratio = []
 
-    for i_file in tqdm.tdqp(files):
+    for i_file in tqdm.tqdm(files):
         split = i_file.split("_")
         i_date = split[0]
         if "." in i_date:
