@@ -37,7 +37,7 @@ def directory_list(folder_path):
 def write_to_file(name, data):
     file = open(name, "w")
     for i in range(len(data[0])):
-        file.write('{}, {}'.format(data[0][i], data[1][i]))
+        file.write('{}, {} \n'.format(data[0][i], data[1][i]))
     file.close()
 
 
