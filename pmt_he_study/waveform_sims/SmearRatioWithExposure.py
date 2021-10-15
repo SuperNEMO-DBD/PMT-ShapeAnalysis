@@ -34,6 +34,13 @@ def directory_list(folder_path):
         sys.exit()'''
 
 
+def write_to_file(name, data):
+    file = open(name, "w")
+    for i in range(data[0]):
+        file.write('{}, {}'.format(data[0][i], data[1][i]))
+    file.close()
+
+
 def gaussian(x, mu, sd, A):
     exponent = -0.5 * np.square((x - mu) / sd)
     return A * np.exp(exponent)
@@ -231,6 +238,8 @@ def main(path, name):
     popt, pcov = curve_fit(new_func_form, days, ratio, maxfev=2000, sigma=error,
                            p0=[0.9, 100, 0.001],
                            bounds=[[0, 0, 0], [1, 400, 1]])
+
+    write_to_file("ratios.csv", [days, ratio])
     '''A = popt[0]
     B = popt[1]
     C = popt[2]
