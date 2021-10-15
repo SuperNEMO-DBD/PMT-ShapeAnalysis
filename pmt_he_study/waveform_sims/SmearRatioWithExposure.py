@@ -10,7 +10,7 @@ from scipy.special import factorial
 from scipy.optimize import curve_fit
 from datetime import date
 from scipy.stats import chisquare
-import tdqm
+import tqdm
 
 
 def directory_list(folder_path):
@@ -155,7 +155,7 @@ def main(path, name):
     dates = []
     ratio = []
 
-    for i_file in tdqm.tdqp(files):
+    for i_file in tqdm.tdqp(files):
         split = i_file.split("_")
         i_date = split[0]
         if "." in i_date:
