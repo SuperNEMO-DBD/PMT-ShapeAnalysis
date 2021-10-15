@@ -180,7 +180,7 @@ def main(path, name):
 
                 try:
                     p_guess = [0, 1, 1]
-                    p_bounds = [[0, 0, 0], [20, 20, 10]]
+                    p_bounds = [[-100, 0, 0], [20, 20, 10]]
                     popt, pcov = curve_fit(gaus_mod, bins, real_values, sigma=err, maxfev=2000,
                                            p0=p_guess, bounds=p_bounds)
                 except:
