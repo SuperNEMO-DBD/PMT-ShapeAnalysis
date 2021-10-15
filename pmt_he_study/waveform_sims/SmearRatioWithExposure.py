@@ -10,6 +10,7 @@ from scipy.special import factorial
 from scipy.optimize import curve_fit
 from datetime import date
 from scipy.stats import chisquare
+import tdqm
 
 
 def directory_list(folder_path):
@@ -154,7 +155,7 @@ def main(path, name):
     dates = []
     ratio = []
 
-    for i_file in files:
+    for i_file in tdqm.tdqp(files):
         split = i_file.split("_")
         i_date = split[0]
         if "." in i_date:
@@ -193,7 +194,7 @@ def main(path, name):
                 ratio.append(smear_mean / dist_mean)
                 dates.append(int(i_date))
 
-                print("{} Done".format(i_date), "Ratio", smear_mean / dist_mean)
+                # print("{} Done".format(i_date), "Ratio", smear_mean / dist_mean)
 
                 x = np.linspace(0, 19, 100)
 
@@ -248,7 +249,7 @@ def main(path, name):
     days = np.sort(days)
 
     # fitting = func_form(days, A, B, C)
-    fitting = func_form(days, *popt)
+    fitting = new_func_form(days, *popt)
     chi_value = mychi(fitting, ratio, error) / 3
     residuals = ratio - fitting
 
