@@ -268,14 +268,14 @@ def main(path, name):
 
     ax0.set_ylabel("Efficiency factor")
     ax0.legend(loc="lower left")
-    ax0.set_grid()
+    ax0.grid()
 
     ax1.scatter(days, residuals, color="k", s=1)
     ax1.set_xlabel("Days since " + st_date[4:6] + "/" + st_date[2:4] + "/" + st_date[0:2])
     ax1.set_ylabel("Residuals")
     # ax1.hlines(0,xmin=0,xmax=, color="y", linestyles="dashed")
     ax1.axhline(0, color="y", ls="--")
-    ax1.set_grid()
+    ax1.grid()
 
     fig.tight_layout()
     fig.savefig(name + ".pdf")
