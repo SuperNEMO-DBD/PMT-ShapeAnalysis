@@ -230,7 +230,7 @@ def main(path, name):
 
     popt, pcov = curve_fit(new_func_form, days, ratio, maxfev=2000, sigma=error,
                            p0=[0.9, 100, 0.001],
-                           bounds=[[0, 0, 0], [1, 200, 1]])
+                           bounds=[[0, 0, 0], [1, 400, 1]])
     '''A = popt[0]
     B = popt[1]
     C = popt[2]
