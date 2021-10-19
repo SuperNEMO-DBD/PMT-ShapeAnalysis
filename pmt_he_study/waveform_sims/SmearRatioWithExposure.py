@@ -242,7 +242,7 @@ def main(path, name):
                            bounds=[[0, 0, 0], [1, 400, 1]])
 
     write_to_file("ratios.csv", [days, ratio])
-    write_to_file("ratios.csv", [days, aan])
+    write_to_file("aan.csv", [days, aan])
     '''A = popt[0]
     B = popt[1]
     C = popt[2]
