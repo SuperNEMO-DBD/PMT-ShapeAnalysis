@@ -161,6 +161,7 @@ def main(path, name):
     # del files[0]
     dates = []
     ratio = []
+    aan = []
 
     for i_file in tqdm.tqdm(files):
         split = i_file.split("_")
@@ -174,6 +175,7 @@ def main(path, name):
 
                 bins, real_values, real_mean, freq = get_bins_values(path + i_file)
                 bins = bins + 0.5  # the bin centre is the one that needs to be used
+                aan.append(real_mean)
 
                 freq = [0.000001 if x == 0 else x for x in freq]
                 err = np.sqrt(freq) / sum(freq)
@@ -240,6 +242,7 @@ def main(path, name):
                            bounds=[[0, 0, 0], [1, 400, 1]])
 
     write_to_file("ratios.csv", [days, ratio])
+    write_to_file("ratios.csv", [days, aan])
     '''A = popt[0]
     B = popt[1]
     C = popt[2]
@@ -300,3 +303,11 @@ if __name__ == "__main__":
         folder_path = sys.argv[1]
         image_name = sys.argv[2]
         main(folder_path, image_name)
+
+
+# true_mean = np.linspace(0, 11, 0.1)
+true_mean = 2
+for n in [i for i in range(20)]:
+    prob = np.exp(-1*true_mean)*(true_mean**n)/np.math.factorial(n)
+# for i_true_mean in true_mean:
+
