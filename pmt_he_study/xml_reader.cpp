@@ -275,6 +275,7 @@ Int_t main(Int_t argc, char* argv[])
 
         eventn.pulse_amplitude  = pulse_amplitude;
         eventn.pulse_charge     = pulse_charge;
+        eventn.ap_charge        = ap_charge;
         eventn.baseline         = baseline;
         eventn.event_num        = channel_event_num[channel_indicator];
         eventn.OM_ID            = channel_indicator;
