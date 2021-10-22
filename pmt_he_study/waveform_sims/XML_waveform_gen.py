@@ -9,9 +9,35 @@ import sys
 from xml.dom import minidom
 import xml.etree.ElementTree as ET
 import numpy as np
-from random import randint
+import random
 import matplotlib.pyplot as plt
 import ROOT
+
+
+def get_dist_amp():
+    file = ROOT.TFile("/Users/williamquinn/Desktop/SNEMO/200320_A1400_B1400_t0929_output.root")
+    h_amplitudes = file.Get("200320_GAO607_apulse_amplitudes_1400V")
+    amps = []
+    counts_amps = []
+    bin_width = h_amplitudes.GetBinWidth(1)
+    for k in range(1, int(h_amplitudes.GetNbinsX()) + 1):
+        amps.append((k - 1) * bin_width)
+        counts_amps.append(h_amplitudes.GetBinContent(k))
+    counts_amps = np.array(counts_amps)
+
+    new_counts_amps = (counts_amps / np.sum(counts_amps))[10: 40]
+    print([(i * bin_width) + 25 for i in range(len(new_counts_amps))])
+    while 1:
+        xi = random.uniform(25, 100)
+        yi = random.uniform(0, np.max(new_counts_amps))
+
+        new_xi = xi // 2.5
+        # print(xi,new_xi)
+
+        if yi > (counts_amps / np.sum(counts_amps))[int(new_xi)]:
+            continue
+        else:
+            return int(xi)
 
 
 def extract_ap_times():
@@ -76,21 +102,22 @@ def ap_template(config):
         scale_factor = 0.00002*int(config['afterpulses']['counter'])
         first = False
         '''
-        randomN = randint(0, 20)
+        randomN = random.randint(0, 20)
         # scale_factor = 0.0002 + 0.00002 * randomN
-        scale_factor = (10 + randomN)/norm_temp_amp
+        # scale_factor = (10 + randomN)/norm_temp_amp
+        scale_factor = get_dist_amp()/norm_temp_amp
         # config['ap_template']['scale_factor'] = str(scale)
 
         single_ap = np.zeros(7168)
 
         if spacing == 'random':
-            position = randint(min_pos, max_pos)
+            position = random.randint(min_pos, max_pos)
 
         if spacing == 'fixed':
             position = int(config['afterpulses']['position'])
 
         if spacing == 'sampled':
-            position = int(ap_distribution_glob[randint(0, len(ap_distribution_glob) - 1)])
+            position = int(ap_distribution_glob[random.randint(0, len(ap_distribution_glob) - 1)])
 
         if spacing == 'spaced':
             position = 2000 + i * int(config['afterpulses']['space_dist'])
@@ -120,7 +147,7 @@ def ap_gen(config):
     for i in range(number):
         single_ap = np.zeros(7168)
         if spacing == "random":
-            position = randint(min_pos, max_pos)
+            position = random.randint(min_pos, max_pos)
 
         # refer to diagram if confused
         rise_step = amp / (width * 0.5 + offset)
@@ -163,7 +190,7 @@ def base_gen(config):
     base = np.zeros(7168)
     upper = True
     for i in range(7168):
-        random_n = randint(1, 100)
+        random_n = random.randint(1, 100)
         if upper:
             if random_n == 1:
                 base[i - 1] = 983
