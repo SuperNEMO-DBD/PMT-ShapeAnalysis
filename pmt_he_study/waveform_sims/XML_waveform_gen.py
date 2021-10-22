@@ -26,7 +26,7 @@ def get_dist_amp():
     counts_amps = np.array(counts_amps)
 
     new_counts_amps = (counts_amps / np.sum(counts_amps))[10: 40]
-    print([(i * bin_width) + 25 for i in range(len(new_counts_amps))])
+    # print([(i * bin_width) + 25 for i in range(len(new_counts_amps))])
     while 1:
         xi = random.uniform(25, 100)
         yi = random.uniform(0, np.max(new_counts_amps))
