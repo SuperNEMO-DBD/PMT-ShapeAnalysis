@@ -55,7 +55,7 @@ namespace po = boost::program_options;
 // this will be the construct to fill Int_to the TTree
 typedef struct {
     Int_t event_num, OM_ID, pulse_time;
-    Double_t pulse_charge, pulse_amplitude, baseline;
+    Double_t pulse_charge, pulse_amplitude, baseline, ap_charge;
 } EVENTN;
 
 typedef struct {
@@ -91,6 +91,7 @@ DESC process_name( std::string &s );
 MATCHFILTER sweep( std::vector<Double_t> &vec, CONF &config, Double_t baseline, std::vector<Double_t> &temp );
 std::vector<std::vector<Double_t>> get_template_pulses( std::string template_file );
 Double_t get_inner_product( std::vector<Double_t> &vec1, std::vector<Double_t> &vec2 );
+Double_t get_ap_charge(std::vector<Double_t> &vec, Double_t baseline, CONF &config);
 
 
 Int_t main(Int_t argc, char* argv[])
@@ -172,6 +173,7 @@ Int_t main(Int_t argc, char* argv[])
     // Branches for the main pulse
     tree.Branch("pulse_charge",&eventn.pulse_charge);
     tree.Branch("pulse_amplitude",&eventn.pulse_amplitude);
+    tree.Branch("ap_region_charge",&eventn.ap_charge);
     tree.Branch("event_num",&eventn.event_num);
     tree.Branch("pulse_time",&eventn.pulse_time);
     tree.Branch("pulse_baseline",&eventn.baseline);
@@ -180,15 +182,15 @@ Int_t main(Int_t argc, char* argv[])
     tree.Branch("event_num_ch1",&description.tot_event_ch1);
 
     // Branch for the storing of the raw waveform
-    tree.Branch("waveform",&waveform);
+    // tree.Branch("waveform",&waveform);
 
     // Branch for the afterpulse analysis
     tree.Branch("apulse_num",&matchfilter.apulse_num);
     tree.Branch("apulse_times",&matchfilter.apulse_times);
     tree.Branch("apulse_amplitudes",&matchfilter.apulse_amplitudes);
     tree.Branch("apulse_shapes",&matchfilter.apulse_shapes);
-    tree.Branch("mf_amplitudes",&matchfilter.mf_amps);
-    tree.Branch("mf_shapes",&matchfilter.mf_shapes);
+    // tree.Branch("mf_amplitudes",&matchfilter.mf_amps);
+    // tree.Branch("mf_shapes",&matchfilter.mf_shapes);
 
     std::ifstream data_file( input_file );
     std::string data_line;
@@ -212,6 +214,8 @@ Int_t main(Int_t argc, char* argv[])
     // Read the data file
     while ( std::getline( data_file, data_line ) && !data_file.eof() )
     {
+        eventn = {};
+        matchfilter = {};
         // If the line is a data line we can filter it out to process
         if ( data_line.find (tag_ch0 ) != std::string::npos )
         {
@@ -240,8 +244,9 @@ Int_t main(Int_t argc, char* argv[])
             continue;
         }
 
-        Double_t baseline = get_baseline( data, config_object );
-        Double_t pulse_charge = get_charge( data, baseline, config_object, peak_cell );
+        Double_t baseline       = get_baseline( data, config_object );
+        Double_t pulse_charge   = get_charge( data, baseline, config_object, peak_cell );
+        Double_t ap_charge      = get_ap_charge( data, baseline, config_object );
 
         // std::cout << "charge : " << pulse_charge << std::endl;
 
@@ -625,4 +630,13 @@ Double_t get_inner_product( std::vector<Double_t> &vec1, std::vector<Double_t> &
         inner_product += vec1[i_vec]*vec2[i_vec];
     }
     return inner_product;
+}
+Double_t get_ap_charge(std::vector<Double_t> &vec, Double_t baseline, CONF &config)
+{
+    Double_t charge{0.0};
+    for ( Int_t i = (Int_t)config.sweep_start; i < (Int_t)vec.size() ; i++ )
+    {
+        charge += (vec[i] - baseline);
+    }
+    return (-1.0)*charge/( config.resistance );
 }
