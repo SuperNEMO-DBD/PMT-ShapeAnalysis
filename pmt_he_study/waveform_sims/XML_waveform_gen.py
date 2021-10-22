@@ -15,7 +15,7 @@ import ROOT
 
 
 def get_dist_amp():
-    file = ROOT.TFile("/Users/williamquinn/Desktop/SNEMO/200320_A1400_B1400_t0929_output.root")
+    file = ROOT.TFile("/unix/nemo4/PMT_He_Study_nemo4/ROOT_files/1400V/set_1/S95_A25/200320_A1400_B1400_t0929_output.root")
     h_amplitudes = file.Get("200320_GAO607_apulse_amplitudes_1400V")
     amps = []
     counts_amps = []
