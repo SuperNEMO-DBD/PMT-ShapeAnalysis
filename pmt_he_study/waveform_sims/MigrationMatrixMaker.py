@@ -33,7 +33,7 @@ def get_pulses(path, filename):
     except AttributeError:
         print(full_path)
         root_file.ls()
-        raise AttributeError
+        return None
 
     return total
 
@@ -60,6 +60,8 @@ def main(path, output):
         n_pulses.append(int(inserted))
 
         ap_num = int(get_pulses(path, ifile))
+        if ap_num == None:
+            continue
         pulses_found.append(ap_num)
 
         df.loc["i" + inserted, str(ap_num)] = df.loc["i" + inserted, str(ap_num)] + 1
