@@ -938,6 +938,7 @@ int main (int argc, char *argv[])
   if (persistency_waveform) persistency_waveform_histo->Write("", TObject::kOverwrite);
   if (mean_waveform) mean_waveform_histo->Write("", TObject::kOverwrite);
   output_file->Close();
+  std::cout << "File closed" << std::endl;
   
   return 0;
 }
