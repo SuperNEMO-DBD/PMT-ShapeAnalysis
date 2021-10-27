@@ -640,8 +640,10 @@ class tracker:
             self.setcontent(cellnum, self.content[cellnum] + value)
 
     def update(self):
-        content_min = self.content[0]
-        content_max = self.content[0]
+        # content_min = self.content[0]
+        # content_max = self.content[0]
+        content_min = 0
+        content_max = 0
 
         for cellnum in range(1, self.nb_cell):
             if self.content[cellnum] is None:
