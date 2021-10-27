@@ -14,7 +14,7 @@ include_directories(${SNFrontEndElectronics_INCLUDE_DIRS})
 # - Executable:
 add_executable(read_rtd read_rtd.cxx)
 add_executable(tot_read_rtd tot_rtd_analysis.cxx)
-add_executable(rxd2root rxd2root.cxx.cxx)
+add_executable(rxd2root rxd2root.cxx)
 
 target_link_libraries(read_rtd SNFrontEndElectronics::snfee)
 target_link_libraries(read_rtd Boost::program_options)
