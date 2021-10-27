@@ -12,17 +12,18 @@ message(STATUS  "SNFrontEndElectronics_INCLUDE_DIR=${SNFrontEndElectronics_INCLU
 include_directories(${SNFrontEndElectronics_INCLUDE_DIRS})
 
 # - Executable:
-add_executable(read_rtd read_rtd.cxx)
+# add_executable(read_rtd read_rtd.cxx)
 add_executable(tot_read_rtd tot_rtd_analysis.cxx)
 add_executable(rxd2root rxd2root.cxx)
+add_executable(rtd-merger rtd-merger.cxx)
 
-target_link_libraries(read_rtd SNFrontEndElectronics::snfee)
-target_link_libraries(read_rtd Boost::program_options)
-target_link_libraries(read_rtd ROOT::Core)
-target_link_libraries(read_rtd ROOT::Tree)
-target_link_libraries(read_rtd ROOT::MathCore)
-target_link_libraries(read_rtd ROOT::Hist)
-target_link_libraries(read_rtd ROOT::Gpad)
+#target_link_libraries(read_rtd SNFrontEndElectronics::snfee)
+#target_link_libraries(read_rtd Boost::program_options)
+#target_link_libraries(read_rtd ROOT::Core)
+#target_link_libraries(read_rtd ROOT::Tree)
+#target_link_libraries(read_rtd ROOT::MathCore)
+#target_link_libraries(read_rtd ROOT::Hist)
+#target_link_libraries(read_rtd ROOT::Gpad)
 
 target_link_libraries(tot_read_rtd SNFrontEndElectronics::snfee)
 target_link_libraries(tot_read_rtd Boost::program_options)
@@ -40,11 +41,19 @@ target_link_libraries(rxd2root ROOT::MathCore)
 target_link_libraries(rxd2root ROOT::Hist)
 target_link_libraries(rxd2root ROOT::Gpad)
 
-set_target_properties(read_rtd
-        PROPERTIES
-        RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}
-        ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}
-        )
+target_link_libraries(rtd-merger SNFrontEndElectronics::snfee)
+target_link_libraries(rtd-merger Boost::program_options)
+target_link_libraries(rtd-merger ROOT::Core)
+target_link_libraries(rtd-merger ROOT::Tree)
+target_link_libraries(rtd-merger ROOT::MathCore)
+target_link_libraries(rtd-merger ROOT::Hist)
+target_link_libraries(rtd-merger ROOT::Gpad)
+
+#set_target_properties(read_rtd
+#        PROPERTIES
+#        RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}
+#        ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}
+#        )
 set_target_properties(tot_read_rtd
         PROPERTIES
         RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}
@@ -55,15 +64,20 @@ set_target_properties(rxd2root
         RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}
         ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}
         )
-
-install(FILES
-        ${CMAKE_BINARY_DIR}/read_rtd
-        DESTINATION ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_BINDIR}
-        PERMISSIONS
-        OWNER_READ OWNER_WRITE OWNER_EXECUTE
-        GROUP_READ GROUP_EXECUTE
-        WORLD_READ WORLD_EXECUTE
+set_target_properties(rtd-merger
+        PROPERTIES
+        RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}
+        ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}
         )
+
+#install(FILES
+#        ${CMAKE_BINARY_DIR}/read_rtd
+#        DESTINATION ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_BINDIR}
+#        PERMISSIONS
+#        OWNER_READ OWNER_WRITE OWNER_EXECUTE
+#        GROUP_READ GROUP_EXECUTE
+#        WORLD_READ WORLD_EXECUTE
+#        )
 install(FILES
         ${CMAKE_BINARY_DIR}/tot_read_rtd
         DESTINATION ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_BINDIR}
@@ -74,6 +88,14 @@ install(FILES
         )
 install(FILES
         ${CMAKE_BINARY_DIR}/rxd2root
+        DESTINATION ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_BINDIR}
+        PERMISSIONS
+        OWNER_READ OWNER_WRITE OWNER_EXECUTE
+        GROUP_READ GROUP_EXECUTE
+        WORLD_READ WORLD_EXECUTE
+        )
+install(FILES
+        ${CMAKE_BINARY_DIR}/rtd-merger
         DESTINATION ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_BINDIR}
         PERMISSIONS
         OWNER_READ OWNER_WRITE OWNER_EXECUTE
