@@ -193,8 +193,8 @@ int main (int argc, char *argv[])
     double              event_time          = 0;
     unsigned int        tdc_loop            = 0;
 
-    std::vector<calo_data> event_calo_data_v;
-    std::vector<tracker_data> event_tracker_data_v;
+    // std::vector<calo_data> event_calo_data_v;
+    // std::vector<tracker_data> event_tracker_data_v;
     CALO calo;
     TRACKER tracker;
 
