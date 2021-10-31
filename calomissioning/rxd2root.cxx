@@ -300,10 +300,6 @@ int main (int argc, char *argv[])
             printf("processing event %9d (trigger = %9d)\n", event_counter, trigger_id);
         }
 
-        // initialize tree variables
-        event_calo_data_v.clear();
-        event_tracker_data_v.clear();
-
         uint32_t calo_hit_id = 0;
         uint64_t calo_tdc_min = 0;
 
@@ -473,8 +469,8 @@ int main (int argc, char *argv[])
                 calo.om_column.push_back(column_num);
                 calo.om_num.push_back(om_num);
                 calo.baseline.push_back(calo_baseline);
-                calo.amplitude.push_back(calo.amplitude);
-                calo.charge.push_back(calo.charge);
+                calo.amplitude.push_back(calo_ampl_min);
+                calo.charge.push_back(calo_charge);
                 calo.tdc.push_back(calo_tdc);
                 calo.time.push_back(calo_tdc * 6.25E-9);
 
