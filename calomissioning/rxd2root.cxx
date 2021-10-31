@@ -112,7 +112,7 @@ bool sort_tracker_data_by_cell_num (tracker_data data1, tracker_data data2)
 ////////////////////////////////////////////////////////////////
 
 
-void main (int argc, char *argv[])
+int main (int argc, char *argv[])
 {
     gROOT->SetStyle("Plain");
     gStyle->SetOptStat(0);
