@@ -112,7 +112,7 @@ bool sort_tracker_data_by_cell_num (tracker_data data1, tracker_data data2)
 ////////////////////////////////////////////////////////////////
 
 
-int main (int argc, char *argv[])
+void main (int argc, char *argv[])
 {
     gROOT->SetStyle("Plain");
     gStyle->SetOptStat(0);
@@ -150,7 +150,7 @@ int main (int argc, char *argv[])
     int pre_charge  = 16*4;  //  -25 ns
     int post_charge = 16*36; // +225 ns
 
-    unsigned int print_modulo = 100000;
+    unsigned int print_modulo = 1000;
 
     std::string gain_file = "";
 
@@ -652,10 +652,12 @@ int main (int argc, char *argv[])
 
     snfee::terminate();
 
+    std::cout<<"Events processed : " << event_counter << " entries" << std::endl;
+
     TFile *output_file = new TFile (output_filename.data(), "RECREATE");
     event_tree->Write("", TObject::kOverwrite);
     output_file->Close();
     std::cout << "File closed" << std::endl;
 
-    return 0;
+    exit(0);
 }
