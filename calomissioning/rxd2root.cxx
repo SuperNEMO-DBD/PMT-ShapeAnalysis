@@ -566,10 +566,10 @@ int main (int argc, char *argv[])
             }
 
             if (channel_category == snfee::data::tracker_hit_record::CHANNEL_ANODE) {
-                tracker.fee_crate[tracker_data_index] = crate_num;
-                tracker.fee_board[tracker_data_index].fee_board = board_num;
-                tracker.fee_chip[tracker_data_index].fee_chip = chip_num;
-                tracker.fee_channel[tracker_data_index].fee_channel = channel_num;
+                tracker.fee_crate[tracker_data_index]   = crate_num;
+                tracker.fee_board[tracker_data_index]   = board_num;
+                tracker.fee_chip[tracker_data_index]    = chip_num;
+                tracker.fee_channel[tracker_data_index] = channel_num;
 
                 switch (timestamp_category) {
                     case snfee::data::tracker_hit_record::TIMESTAMP_ANODE_R0:
