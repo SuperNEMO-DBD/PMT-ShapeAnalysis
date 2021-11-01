@@ -2050,3 +2050,72 @@ def om_id_string(omnum: int):
         col = omnum // 16
         string = f'G:1.{col}.{wall}'
     return string
+
+
+def get_pmt_type(omnum: id):
+    pmt_type = 0
+    if 0 <= omnum < 260:
+        col = omnum // 13
+        row = omnum % 13
+        if row == 0 or row == 12:
+            pmt_type = 5
+        else:
+            pmt_type = 8
+    elif omnum < 520:
+        omnum = omnum - 260
+        col = omnum // 13
+        row = omnum % 13
+        if row == 0 or row == 12:
+            pmt_type = 5
+        else:
+            pmt_type = 8
+    else:
+        pmt_type = 5
+
+    return pmt_type
+
+
+def get_cell_id(slot, channel):
+    if slot == 0:
+        if 0 <= channel < 9:
+            side = 1
+            row = slot * 2 + 1
+            layer = channel
+        elif 9 <= channel < 18:
+            side = 1
+            row = slot * 2
+            layer = channel - 9
+        elif 18 <= channel < 27:
+            side = 0
+            row = slot * 2
+            layer = channel - 18
+        else:
+            side = 0
+            row = slot * 2 + 1
+            layer = channel - 27
+    else:
+        if 0 <= channel < 9:
+            side = 0
+            row = slot * 2
+            layer = channel
+        elif 9 <= channel < 18:
+            side = 0
+            row = slot * 2 + 1
+            layer = channel - 9
+        elif 18 <= channel < 27:
+            side = 1
+            row = slot * 2 + 1
+            layer = channel - 18
+        else:
+            side = 1
+            row = slot * 2
+            layer = channel - 27
+    return '{}.{}.{}'.format(side, row, layer)
+
+
+def cell_id(cellnum):
+    cell_side = cellnum // (9 * 113)
+    cell_row = cellnum % (9 * 113) // 9
+    cell_layer = cellnum % (9 * 113) % 9
+
+    return cell_side, cell_row, cell_layer

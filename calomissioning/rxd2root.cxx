@@ -657,6 +657,7 @@ int main (int argc, char *argv[])
     TFile *output_file = new TFile (output_filename.data(), "RECREATE");
     event_tree->Write("", TObject::kOverwrite);
     output_file->Close();
+    std::cout << "tracker_tdc2sec: " << tracker_tdc2sec << std::endl;
     std::cout << "File closed" << std::endl;
 
     exit(0);

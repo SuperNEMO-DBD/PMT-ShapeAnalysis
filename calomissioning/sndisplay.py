@@ -479,8 +479,8 @@ class calorimeter:
         ROOT.gSystem.ProcessEvents()
 
     def save(self, location: str):
-        self.canvas_it.SaveAs(location + "/" + self.name + '_it.png')
-        self.canvas_fr.SaveAs(location + "/" + self.name + '_fr.png')
+        self.canvas_it.SaveAs(location + "/" + self.name + '_it.pdf')
+        self.canvas_fr.SaveAs(location + "/" + self.name + '_fr.pdf')
 
 
 class tracker:
@@ -848,7 +848,7 @@ class demonstrator:
             om_column = (om_num - 520 - om_side * 64 - om_wall * 32) / 16
             top_om_num = 40 + om_side * 2 * 2 + om_wall * 2 + om_column
 
-        self.top_om_content[top_om_num] = value
+        self.top_om_content[int(top_om_num)] = value
 
     def setggcontent(self, cell_num: int, value: float):
         if cell_num < 2034:
@@ -913,7 +913,7 @@ class demonstrator:
                     color_index = 0
                 elif color_index >= 100:
                     color_index = 99
-                self.top_om_box[om].SetFillColor(self.palette_index + color_index)
+                self.top_om_box[om].SetFillColor(int(self.palette_index + color_index))
             else:
                 self.top_om_box[om].SetFillColor(0)
 
@@ -924,7 +924,7 @@ class demonstrator:
                     color_index = 0
                 elif color_index >= 100:
                     color_index = 99
-                self.top_gg_ellipse[gg].SetFillColor(self.palette_index + color_index)
+                self.top_gg_ellipse[gg].SetFillColor(int(self.palette_index + color_index))
             else:
                 self.top_gg_ellipse[gg].SetFillColor(0)
 
@@ -934,7 +934,7 @@ class demonstrator:
         ROOT.gSystem.ProcessEvents()
 
     def save(self, location: str):
-        self.demonstrator_canvas.SaveAs(location + "/" + self.name + '_d.png')
+        self.demonstrator_canvas.SaveAs(location + "/" + self.name + '_d.pdf')
 
 
 def sndisplay_test():

@@ -7,89 +7,73 @@
 #include "TSystem.h"
 #include "TROOT.h"
 
-#include "rxd2root_calo_data.cxx"
-#include "rxd2root_tracker_data.cxx"
+// #include "rxd2root_calo_data.cxx"
+// #include "rxd2root_tracker_data.cxx"
 
 
 typedef struct {
 
     // fee ID
-    char fee_crate;
-    char fee_board;
-    char fee_chip;
-    char fee_channel;
+    std::vector<char> fee_crate;
+    std::vector<char> fee_board;
+    std::vector<char> fee_chip;
+    std::vector<char> fee_channel;
 
     // CELL ID
-    char cell_side;
-    char cell_row;
-    char cell_layer;
+    std::vector<char> cell_side;
+    std::vector<char> cell_row;
+    std::vector<char> cell_layer;
 
     // CELL num
-    short cell_num;
+    std::vector<short> cell_num;
 
-    unsigned long long int timestamp_r0;
+    std::vector<unsigned long long int> timestamp_r0;
+    std::vector<unsigned long long int> timestamp_r1;
+    std::vector<unsigned long long int> timestamp_r2;
+    std::vector<unsigned long long int> timestamp_r3;
+    std::vector<unsigned long long int> timestamp_r4;
+    std::vector<unsigned long long int> timestamp_r5;
+    std::vector<unsigned long long int> timestamp_r6;
 
-    unsigned long long int timestamp_r1;
-    unsigned long long int timestamp_r2;
-    unsigned long long int timestamp_r3;
-    unsigned long long int timestamp_r4;
+    std::vector<double> time_anode;
+    std::vector<double> time_top_cathode;
+    std::vector<double> time_bottom_cathode;
 
-    unsigned long long int timestamp_r5;
-    unsigned long long int timestamp_r6;
-
-    double time_anode;
-    double time_top_cathode;
-    double time_bottom_cathode;
-
-} tracker_data ;
+} TRACKER ;
 
 typedef struct {
 
     // fee ID
-    char fee_crate;
-    char fee_board;
-    char fee_channel;
+    std::vector<char> fee_crate;
+    std::vector<char> fee_board;
+    std::vector<char> fee_chip;
+    std::vector<char> fee_channel;
 
     // OM ID
-    char om_side;
-    char om_wall;
-    char om_column;
-    char om_row;
+    std::vector<char> om_side;
+    std::vector<char> om_wall;
+    std::vector<char> om_column;
+    std::vector<char> om_row;
 
     // OM num
-    short om_num;
+    std::vector<short> om_num;
 
-    int flag;
+    std::vector<int> flag;
 
-    uint64_t tdc;
-    double  time; // v2
+    std::vector<uint64_t> tdc;
+    std::vector<double>  time; // v2
 
     // fee data
-    float fee_baseline;
-    float fee_amplitude;
-    float fee_charge;
-    float fee_energy;
-
-    // // snfee data
-    // float snfee_baseline;
-    // float snfee_amplitude;
-    // float snfee_charge;
-    // float snfee_energy;
+    std::vector<float> fee_baseline;
+    std::vector<float> fee_amplitude;
+    std::vector<float> fee_charge;
 
     // my data
-    float baseline;
-    float amplitude_min;
-    float amplitude_max;
-    float charge;
-    float energy; // v2
-    float time_cfd;
-    float time_min;
-    float time_max;
-    float time_rise;
-    float time_width;
-    float time_fall;
+    std::vector<float> baseline;
+    std::vector<float> amplitude;
+    std::vector<float> charge;
 
-} calo_data ;
+} CALO ;
 
 
 int main (int argc, char *argv[])
