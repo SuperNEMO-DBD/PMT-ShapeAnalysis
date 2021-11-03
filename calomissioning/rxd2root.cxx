@@ -538,16 +538,16 @@ int main (int argc, char *argv[])
                 tracker.cell_row.push_back(row_num);
                 tracker.cell_layer.push_back(layer_num);
                 tracker.cell_num.push_back(cell_num);
-                tracker.timestamp_r0.push_back(0);
-                tracker.timestamp_r1.push_back(0);
-                tracker.timestamp_r2.push_back(0);
-                tracker.timestamp_r3.push_back(0);
-                tracker.timestamp_r4.push_back(0);
-                tracker.timestamp_r5.push_back(0);
-                tracker.timestamp_r6.push_back(0);
-                tracker.time_anode.push_back(0);
-                tracker.time_top_cathode.push_back(0);
-                tracker.time_bottom_cathode.push_back(0);
+                tracker.timestamp_r0.push_back(-999);
+                tracker.timestamp_r1.push_back(-999);
+                tracker.timestamp_r2.push_back(-999);
+                tracker.timestamp_r3.push_back(-999);
+                tracker.timestamp_r4.push_back(-999);
+                tracker.timestamp_r5.push_back(-999);
+                tracker.timestamp_r6.push_back(-999);
+                tracker.time_anode.push_back(-999);
+                tracker.time_top_cathode.push_back(-999);
+                tracker.time_bottom_cathode.push_back(-999);
             }
 
             //
@@ -569,7 +569,7 @@ int main (int argc, char *argv[])
 
                 switch (timestamp_category) {
                     case snfee::data::tracker_hit_record::TIMESTAMP_ANODE_R0:
-                        if (tracker.timestamp_r0[tracker_data_index] != 0) {
+                        if (tracker.timestamp_r0[tracker_data_index] != -999) {
                             printf("*** TIMESTAMP_ANODE_R0 already set ...\n");
                         }
                         tracker.timestamp_r0[tracker_data_index] = timestamp;
@@ -577,28 +577,28 @@ int main (int argc, char *argv[])
                         break;
 
                     case snfee::data::tracker_hit_record::TIMESTAMP_ANODE_R1:
-                        if (tracker.timestamp_r1[tracker_data_index] != 0){
+                        if (tracker.timestamp_r1[tracker_data_index] != -999){
                             printf("*** TIMESTAMP_ANODE_R1 already set ...\n");
                         }
                         tracker.timestamp_r1[tracker_data_index] = timestamp;
                         break;
 
                     case snfee::data::tracker_hit_record::TIMESTAMP_ANODE_R2:
-                        if (tracker.timestamp_r2[tracker_data_index] != 0) {
+                        if (tracker.timestamp_r2[tracker_data_index] != -999) {
                             printf("*** TIMESTAMP_ANODE_R2 already set ...\n");
                         }
                         tracker.timestamp_r2[tracker_data_index] = timestamp;
                         break;
 
                     case snfee::data::tracker_hit_record::TIMESTAMP_ANODE_R3:
-                        if (tracker.timestamp_r3[tracker_data_index] != 0){
+                        if (tracker.timestamp_r3[tracker_data_index] != -999){
                             printf("*** TIMESTAMP_ANODE_R3 already set ...\n");
                         }
                         tracker.timestamp_r3[tracker_data_index] = timestamp;
                         break;
 
                     case snfee::data::tracker_hit_record::TIMESTAMP_ANODE_R4:
-                        if (tracker.timestamp_r4[tracker_data_index] != 0) {
+                        if (tracker.timestamp_r4[tracker_data_index] != -999) {
                             printf("*** TIMESTAMP_ANODE_R4 already set ...\n");
                         }
                         tracker.timestamp_r4[tracker_data_index] = timestamp;

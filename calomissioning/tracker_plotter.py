@@ -39,6 +39,7 @@ def draw_top_cathode_events(run: int, events):
     for event in events:
         tracker_events = event[1]
         for i_tr in tracker_events:
+            # print(i_tr.time_anode, i_tr.time_top_cathode)
             if i_tr.time_top_cathode != 0:
                 n_events[i_tr.cell_num] += 1
     for i in range(2034):
@@ -192,6 +193,47 @@ def draw_t56_all_cells(run: int, events):
     plt.close()
 
 
+def draw_t56_by_layer(run: int, events):
+    lower = -50
+    higher = 100
+
+    f = [[] for i in range(9)]
+    for event in events:
+        event_time = []
+        for calo_event in event[0]:
+            event_time.append(calo_event.time)
+        event_time = np.array(event_time)
+        if event_time.size == 0:
+            continue
+        event_time = np.min(event_time)
+        tracker_events = event[1]
+        for tracker_event in tracker_events:
+            cell_num = tracker_event.cell_num
+            cell_side = cell_num // (9 * 113)
+            cell_row = cell_num % (9 * 113) // 9
+            cell_layer = cell_num % (9 * 113) % 9
+            t5 = (tracker_event.time_bottom_cathode - event_time)*1e6
+            t6 = (tracker_event.time_top_cathode - event_time)*1e6
+            if t5 < 10 and t6 < 10:
+                continue
+            if lower < t5 < higher and lower < t6 < higher:
+                f[cell_layer].append(t5+t6)
+
+    for i in range(len(f)):
+        fig = plt.figure(figsize=(9, 6), facecolor='white')
+        freq, bin_edges = np.histogram(f[i], 100, range=(0, 100))
+        width = bin_edges[-1] - bin_edges[-2]
+        bin_centres = bin_edges[:-1] + width / 2
+        plt.bar(bin_centres, freq, color="blue", width=width, label='')
+        plt.xlabel('t5 + t6 /µs')
+        plt.ylabel('counts')
+        plt.grid()
+        # plt.axvline(65, ls='--', color='red')
+        plt.tight_layout()
+        plt.savefig("/Users/williamquinn/Desktop/" + str(run) + "/t56_layer_{}.pdf".format(i))
+        plt.close()
+
+
 def draw_av_drift(run: int, events):
     lower = -50
     higher = 100
@@ -322,7 +364,7 @@ def draw_t056_comp(run: int, events):
     plt.close()
 
 
-def draw_t013_comp(run: int, events):
+def draw_t012_comp(run: int, events):
     lower = -50
     higher = 100
     c = []
@@ -350,9 +392,9 @@ def draw_t013_comp(run: int, events):
             if t5 < 10 and t6 < 10:
                 continue
 
-            if lower < t1 < higher and lower < t3 < higher and lower < t5 < higher and lower < t6 < higher:
+            if lower < t1 < higher and lower < t2 < higher and lower < t5 < higher and lower < t6 < higher:
                 c.append(t1)
-                d.append(t3)
+                d.append(t2)
                 e.append(t0)
 
     fig = plt.figure(figsize=(9, 6), facecolor='white')
@@ -364,7 +406,7 @@ def draw_t013_comp(run: int, events):
     freq, bin_edges = np.histogram(d, 250, range=(lower, higher))
     width = bin_edges[-1] - bin_edges[-2]
     bin_centres = bin_edges[:-1] + width / 2
-    plt.plot(bin_centres, freq, "g-", label='t3')
+    plt.plot(bin_centres, freq, "g-", label='t2')
 
     freq, bin_edges = np.histogram(e, 250, range=(lower, higher))
     width = bin_edges[-1] - bin_edges[-2]
@@ -379,7 +421,7 @@ def draw_t013_comp(run: int, events):
     plt.yscale('log')
     plt.legend(loc='best')
     plt.tight_layout()
-    plt.savefig("/Users/williamquinn/Desktop/" + str(run) + "/all_cell_t013_comp.pdf")
+    plt.savefig("/Users/williamquinn/Desktop/" + str(run) + "/all_cell_t012_comp.pdf")
     plt.close()
 
 
@@ -411,21 +453,21 @@ def draw_top_bottom_comp(run: int, events):
             if t5 < 10 and t6 < 10:
                 continue
 
-            if lower < t1 < higher and lower < t3 < higher and lower < t5 < higher and lower < t6 < higher:
+            if lower < t1 < higher and lower < t2 < higher and lower < t5 < higher and lower < t6 < higher:
                 if t5 < t6:
-                    if t1 < t3:
+                    if t1 < t2:
                         t_bottom = t1
-                        t_top = t3
+                        t_top = t2
                     else:
-                        t_bottom = t3
+                        t_bottom = t2
                         t_top = t1
                 else:
-                    if t1 < t3:
-                        t_bottom = t3
+                    if t1 < t2:
+                        t_bottom = t2
                         t_top = t1
                     else:
                         t_bottom = t1
-                        t_top = t3
+                        t_top = t2
 
                 c.append(t_bottom)
                 d.append(t_top)
@@ -490,17 +532,17 @@ def draw_bottom_signal_comp(run: int, events):
             if t5 < 10 and t6 < 10:
                 continue
 
-            if lower < t1 < higher and lower < t3 < higher and lower < t5 < higher and lower < t6 < higher:
+            if lower < t1 < higher and lower < t2 < higher and lower < t5 < higher and lower < t6 < higher:
                 if t5 < t6:
-                    if t1 < t3:
+                    if t1 < t2:
                         t_bottom = t1
-                        t_top = t3
+                        t_top = t2
                     else:
-                        t_bottom = t3
+                        t_bottom = t2
                         t_top = t1
                 else:
-                    if t1 < t3:
-                        t_bottom = t3
+                    if t1 < t2:
+                        t_bottom = t2
                         t_top = t1
                     else:
                         t_bottom = t1
@@ -518,7 +560,7 @@ def draw_bottom_signal_comp(run: int, events):
     hist.GetYaxis().SetTitle("t1 or t2 /us")
     can.SetGrid()
     can.Draw()
-    can.SaveAs("/Users/williamquinn/Desktop/" + str(run) + "/all_cell_bottom.pdf")
+    can.SaveAs("/Users/williamquinn/Desktop/" + str(run) + "/all_cell_bottom_signal_comp.pdf")
     del hist
     del can
 
@@ -554,21 +596,21 @@ def draw_top_signal_comp(run: int, events):
             if t5 < 10 and t6 < 10:
                 continue
 
-            if lower < t1 < higher and lower < t3 < higher and lower < t5 < higher and lower < t6 < higher:
+            if lower < t1 < higher and lower < t2 < higher and lower < t5 < higher and lower < t6 < higher:
                 if t5 < t6:
-                    if t1 < t3:
+                    if t1 < t2:
                         t_bottom = t1
-                        t_top = t3
+                        t_top = t2
                     else:
-                        t_bottom = t3
+                        t_bottom = t2
                         t_top = t1
                 else:
-                    if t1 < t3:
-                        t_bottom = t3
+                    if t1 < t2:
+                        t_bottom = t2
                         t_top = t1
                     else:
                         t_bottom = t1
-                        t_top = t3
+                        t_top = t2
                 top[tracker_event.cell_num].append([t6, t_top])
 
     for i_cellnum in range(len(top)):
@@ -582,12 +624,12 @@ def draw_top_signal_comp(run: int, events):
     hist.GetYaxis().SetTitle("t1 or t2 /us")
     can.SetGrid()
     can.Draw()
-    can.SaveAs("/Users/williamquinn/Desktop/" + str(run) + "/all_cell_bottom.pdf")
+    can.SaveAs("/Users/williamquinn/Desktop/" + str(run) + "/all_cell_top_signal_comp.pdf")
     del hist
     del can
 
 
-def draw_t13_all_cells(run: int, events):
+def draw_t12_all_cells(run: int, events):
     lower = -50
     higher = 100
 
@@ -614,24 +656,24 @@ def draw_t13_all_cells(run: int, events):
             if t5 < 10 and t6 < 10:
                 continue
 
-            if lower < t1 < higher and lower < t3 < higher and lower < t5 < higher and lower < t6 < higher:
-                f.append(t1+t3)
+            if lower < t1 < higher and lower < t2 < higher and lower < t5 < higher and lower < t6 < higher:
+                f.append(t1+t2)
 
     fig = plt.figure(figsize=(9, 6), facecolor='white')
     freq, bin_edges = np.histogram(f, 100, range=(0, 100))
     width = bin_edges[-1] - bin_edges[-2]
     bin_centres = bin_edges[:-1] + width / 2
     plt.bar(bin_centres, freq, color="blue", width=width, label='')
-    plt.xlabel('t1 + t3 /µs')
+    plt.xlabel('t1 + t2 /µs')
     plt.ylabel('counts')
     plt.grid()
     # plt.axvline(65, ls='--', color='red')
     plt.tight_layout()
-    plt.savefig("/Users/williamquinn/Desktop/" + str(run) + "/all_cell_t13.pdf")
+    plt.savefig("/Users/williamquinn/Desktop/" + str(run) + "/all_cell_t12.pdf")
     plt.close()
 
 
-def draw_t13_all_cells_2D(run: int, events):
+def draw_t12_all_cells_2D(run: int, events):
     lower = 0
     higher = 100
     ROOT.gStyle.SetOptStat(0)
@@ -660,21 +702,21 @@ def draw_t13_all_cells_2D(run: int, events):
             if t5 < 10 and t6 < 10:
                 continue
 
-            if lower < t1 < higher and lower < t3 < higher and lower < t5 < higher and lower < t6 < higher:
-                hist.Fill(t1, t3)
+            if lower < t1 < higher and lower < t2 < higher and lower < t5 < higher and lower < t6 < higher:
+                hist.Fill(t1, t2)
     can.cd()
     hist.Draw("colz")
     hist.GetXaxis().SetTitle("t1 /us")
-    hist.GetYaxis().SetTitle("t3 /us")
+    hist.GetYaxis().SetTitle("t2 /us")
     can.SetGrid()
     can.Draw()
-    can.SaveAs("/Users/williamquinn/Desktop/" + str(run) + "/all_cell_t13_2D.pdf")
+    can.SaveAs("/Users/williamquinn/Desktop/" + str(run) + "/all_cell_t12_2D.pdf")
 
     del hist
     del can
 
 
-def draw_t1356_comp(run: int, events):
+def draw_top_bottom_all_cells_2D(run: int, events):
     lower = 0
     higher = 100
     ROOT.gStyle.SetOptStat(0)
@@ -703,15 +745,73 @@ def draw_t1356_comp(run: int, events):
             if t5 < 10 and t6 < 10:
                 continue
 
-            if lower < t1 < higher and lower < t3 < higher and lower < t5 < higher and lower < t6 < higher:
-                hist.Fill(t5 + t6, t1 + t3)
+            if lower < t1 < higher and lower < t2 < higher and lower < t5 < higher and lower < t6 < higher:
+                if t5 < t6:
+                    if t1 < t2:
+                        t_bottom = t1
+                        t_top = t2
+                    else:
+                        t_bottom = t2
+                        t_top = t1
+                else:
+                    if t1 < t2:
+                        t_bottom = t2
+                        t_top = t1
+                    else:
+                        t_bottom = t1
+                        t_top = t2
+
+                hist.Fill(t_bottom, t_top)
+    can.cd()
+    hist.Draw("colz")
+    hist.GetXaxis().SetTitle("t_bottom /us")
+    hist.GetYaxis().SetTitle("t_top /us")
+    can.SetGrid()
+    can.Draw()
+    can.SaveAs("/Users/williamquinn/Desktop/" + str(run) + "/all_cell_top_bottom_2D.pdf")
+
+    del hist
+    del can
+
+
+def draw_t1256_comp(run: int, events):
+    lower = 0
+    higher = 100
+    ROOT.gStyle.SetOptStat(0)
+    hist = ROOT.TH2F("", "", 40, lower, higher,
+                     40, lower, higher)
+    can = ROOT.TCanvas()
+    for event in events:
+        event_time = []
+        for calo_event in event[0]:
+            event_time.append(calo_event.time)
+        event_time = np.array(event_time)
+        if event_time.size == 0:
+            continue
+        event_time = np.min(event_time)
+        tracker_events = event[1]
+        for tracker_event in tracker_events:
+            t5 = (tracker_event.time_bottom_cathode - event_time) * 1e6
+            t6 = (tracker_event.time_top_cathode - event_time) * 1e6
+
+            t0 = (tracker_event.time_anode - event_time) * 1e6
+            t1 = (tracker_event.timestamp_r1 * 1.25e-8 - event_time) * 1e6
+            t2 = (tracker_event.timestamp_r2 * 1.25e-8 - event_time) * 1e6
+            t3 = (tracker_event.timestamp_r3 * 1.25e-8 - event_time) * 1e6
+            t4 = (tracker_event.timestamp_r4 * 1.25e-8 - event_time) * 1e6
+
+            if t5 < 10 and t6 < 10:
+                continue
+
+            if lower < t1 < higher and lower < t2 < higher and lower < t5 < higher and lower < t6 < higher:
+                hist.Fill(t5 + t6, t1 + t2)
     can.cd()
     hist.Draw("colz")
     hist.GetXaxis().SetTitle("t5 + t6 /us")
-    hist.GetYaxis().SetTitle("t1 + t3 /us")
+    hist.GetYaxis().SetTitle("t1 + t2 /us")
     can.SetGrid()
     can.Draw()
-    can.SaveAs("/Users/williamquinn/Desktop/" + str(run) + "/all_cell_t1356_2D.pdf")
+    can.SaveAs("/Users/williamquinn/Desktop/" + str(run) + "/all_cell_t1256_2D.pdf")
 
     del hist
     del can
@@ -732,7 +832,7 @@ def main():
     draw_anode_events(run_num, events)
     draw_top_cathode_events(run_num, events)
     draw_bottom_cathode_events(run_num, events)
-    draw_calo_events(run_num, events)
+    '''draw_calo_events(run_num, events)
     draw_full_cell_events(run_num, events)
     draw_events(run_num, events)
     draw_t56_all_cells(run_num, events)
@@ -742,11 +842,13 @@ def main():
     draw_t056_comp(run_num, events)
     draw_bottom_signal_comp(run_num, events)
     draw_top_signal_comp(run_num, events)
-    draw_t013_comp(run_num, events)
-    draw_t1356_comp(run_num, events)
-    draw_t13_all_cells(run_num, events)
-    draw_t13_all_cells_2D(run_num, events)
+    draw_t012_comp(run_num, events)
+    draw_t1256_comp(run_num, events)
+    draw_t12_all_cells(run_num, events)
+    draw_t12_all_cells_2D(run_num, events)
     draw_top_bottom_comp(run_num, events)
+    draw_top_bottom_all_cells_2D(run_num, events)
+    draw_t56_by_layer(run_num, events)'''
 
     print(">>> Finished")
 

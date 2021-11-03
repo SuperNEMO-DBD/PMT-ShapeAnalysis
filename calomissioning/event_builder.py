@@ -4,29 +4,29 @@ import numpy as np
 
 class Calo_Data:
     def __init__(self):
-        self.fee_crate = -1
-        self.fee_board = -1
+        self.fee_crate = None
+        self.fee_board = None
         # self.fee_chip = -1
-        self.fee_channel = -1
+        self.fee_channel = None
 
-        self.om_side = -1
-        self.om_wall = -1
-        self.om_column = -1
-        self.om_row = -1
+        self.om_side = None
+        self.om_wall = None
+        self.om_column = None
+        self.om_row = None
 
-        self.om_num = -1
-        self.flag = -1
+        self.om_num = None
+        self.flag = None
 
-        self.tdc = 0
-        self.time = 0  # // v2
+        self.tdc = None
+        self.time = None  # // v2
 
-        self.fee_baseline = 0.0
-        self.fee_amplitude = 0.0
-        self.fee_charge = 0.0
+        self.fee_baseline = None
+        self.fee_amplitude = None
+        self.fee_charge = None
 
-        self.baseline = 0.0
-        self.amplitude = 0.0
-        self.charge = 0.0
+        self.baseline = None
+        self.amplitude = None
+        self.charge = None
 
     def set(self, index: int, event):
         self.fee_crate = event.calo_fee_crate[index]
@@ -56,28 +56,28 @@ class Calo_Data:
 
 class Tracker_Data:
     def __init__(self):
-        self.fee_crate = 0
-        self.fee_board = 0
+        self.fee_crate = None
+        self.fee_board = None
         # self.fee_chip = 0
-        self.fee_channel = 0
+        self.fee_channel = None
 
-        self.cell_side = -1
-        self.cell_row = -1
-        self.cell_layer = -1
+        self.cell_side = None
+        self.cell_row = None
+        self.cell_layer = None
 
-        self.cell_num = -1
+        self.cell_num = None
 
-        self.timestamp_r0 = 0.0
-        self.timestamp_r1 = 0.0
-        self.timestamp_r2 = 0.0
-        self.timestamp_r3 = 0.0
-        self.timestamp_r4 = 0.0
-        self.timestamp_r5 = 0.0
-        self.timestamp_r6 = 0.0
+        self.timestamp_r0 = None
+        self.timestamp_r1 = None
+        self.timestamp_r2 = None
+        self.timestamp_r3 = None
+        self.timestamp_r4 = None
+        self.timestamp_r5 = None
+        self.timestamp_r6 = None
 
-        self.time_anode = 0.0
-        self.time_top_cathode = 0.0
-        self.time_bottom_cathode = 0.0
+        self.time_anode = None
+        self.time_top_cathode = None
+        self.time_bottom_cathode = None
 
     def set(self, index: int, event):
         self.fee_crate = event.tracker_fee_crate[index]
@@ -114,6 +114,7 @@ def event_builder(input_filename: str):
     previous_last_time = -86400
 
     events = []
+    event_time = 0
     new_calo_events = []
     new_tracker_events = []
 
@@ -121,6 +122,7 @@ def event_builder(input_filename: str):
 
     for event in input_tree:
         try:
+            event_time = event.time
             calo_oms = list(event.calo_om_num)
             tracker_cells = list(event.tracker_cell_num)
             tracker_timestamp_r0s = list(event.tracker_timestamp_r0)
@@ -131,8 +133,8 @@ def event_builder(input_filename: str):
             print("SystemError", n_failures)
             continue
 
-        if len(calo_oms) == 0:
-            continue
+        '''if len(calo_oms) == 0:
+            continue'''
         for i_cal in range(len(calo_oms)):
             new_calo_data = Calo_Data()
             new_calo_data.set(i_cal, event)
@@ -144,8 +146,8 @@ def event_builder(input_filename: str):
                 new_tracker_data.set(i_tr, event)
                 new_tracker_events.append(new_tracker_data)
 
-        if len(new_tracker_events) > 0:
-            events.append([new_calo_events, new_tracker_events])
+        # if len(new_tracker_events) > 0:
+        events.append([new_calo_events, new_tracker_events, event_time])
 
         new_calo_events = []
         new_tracker_events = []
