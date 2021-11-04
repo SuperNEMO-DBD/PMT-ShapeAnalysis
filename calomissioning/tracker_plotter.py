@@ -7,6 +7,7 @@ import numpy as np
 import sndisplay
 from functions.other_functions import *
 from event_builder import *
+from scipy.optimize import curve_fit
 
 
 def draw_anode_events(run: int, events):
@@ -14,12 +15,12 @@ def draw_anode_events(run: int, events):
     sn_tracker.draw_cellid_label()
     sn_tracker.draw_content_label('{}')
 
-    n_events = [0]*2034
+    n_events = [0 for i in range(2034)]
 
     for event in events:
         tracker_events = event[1]
         for i_tr in tracker_events:
-            if i_tr.time_anode != 0:
+            if i_tr.time_anode is not None:
                 n_events[i_tr.cell_num] += 1
     for i in range(2034):
         if n_events[i] > 0:
@@ -34,13 +35,13 @@ def draw_top_cathode_events(run: int, events):
     sn_tracker.draw_cellid_label()
     sn_tracker.draw_content_label('{}')
 
-    n_events = [0] * 2034
+    n_events = [0 for i in range(2034)]
 
     for event in events:
         tracker_events = event[1]
         for i_tr in tracker_events:
             # print(i_tr.time_anode, i_tr.time_top_cathode)
-            if i_tr.time_top_cathode != 0:
+            if i_tr.time_top_cathode is not None:
                 n_events[i_tr.cell_num] += 1
     for i in range(2034):
         if n_events[i] > 0:
@@ -55,17 +56,81 @@ def draw_bottom_cathode_events(run: int, events):
     sn_tracker.draw_cellid_label()
     sn_tracker.draw_content_label('{}')
 
-    n_events = [0] * 2034
+    n_events = [0 for i in range(2034)]
 
     for event in events:
         tracker_events = event[1]
         for i_tr in tracker_events:
-            if i_tr.time_bottom_cathode != 0:
+            if i_tr.time_bottom_cathode is not None:
                 n_events[i_tr.cell_num] += 1
     for i in range(2034):
         if n_events[i] > 0:
             sn_tracker.setcontent(i, n_events[i])
 
+    sn_tracker.draw()
+    sn_tracker.save("/Users/williamquinn/Desktop/" + str(run))
+
+
+def draw_normalised_anode_events(run: int, events):
+    sn_tracker = sndisplay.tracker('tr_anode_normalised_' + str(run))
+    sn_tracker.draw_cellid_label()
+    sn_tracker.draw_content_label('{:.3f}')
+
+    n_events = [0 for i in range(2034)]
+
+    for event in events:
+        tracker_events = event[1]
+        for i_tr in tracker_events:
+            if i_tr.time_anode is not None:
+                n_events[i_tr.cell_num] += 1
+    for i in range(2034):
+        if n_events[i] > 0:
+            sn_tracker.setcontent(i, n_events[i]/np.sum(n_events))
+
+    sn_tracker.setrange(0, 0.01)
+    sn_tracker.draw()
+    sn_tracker.save("/Users/williamquinn/Desktop/" + str(run))
+
+
+def draw_normalised_top_cathode_events(run: int, events):
+    sn_tracker = sndisplay.tracker('tr_top_cathode_normalised_' + str(run))
+    sn_tracker.draw_cellid_label()
+    sn_tracker.draw_content_label('{:.3f}')
+
+    n_events = [0 for i in range(2034)]
+
+    for event in events:
+        tracker_events = event[1]
+        for i_tr in tracker_events:
+            # print(i_tr.time_anode, i_tr.time_top_cathode)
+            if i_tr.time_top_cathode is not None:
+                n_events[i_tr.cell_num] += 1
+    for i in range(2034):
+        if n_events[i] > 0:
+            sn_tracker.setcontent(i, n_events[i]/np.sum(n_events))
+
+    sn_tracker.setrange(0, 0.01)
+    sn_tracker.draw()
+    sn_tracker.save("/Users/williamquinn/Desktop/" + str(run))
+
+
+def draw_normalised_bottom_cathode_events(run: int, events):
+    sn_tracker = sndisplay.tracker('tr_bottom_cathode_normalised_' + str(run))
+    sn_tracker.draw_cellid_label()
+    sn_tracker.draw_content_label('{:.3f}')
+
+    n_events = [0 for i in range(2034)]
+
+    for event in events:
+        tracker_events = event[1]
+        for i_tr in tracker_events:
+            if i_tr.time_bottom_cathode is not None:
+                n_events[i_tr.cell_num] += 1
+    for i in range(2034):
+        if n_events[i] > 0:
+            sn_tracker.setcontent(i, n_events[i]/np.sum(n_events))
+
+    sn_tracker.setrange(0, 0.01)
     sn_tracker.draw()
     sn_tracker.save("/Users/williamquinn/Desktop/" + str(run))
 
@@ -77,7 +142,8 @@ def draw_events(run: int, events):
         for calo_event in events[i][0]:
             sn_demo.setomcontent(calo_event.om_num, 1)
         for tracker_event in events[i][1]:
-            if tracker_event.time_anode != 0 and tracker_event.time_top_cathode != 0 and tracker_event.time_bottom_cathode != 0:
+            if tracker_event.time_anode is not None and tracker_event.time_top_cathode is not None\
+                    and tracker_event.time_bottom_cathode is not None:
                 sn_demo.setggcontent(tracker_event.cell_num, 1)
         sn_demo.draw_top()
         sn_demo.save("/Users/williamquinn/Desktop/" + str(run))
@@ -112,7 +178,7 @@ def draw_full_cell_events(run: int, events):
     for event in events:
         tracker_events = event[1]
         for i_tr in tracker_events:
-            if i_tr.time_anode != 0 and i_tr.time_top_cathode != 0 and i_tr.time_bottom_cathode != 0:
+            if i_tr.time_anode is not None and i_tr.time_top_cathode is not None and i_tr.time_bottom_cathode is not None:
                 n_events[i_tr.cell_num] += 1
     for i in range(2034):
         if n_events[i] > 0:
@@ -139,6 +205,8 @@ def draw_t56_all_cells_2D(run: int, events):
         event_time = np.min(event_time)
         tracker_events = event[1]
         for tracker_event in tracker_events:
+            if tracker_event.time_bottom_cathode is None or tracker_event.time_top_cathode is None:
+                continue
             t5 = (tracker_event.time_bottom_cathode - event_time)*1e6
             t6 = (tracker_event.time_top_cathode - event_time)*1e6
             if t5 < 10 and t6 < 10:
@@ -172,6 +240,8 @@ def draw_t56_all_cells(run: int, events):
         event_time = np.min(event_time)
         tracker_events = event[1]
         for tracker_event in tracker_events:
+            if tracker_event.time_bottom_cathode is None or tracker_event.time_top_cathode is None:
+                continue
             t5 = (tracker_event.time_bottom_cathode - event_time)*1e6
             t6 = (tracker_event.time_top_cathode - event_time)*1e6
             if t5 < 10 and t6 < 10:
@@ -208,9 +278,9 @@ def draw_t56_by_layer(run: int, events):
         event_time = np.min(event_time)
         tracker_events = event[1]
         for tracker_event in tracker_events:
+            if tracker_event.time_bottom_cathode is None or tracker_event.time_top_cathode is None:
+                continue
             cell_num = tracker_event.cell_num
-            cell_side = cell_num // (9 * 113)
-            cell_row = cell_num % (9 * 113) // 9
             cell_layer = cell_num % (9 * 113) % 9
             t5 = (tracker_event.time_bottom_cathode - event_time)*1e6
             t6 = (tracker_event.time_top_cathode - event_time)*1e6
@@ -234,15 +304,15 @@ def draw_t56_by_layer(run: int, events):
         plt.close()
 
 
-def draw_av_drift(run: int, events):
+def draw_av_propagation(run: int, events):
     lower = -50
     higher = 100
 
-    sn_tracker = sndisplay.tracker('tr_av_drift_' + str(run))
+    sn_tracker = sndisplay.tracker('tr_av_propagation_' + str(run))
     sn_tracker.draw_cellid_label()
     sn_tracker.draw_content_label('{:.2f}')
 
-    drift_times = [[] for i in range(2034)]
+    propagation_times = [[] for i in range(2034)]
 
     for event in events:
         event_time = []
@@ -254,35 +324,38 @@ def draw_av_drift(run: int, events):
         event_time = np.min(event_time)
         tracker_events = event[1]
         for tracker_event in tracker_events:
+            if tracker_event.time_bottom_cathode is None or tracker_event.time_top_cathode is None:
+                continue
             t5 = (tracker_event.time_bottom_cathode - event_time)*1e6
             t6 = (tracker_event.time_top_cathode - event_time)*1e6
+            # print(t5 + t6)
             if t5 < 10 and t6 < 10:
                 continue
             if lower < t5 < higher and lower < t6 < higher:
-                drift_times[int(tracker_event.cell_num)].append(t5 + t6)
+                propagation_times[int(tracker_event.cell_num)].append(t5 + t6)
 
-    for i_cell in range(len(drift_times)):
+    for i_cell in range(len(propagation_times)):
         average = 0
-        if len(drift_times[i_cell]) == 0:
+        if len(propagation_times[i_cell]) == 0:
             continue
-        for i_drift in range(len(drift_times[i_cell])):
-            average += drift_times[i_cell][i_drift]
-        average = average/len(drift_times[i_cell])
+        for i_propagation in range(len(propagation_times[i_cell])):
+            average += propagation_times[i_cell][i_propagation]
+        average = average/len(propagation_times[i_cell])
         sn_tracker.setcontent(i_cell, average)
 
     sn_tracker.draw()
     sn_tracker.save("/Users/williamquinn/Desktop/" + str(run))
 
 
-def draw_std_drift(run: int, events):
+def draw_std_propagation(run: int, events):
     lower = -50
     higher = 100
 
-    sn_tracker = sndisplay.tracker('tr_std_drift_' + str(run))
+    sn_tracker = sndisplay.tracker('tr_std_propagation_' + str(run))
     sn_tracker.draw_cellid_label()
     sn_tracker.draw_content_label('{:.2f}')
 
-    drift_times = [[] for i in range(2034)]
+    propagation_times = [[] for i in range(2034)]
 
     for event in events:
         event_time = []
@@ -294,18 +367,20 @@ def draw_std_drift(run: int, events):
         event_time = np.min(event_time)
         tracker_events = event[1]
         for tracker_event in tracker_events:
+            if tracker_event.time_bottom_cathode is None or tracker_event.time_top_cathode is None:
+                continue
             t5 = (tracker_event.time_bottom_cathode - event_time)*1e6
             t6 = (tracker_event.time_top_cathode - event_time)*1e6
             if t5 < 10 and t6 < 10:
                 continue
             if lower < t5 < higher and lower < t6 < higher:
-                drift_times[tracker_event.cell_num].append(t5+t6)
+                propagation_times[tracker_event.cell_num].append(t5+t6)
 
     for i_cell in range(2034):
-        temp_drift = np.array(drift_times[i_cell], dtype='float')
-        if temp_drift.size == 0:
+        temp_propagation = np.array(propagation_times[i_cell], dtype='float')
+        if temp_propagation.size == 0:
             continue
-        std = np.std(temp_drift)
+        std = np.std(temp_propagation)
         sn_tracker.setcontent(i_cell, std)
 
     sn_tracker.draw()
@@ -328,13 +403,18 @@ def draw_t056_comp(run: int, events):
         event_time = np.min(event_time)
         tracker_events = event[1]
         for tracker_event in tracker_events:
-            t0 = (tracker_event.time_anode - event_time)*1e6
-            t5 = (tracker_event.time_bottom_cathode - event_time)*1e6
-            t6 = (tracker_event.time_top_cathode - event_time)*1e6
-            if lower < t0 < higher and lower < t5 < higher and lower < t6 < higher:
-                c.append(t6)
-                d.append(t5)
-                e.append(t0)
+            if tracker_event.time_anode is not None:
+                t0 = (tracker_event.time_anode - event_time) * 1e6
+                if lower < t0 < higher:
+                    e.append(t0)
+            if tracker_event.time_top_cathode is not None:
+                t6 = (tracker_event.time_top_cathode - event_time) * 1e6
+                if lower < t6 < higher:
+                    c.append(t6)
+            if tracker_event.time_bottom_cathode is not None:
+                t5 = (tracker_event.time_bottom_cathode - event_time) * 1e6
+                if lower < t5 < higher:
+                    d.append(t5)
 
     fig = plt.figure(figsize=(9, 6), facecolor='white')
     freq, bin_edges = np.histogram(c, 250, range=(lower, higher))
@@ -353,7 +433,7 @@ def draw_t056_comp(run: int, events):
     plt.plot(bin_centres, freq, "r-", label='t0')
 
     plt.grid()
-    plt.xlabel("drift time /µs")
+    plt.xlabel("propagation time /µs")
     plt.ylabel("counts")
     plt.xlim(lower, higher)
     plt.title("All Cells")
@@ -380,22 +460,19 @@ def draw_t012_comp(run: int, events):
         event_time = np.min(event_time)
         tracker_events = event[1]
         for tracker_event in tracker_events:
-            t5 = (tracker_event.time_bottom_cathode - event_time) * 1e6
-            t6 = (tracker_event.time_top_cathode - event_time) * 1e6
 
-            t0 = (tracker_event.time_anode - event_time) * 1e6
-            t1 = (tracker_event.timestamp_r1 * 1.25e-8 - event_time) * 1e6
-            t2 = (tracker_event.timestamp_r2 * 1.25e-8 - event_time) * 1e6
-            t3 = (tracker_event.timestamp_r3 * 1.25e-8 - event_time) * 1e6
-            t4 = (tracker_event.timestamp_r4 * 1.25e-8 - event_time) * 1e6
-
-            if t5 < 10 and t6 < 10:
-                continue
-
-            if lower < t1 < higher and lower < t2 < higher and lower < t5 < higher and lower < t6 < higher:
-                c.append(t1)
-                d.append(t2)
-                e.append(t0)
+            if tracker_event.time_anode is not None:
+                t0 = (tracker_event.time_anode - event_time) * 1e6
+                if lower < t0 < higher:
+                    e.append(t0)
+            if tracker_event.timestamp_r1 is not None:
+                t1 = (tracker_event.timestamp_r1 * 1.25e-8 - event_time) * 1e6
+                if lower < t1 < higher:
+                    c.append(t1)
+            if tracker_event.timestamp_r2 is not None:
+                t2 = (tracker_event.timestamp_r2 * 1.25e-8 - event_time) * 1e6
+                if lower < t2 < higher:
+                    d.append(t2)
 
     fig = plt.figure(figsize=(9, 6), facecolor='white')
     freq, bin_edges = np.histogram(c, 250, range=(lower, higher))
@@ -414,7 +491,7 @@ def draw_t012_comp(run: int, events):
     plt.plot(bin_centres, freq, "r-", label='t0')
 
     plt.grid()
-    plt.xlabel("drift time /µs")
+    plt.xlabel("propagation time /µs")
     plt.ylabel("counts")
     plt.xlim(lower, higher)
     plt.title("All Cells")
@@ -441,14 +518,18 @@ def draw_top_bottom_comp(run: int, events):
         event_time = np.min(event_time)
         tracker_events = event[1]
         for tracker_event in tracker_events:
+            if tracker_event.timestamp_r1 is None or tracker_event.timestamp_r2 is None\
+                    or tracker_event.time_bottom_cathode is None or tracker_event.time_top_cathode is None\
+                    or tracker_event.time_anode is None:
+                continue
+            if tracker_event.time_bottom_cathode is None:
+                continue
             t5 = (tracker_event.time_bottom_cathode - event_time) * 1e6
             t6 = (tracker_event.time_top_cathode - event_time) * 1e6
 
             t0 = (tracker_event.time_anode - event_time) * 1e6
             t1 = (tracker_event.timestamp_r1 * 1.25e-8 - event_time) * 1e6
             t2 = (tracker_event.timestamp_r2 * 1.25e-8 - event_time) * 1e6
-            t3 = (tracker_event.timestamp_r3 * 1.25e-8 - event_time) * 1e6
-            t4 = (tracker_event.timestamp_r4 * 1.25e-8 - event_time) * 1e6
 
             if t5 < 10 and t6 < 10:
                 continue
@@ -490,7 +571,7 @@ def draw_top_bottom_comp(run: int, events):
     plt.plot(bin_centres, freq, "r-", label='t0')
 
     plt.grid()
-    plt.xlabel("drift time /µs")
+    plt.xlabel("propagation time /µs")
     plt.ylabel("counts")
     plt.xlim(lower, higher)
     plt.title("All Cells")
@@ -520,14 +601,14 @@ def draw_bottom_signal_comp(run: int, events):
         event_time = np.min(event_time)
         tracker_events = event[1]
         for tracker_event in tracker_events:
+            if tracker_event.timestamp_r1 is None or tracker_event.timestamp_r2 is None\
+                    or tracker_event.time_bottom_cathode is None or tracker_event.time_top_cathode is None:
+                continue
             t5 = (tracker_event.time_bottom_cathode - event_time) * 1e6
             t6 = (tracker_event.time_top_cathode - event_time) * 1e6
 
-            t0 = (tracker_event.time_anode - event_time) * 1e6
             t1 = (tracker_event.timestamp_r1 * 1.25e-8 - event_time) * 1e6
             t2 = (tracker_event.timestamp_r2 * 1.25e-8 - event_time) * 1e6
-            t3 = (tracker_event.timestamp_r3 * 1.25e-8 - event_time) * 1e6
-            t4 = (tracker_event.timestamp_r4 * 1.25e-8 - event_time) * 1e6
 
             if t5 < 10 and t6 < 10:
                 continue
@@ -546,7 +627,7 @@ def draw_bottom_signal_comp(run: int, events):
                         t_top = t1
                     else:
                         t_bottom = t1
-                        t_top = t3
+                        t_top = t2
                 bottom[tracker_event.cell_num].append([t5, t_bottom])
 
     for i_cellnum in range(len(bottom)):
@@ -584,14 +665,14 @@ def draw_top_signal_comp(run: int, events):
         event_time = np.min(event_time)
         tracker_events = event[1]
         for tracker_event in tracker_events:
+            if tracker_event.timestamp_r1 is None or tracker_event.timestamp_r2 is None \
+                    or tracker_event.time_bottom_cathode is None or tracker_event.time_top_cathode is None:
+                continue
             t5 = (tracker_event.time_bottom_cathode - event_time) * 1e6
             t6 = (tracker_event.time_top_cathode - event_time) * 1e6
 
-            t0 = (tracker_event.time_anode - event_time) * 1e6
             t1 = (tracker_event.timestamp_r1 * 1.25e-8 - event_time) * 1e6
             t2 = (tracker_event.timestamp_r2 * 1.25e-8 - event_time) * 1e6
-            t3 = (tracker_event.timestamp_r3 * 1.25e-8 - event_time) * 1e6
-            t4 = (tracker_event.timestamp_r4 * 1.25e-8 - event_time) * 1e6
 
             if t5 < 10 and t6 < 10:
                 continue
@@ -644,19 +725,12 @@ def draw_t12_all_cells(run: int, events):
         event_time = np.min(event_time)
         tracker_events = event[1]
         for tracker_event in tracker_events:
-            t5 = (tracker_event.time_bottom_cathode - event_time) * 1e6
-            t6 = (tracker_event.time_top_cathode - event_time) * 1e6
-
-            t0 = (tracker_event.time_anode - event_time) * 1e6
+            if tracker_event.timestamp_r1 is None or tracker_event.timestamp_r2 is None:
+                continue
             t1 = (tracker_event.timestamp_r1 * 1.25e-8 - event_time) * 1e6
             t2 = (tracker_event.timestamp_r2 * 1.25e-8 - event_time) * 1e6
-            t3 = (tracker_event.timestamp_r3 * 1.25e-8 - event_time) * 1e6
-            t4 = (tracker_event.timestamp_r4 * 1.25e-8 - event_time) * 1e6
 
-            if t5 < 10 and t6 < 10:
-                continue
-
-            if lower < t1 < higher and lower < t2 < higher and lower < t5 < higher and lower < t6 < higher:
+            if lower < t1 < higher and lower < t2 < higher:
                 f.append(t1+t2)
 
     fig = plt.figure(figsize=(9, 6), facecolor='white')
@@ -690,19 +764,19 @@ def draw_t12_all_cells_2D(run: int, events):
         event_time = np.min(event_time)
         tracker_events = event[1]
         for tracker_event in tracker_events:
+            if tracker_event.timestamp_r1 is None or tracker_event.timestamp_r2 is None \
+                    or tracker_event.time_bottom_cathode is None or tracker_event.time_top_cathode is None:
+                continue
             t5 = (tracker_event.time_bottom_cathode - event_time) * 1e6
             t6 = (tracker_event.time_top_cathode - event_time) * 1e6
 
-            t0 = (tracker_event.time_anode - event_time) * 1e6
             t1 = (tracker_event.timestamp_r1 * 1.25e-8 - event_time) * 1e6
             t2 = (tracker_event.timestamp_r2 * 1.25e-8 - event_time) * 1e6
-            t3 = (tracker_event.timestamp_r3 * 1.25e-8 - event_time) * 1e6
-            t4 = (tracker_event.timestamp_r4 * 1.25e-8 - event_time) * 1e6
 
             if t5 < 10 and t6 < 10:
                 continue
 
-            if lower < t1 < higher and lower < t2 < higher and lower < t5 < higher and lower < t6 < higher:
+            if lower < t1 < higher and lower < t2 < higher:
                 hist.Fill(t1, t2)
     can.cd()
     hist.Draw("colz")
@@ -733,14 +807,14 @@ def draw_top_bottom_all_cells_2D(run: int, events):
         event_time = np.min(event_time)
         tracker_events = event[1]
         for tracker_event in tracker_events:
+            if tracker_event.timestamp_r1 is None or tracker_event.timestamp_r2 is None\
+                    or tracker_event.time_bottom_cathode is None or tracker_event.time_top_cathode is None:
+                continue
             t5 = (tracker_event.time_bottom_cathode - event_time) * 1e6
             t6 = (tracker_event.time_top_cathode - event_time) * 1e6
 
-            t0 = (tracker_event.time_anode - event_time) * 1e6
             t1 = (tracker_event.timestamp_r1 * 1.25e-8 - event_time) * 1e6
             t2 = (tracker_event.timestamp_r2 * 1.25e-8 - event_time) * 1e6
-            t3 = (tracker_event.timestamp_r3 * 1.25e-8 - event_time) * 1e6
-            t4 = (tracker_event.timestamp_r4 * 1.25e-8 - event_time) * 1e6
 
             if t5 < 10 and t6 < 10:
                 continue
@@ -791,14 +865,14 @@ def draw_t1256_comp(run: int, events):
         event_time = np.min(event_time)
         tracker_events = event[1]
         for tracker_event in tracker_events:
+            if tracker_event.timestamp_r1 is None or tracker_event.timestamp_r2 is None\
+                    or tracker_event.time_bottom_cathode is None or tracker_event.time_top_cathode is None:
+                continue
             t5 = (tracker_event.time_bottom_cathode - event_time) * 1e6
             t6 = (tracker_event.time_top_cathode - event_time) * 1e6
 
-            t0 = (tracker_event.time_anode - event_time) * 1e6
             t1 = (tracker_event.timestamp_r1 * 1.25e-8 - event_time) * 1e6
             t2 = (tracker_event.timestamp_r2 * 1.25e-8 - event_time) * 1e6
-            t3 = (tracker_event.timestamp_r3 * 1.25e-8 - event_time) * 1e6
-            t4 = (tracker_event.timestamp_r4 * 1.25e-8 - event_time) * 1e6
 
             if t5 < 10 and t6 < 10:
                 continue
@@ -817,6 +891,55 @@ def draw_t1256_comp(run: int, events):
     del can
 
 
+def draw_propagation_vs_time(run: int, events):
+    sn_tracker = sndisplay.tracker('tr_prop_vs_time_' + str(run))
+    sn_tracker.draw_cellid_label()
+    sn_tracker.draw_content_label('{:.0e}')
+
+    lower = 0
+    higher = 100
+    x = [[] for i in range(2034)]
+    y = [[] for i in range(2034)]
+    for event in events:
+        event_time = []
+        for calo_event in event[0]:
+            event_time.append(calo_event.time)
+        event_time = np.array(event_time)
+        if event_time.size == 0:
+            continue
+        event_time = np.min(event_time)
+        tracker_events = event[1]
+        for tracker_event in tracker_events:
+            if tracker_event.timestamp_r1 is None or tracker_event.timestamp_r2 is None \
+                    or tracker_event.time_bottom_cathode is None or tracker_event.time_top_cathode is None:
+                continue
+            t5 = (tracker_event.time_bottom_cathode - event_time) * 1e6
+            t6 = (tracker_event.time_top_cathode - event_time) * 1e6
+
+            t1 = (tracker_event.timestamp_r1 * 1.25e-8 - event_time) * 1e6
+            t2 = (tracker_event.timestamp_r2 * 1.25e-8 - event_time) * 1e6
+
+            if t5 < 10 and t6 < 10:
+                continue
+
+            if lower < t1 < higher and lower < t2 < higher:
+                x[tracker_event.cell_num].append(event_time)
+                y[tracker_event.cell_num].append(t5 + t6)
+
+    for i_cell in range(len(x)):
+        try:
+            popt, pcov = curve_fit(xdata=x[i_cell], ydata=y[i_cell], f=linear)
+            m = popt[0]
+            c = popt[1]
+            sn_tracker.setcontent(i_cell, m)
+        except:
+            pass
+
+    sn_tracker.setrange(-0.001, 0.001)
+    sn_tracker.draw()
+    sn_tracker.save("/Users/williamquinn/Desktop/" + str(run))
+
+
 def main():
     args = io_parse_arguments()
     input_file = args.i
@@ -829,15 +952,15 @@ def main():
     events = event_builder(input_file)
     print(">>> Number of merged events:", len(events))
 
-    draw_anode_events(run_num, events)
+    '''draw_anode_events(run_num, events)
     draw_top_cathode_events(run_num, events)
     draw_bottom_cathode_events(run_num, events)
-    '''draw_calo_events(run_num, events)
+    draw_calo_events(run_num, events)
     draw_full_cell_events(run_num, events)
     draw_events(run_num, events)
     draw_t56_all_cells(run_num, events)
-    draw_av_drift(run_num, events)
-    draw_std_drift(run_num, events)
+    draw_av_propagation(run_num, events)
+    draw_std_propagation(run_num, events)
     draw_t56_all_cells_2D(run_num, events)
     draw_t056_comp(run_num, events)
     draw_bottom_signal_comp(run_num, events)
@@ -849,6 +972,10 @@ def main():
     draw_top_bottom_comp(run_num, events)
     draw_top_bottom_all_cells_2D(run_num, events)
     draw_t56_by_layer(run_num, events)'''
+    '''draw_normalised_top_cathode_events(run_num, events)
+    draw_normalised_bottom_cathode_events(run_num, events)
+    draw_normalised_anode_events(run_num, events)'''
+    draw_propagation_vs_time(run_num, events)
 
     print(">>> Finished")
 

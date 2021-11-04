@@ -91,17 +91,27 @@ class Tracker_Data:
 
         self.cell_num = event.tracker_cell_num[index]
 
-        self.timestamp_r0 = event.tracker_timestamp_r0[index]
-        self.timestamp_r1 = event.tracker_timestamp_r1[index]
-        self.timestamp_r2 = event.tracker_timestamp_r2[index]
-        self.timestamp_r3 = event.tracker_timestamp_r3[index]
-        self.timestamp_r4 = event.tracker_timestamp_r4[index]
-        self.timestamp_r5 = event.tracker_timestamp_r5[index]
-        self.timestamp_r6 = event.tracker_timestamp_r6[index]
+        if event.tracker_timestamp_r0[index] != -999:
+            self.timestamp_r0 = event.tracker_timestamp_r0[index]
+        if event.tracker_timestamp_r1[index] != -999:
+            self.timestamp_r1 = event.tracker_timestamp_r1[index]
+        if event.tracker_timestamp_r2[index] != -999:
+            self.timestamp_r2 = event.tracker_timestamp_r2[index]
+        if event.tracker_timestamp_r3[index] != -999:
+            self.timestamp_r3 = event.tracker_timestamp_r3[index]
+        if event.tracker_timestamp_r4[index] != -999:
+            self.timestamp_r4 = event.tracker_timestamp_r4[index]
+        if event.tracker_timestamp_r5[index] != -999:
+            self.timestamp_r5 = event.tracker_timestamp_r5[index]
+        if event.tracker_timestamp_r6[index] != -999:
+            self.timestamp_r6 = event.tracker_timestamp_r6[index]
 
-        self.time_anode = event.tracker_time_anode[index]
-        self.time_top_cathode = event.tracker_time_top_cathode[index]
-        self.time_bottom_cathode = event.tracker_time_bottom_cathode[index]
+        if event.tracker_time_anode[index] != -999:
+            self.time_anode = event.tracker_time_anode[index]
+        if event.tracker_time_top_cathode[index] != -999:
+            self.time_top_cathode = event.tracker_time_top_cathode[index]
+        if event.tracker_time_bottom_cathode[index] != -999:
+            self.time_bottom_cathode = event.tracker_time_bottom_cathode[index]
 
 
 def event_builder(input_filename: str):
@@ -125,26 +135,26 @@ def event_builder(input_filename: str):
             event_time = event.time
             calo_oms = list(event.calo_om_num)
             tracker_cells = list(event.tracker_cell_num)
-            tracker_timestamp_r0s = list(event.tracker_timestamp_r0)
-            tracker_timestamp_r5s = list(event.tracker_timestamp_r5)
-            tracker_timestamp_r6s = list(event.tracker_timestamp_r6)
+            # tracker_timestamp_r0s = list(event.tracker_timestamp_r0)
+            # tracker_timestamp_r5s = list(event.tracker_timestamp_r5)
+            # tracker_timestamp_r6s = list(event.tracker_timestamp_r6)
         except SystemError:
             n_failures += 1
             print("SystemError", n_failures)
             continue
 
-        '''if len(calo_oms) == 0:
-            continue'''
+        if len(calo_oms) == 0:
+            continue
         for i_cal in range(len(calo_oms)):
             new_calo_data = Calo_Data()
             new_calo_data.set(i_cal, event)
             new_calo_events.append(new_calo_data)
 
         for i_tr in range(len(tracker_cells)):
-            if tracker_timestamp_r6s[i_tr] != 0 and tracker_timestamp_r5s[i_tr] != 0 and tracker_timestamp_r0s[i_tr] != 0:
-                new_tracker_data = Tracker_Data()
-                new_tracker_data.set(i_tr, event)
-                new_tracker_events.append(new_tracker_data)
+            # if tracker_timestamp_r6s[i_tr] != -999 and tracker_timestamp_r5s[i_tr] != -999 and tracker_timestamp_r0s[i_tr] != -999:
+            new_tracker_data = Tracker_Data()
+            new_tracker_data.set(i_tr, event)
+            new_tracker_events.append(new_tracker_data)
 
         # if len(new_tracker_events) > 0:
         events.append([new_calo_events, new_tracker_events, event_time])
@@ -155,6 +165,7 @@ def event_builder(input_filename: str):
     '''for event in input_tree:
         first_time = 86400  # sec
         last_time = -86400  # sec
+        event_time = event.time
         calo_oms = list(event.calo_om_num)
         calo_times = list(event.calo_time)
 
@@ -187,26 +198,26 @@ def event_builder(input_filename: str):
             continue
 
         for i_tr in range(len(tracker_cells)):
-            if tracker_timestamp_r0s[i_tr] != 0:
+            if tracker_timestamp_r0s[i_tr] != -999:
                 if tracker_time_anodes[i_tr] < first_time:
                     first_time = tracker_time_anodes[i_tr]
                 if tracker_time_anodes[i_tr] > last_time:
                     last_time = tracker_time_anodes[i_tr]
-            if tracker_timestamp_r5s[i_tr] != 0:
+            if tracker_timestamp_r5s[i_tr] != -999:
                 if tracker_time_bottom_cathodes[i_tr] < first_time:
                     first_time = tracker_time_bottom_cathodes[i_tr]
                 if tracker_time_bottom_cathodes[i_tr] > last_time:
                     last_time = tracker_time_bottom_cathodes[i_tr]
-            if tracker_timestamp_r6s[i_tr] != 0:
+            if tracker_timestamp_r6s[i_tr] != -999:
                 if tracker_time_top_cathodes[i_tr] < first_time:
                     first_time = tracker_time_top_cathodes[i_tr]
                 if tracker_time_top_cathodes[i_tr] > last_time:
                     last_time = tracker_time_top_cathodes[i_tr]
 
-        print(first_time - previous_last_time, 's')
+        # print(first_time - previous_last_time, 's')
 
         if (first_time - previous_last_time) > 60e-6 and not first_event:
-            events.append([new_calo_events, new_tracker_events])
+            events.append([new_calo_events, new_tracker_events, event_time])
             new_calo_events = []
             new_tracker_events = []
 
@@ -235,8 +246,8 @@ def event_builder(input_filename: str):
                 new_tracker_data.set(i_tr, event)
                 new_tracker_events.append(new_tracker_data)
             else:
-                if tracker_timestamp_r0s[i_tr] != 0:
-                    if new_tracker_events[output_tracker_index].timestamp_r0 != 0:
+                if tracker_timestamp_r0s[i_tr] != -999:
+                    if new_tracker_events[output_tracker_index].timestamp_r0 is not None:
                         print(">>> R0 already set for GG:{}.{}.{} in output entry {}\n".format(tracker_sides[i_tr],
                                                                                                tracker_rows[i_tr],
                                                                                                tracker_layers[i_tr],
@@ -245,8 +256,8 @@ def event_builder(input_filename: str):
                     else:
                         new_tracker_events[output_tracker_index].timestamp_r0 = tracker_timestamp_r0s[i_tr]
                         new_tracker_events[output_tracker_index].time_anode = tracker_time_anodes[i_tr]
-                if tracker_timestamp_r5s[i_tr] != 0:
-                    if new_tracker_events[output_tracker_index].timestamp_r5 != 0:
+                if tracker_timestamp_r5s[i_tr] != -999:
+                    if new_tracker_events[output_tracker_index].timestamp_r5 is not None:
                         print(">>> R5 already set for GG:{}.{}.{} in output entry {}\n".format(tracker_sides[i_tr],
                                                                                                tracker_rows[i_tr],
                                                                                                tracker_layers[i_tr],
@@ -255,8 +266,8 @@ def event_builder(input_filename: str):
                     else:
                         new_tracker_events[output_tracker_index].timestamp_r5 = tracker_timestamp_r5s[i_tr]
                         new_tracker_events[output_tracker_index].time_bottom_cathode = tracker_time_bottom_cathodes[i_tr]
-                if tracker_timestamp_r6s[i_tr] != 0:
-                    if new_tracker_events[output_tracker_index].timestamp_r6 != 0:
+                if tracker_timestamp_r6s[i_tr] != -999:
+                    if new_tracker_events[output_tracker_index].timestamp_r6 is not None:
                         print(">>> R6 already set for GG:{}.{}.{} in output entry {}\n".format(tracker_sides[i_tr],
                                                                                                tracker_rows[i_tr],
                                                                                                tracker_layers[i_tr],
@@ -264,9 +275,9 @@ def event_builder(input_filename: str):
                         pass
                     else:
                         new_tracker_events[output_tracker_index].timestamp_r6 = tracker_timestamp_r6s[i_tr]
-                        new_tracker_events[output_tracker_index].time_top_cathode = tracker_time_top_cathodes[i_tr]'''
+                        new_tracker_events[output_tracker_index].time_top_cathode = tracker_time_top_cathodes[i_tr]
 
-    input_file.Close()
+    input_file.Close()'''
 
     return events
 

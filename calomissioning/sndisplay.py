@@ -498,8 +498,8 @@ class tracker:
         self.content = [None for i in range(self.nb_cell)]
         self.spacerx = 0.0125
         self.spacery = 0.0500
-        self.cell_sizex = (1-2 * self.spacerx) / 113.0
-        self.cell_sizey = (1-3 * self.spacery) / (9 * 2)
+        self.cell_sizex = (1 - 2 * self.spacerx) / 113.0
+        self.cell_sizey = (1 - 3 * self.spacery) / (9 * 2)
         self.cellbox = []
         self.cellid_text_v = []
         self.cellnum_text_v = []
@@ -524,6 +524,7 @@ class tracker:
 
                     x2 = x1 + self.cell_sizex
                     y2 = y1 + self.cell_sizey
+                    width = x2-x1
 
                     box = ROOT.TBox(x1, y1, x2, y2)
                     box.SetFillColor(0)
@@ -531,18 +532,18 @@ class tracker:
                     self.cellbox.append(box)
 
                     cellid_string = "{}.{}.{}".format(cell_side, cell_layer, cell_row)
-                    cellid_text = ROOT.TText(x1+0.5 * self.cell_sizex, y1+0.667 * self.cell_sizey, cellid_string)
+                    cellid_text = ROOT.TText(x1+0.33 * self.cell_sizex, y1+0.667 * self.cell_sizey, cellid_string)
                     cellid_text.SetTextSize(0.01)
                     cellid_text.SetTextAlign(22)
                     self.cellid_text_v.append(cellid_text)
 
                     cellnum_string = "{}".format(cellnum)
-                    cellnum_text = ROOT.TText(x1+0.5 * self.cell_sizex, y1+0.667 * self.cell_sizey, cellnum_string)
+                    cellnum_text = ROOT.TText(x1+0.33 * self.cell_sizex, y1+0.667 * self.cell_sizey, cellnum_string)
                     cellnum_text.SetTextSize(0.01)
                     cellnum_text.SetTextAlign(22)
                     self.cellnum_text_v.append(cellnum_text)
 
-                    content_text = ROOT.TText(x1+0.5 * self.cell_sizex, y1+0.333 * self.cell_sizey, "")
+                    content_text = ROOT.TText(x1+0.33 * self.cell_sizex, y1+0.333 * self.cell_sizey, "")
                     content_text.SetTextSize(0.01)
                     content_text.SetTextAlign(22)
                     self.content_text_v.append(content_text)
