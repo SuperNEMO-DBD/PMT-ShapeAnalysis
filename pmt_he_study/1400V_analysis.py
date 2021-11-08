@@ -328,6 +328,8 @@ def main():
 
         plot_charge(charge_plot_file, charges)
         pars = plot_fit(charge_fit_file, charges)
+
+        del file
     print(">>> Finished")
 
 
