@@ -93,7 +93,7 @@ def store_template(filename: str, traces):
     try:
         open(filename, "r")
         print(">>> Template file already exists: {}".format(filename))
-        return
+        return False
     except IOError:
         pass
 
@@ -140,13 +140,15 @@ def store_template(filename: str, traces):
             out_file.write(line)
     print(">>> Stored template file: {}".format(filename))
 
+    return True
+
 
 def store_charges(filename: str, traces, template):
 
     try:
         open(filename, "r")
         print(">>> Charge file already exists: {}".format(filename))
-        return
+        return False
     except IOError:
         pass
 
@@ -210,6 +212,8 @@ def store_charges(filename: str, traces, template):
 
     out_file.close()
     print(">>> Stored charge file: {}".format(filename))
+
+    return True
 
 
 def plot_charge(filename: str, charges):
@@ -299,6 +303,14 @@ def get_charges(filename: str):
     return charges
 
 
+def test_file(filename: str):
+    try:
+        open(filename, "r")
+        return True
+    except IOError:
+        return False
+
+
 def main():
     args = io_parse_arguments()
     input_file = args.i
@@ -313,16 +325,19 @@ def main():
         charge_fit_file = output_path + "/{}_1400V_charge_fit.pdf".format(date)
         template_file = output_path + "/{}_1400V_templates.txt".format(date)
 
-        print("\n\n>>> Input file: {}".format(filename))
-        file = minidom.parse(filename)
-        print(">>> Parsed file")
-        traces = file.getElementsByTagName('trace')
+        if not test_file(template_file) or not test_file(charge_file):
 
-        store_template(template_file, traces)
-        template = get_template(template_file)
-        print(">>> Got template")
+            print("\n\n>>> Input file: {}".format(filename))
+            file = minidom.parse(filename)
+            print(">>> Parsed file")
+            traces = file.getElementsByTagName('trace')
 
-        store_charges(charge_file, traces, template)
+            store_template(template_file, traces)
+            template = get_template(template_file)
+            print(">>> Got template")
+
+            store_charges(charge_file, traces, template)
+
         charges = get_charges(charge_file)
         print(">>> Got Charges")
 
