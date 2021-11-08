@@ -92,9 +92,10 @@ def gaus_fix_sig(x, A, mu):
 def store_template(filename: str, traces):
     try:
         open(filename, "r")
-    except IOError:
         print(">>> Template file already exists: {}".format(filename))
         return
+    except IOError:
+        pass
 
     average_waveform = []
     average_counter = 0
@@ -144,9 +145,10 @@ def store_charges(filename: str, traces, template):
 
     try:
         open(filename, "r")
-    except IOError:
         print(">>> Charge file already exists: {}".format(filename))
         return
+    except IOError:
+        pass
 
     out_file = open(filename, "w")
     for i in range(int(traces.length)):
