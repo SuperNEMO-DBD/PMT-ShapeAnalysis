@@ -242,7 +242,7 @@ def plot_fit(filename: str, charges):
     hist = ROOT.TH1D('', '', n_bins, min_charge, max_charge)
 
     for i in range(len(charges)):
-        print(charges[i])
+        # print(charges[i])
         hist.Fill(charges[i])
     hist.GetXaxis().SetRangeUser(lower, higher)
 
