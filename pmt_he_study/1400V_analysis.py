@@ -324,10 +324,9 @@ def main():
         charge_plot_file = output_path + "/{}_1400V_charge.pdf".format(date)
         charge_fit_file = output_path + "/{}_1400V_charge_fit.pdf".format(date)
         template_file = output_path + "/{}_1400V_templates.txt".format(date)
+        print("\n\n>>> Input file: {}".format(filename))
 
         if not test_file(template_file) or not test_file(charge_file):
-
-            print("\n\n>>> Input file: {}".format(filename))
             file = minidom.parse(filename)
             print(">>> Parsed file")
             traces = file.getElementsByTagName('trace')
@@ -343,8 +342,6 @@ def main():
 
         plot_charge(charge_plot_file, charges)
         pars = plot_fit(charge_fit_file, charges)
-
-        del file
     print(">>> Finished")
 
 
