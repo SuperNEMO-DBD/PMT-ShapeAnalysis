@@ -347,6 +347,52 @@ def draw_av_propagation(run: int, events):
     sn_tracker.save("/Users/williamquinn/Desktop/" + str(run))
 
 
+def draw_fit_propagation(run: int, events):
+    lower = -50
+    higher = 100
+    propagation_times = [0 for i in range(2034)]
+
+    for i in range(len(propagation_times)):
+        exec("hist_{} = ROOT.TH1D({}, {}, 40, 0, higher)".format(i, i, i))
+        exec("propagation_times.append(hist_{})".format(i))
+
+    for event in events:
+        event_time = []
+        for calo_event in event[0]:
+            event_time.append(calo_event.time)
+        event_time = np.array(event_time)
+        if event_time.size == 0:
+            continue
+        event_time = np.min(event_time)
+        tracker_events = event[1]
+        for tracker_event in tracker_events:
+            if tracker_event.time_bottom_cathode is None or tracker_event.time_top_cathode is None:
+                continue
+            t5 = (tracker_event.time_bottom_cathode - event_time)*1e6
+            t6 = (tracker_event.time_top_cathode - event_time)*1e6
+            # print(t5 + t6)
+            if t5 < 10 and t6 < 10:
+                continue
+            if lower < t5 < higher and lower < t6 < higher:
+                propagation_times[int(tracker_event.cell_num)].Fill(t5 + t6)
+
+    pars = []
+    errs = []
+    chis2 = []
+    names = ['A', 'mu', 'sig']
+    for i_cell in range(len(propagation_times)):
+        can = ROOT.TCanvas()
+        guess = [1, ]
+        fit = ROOT.TF1("func", "[0]*TMath::Gaus(x,[1],[2])", 0, 100)
+        for i in range(len(guess)):
+            fit.SetParameter(i, guess[i])
+            fit.SetParName(i, names[i])
+        propagation_times[i_cell].Fit("func", "R")
+        chi = fit.GetChisquare() / fit.GetNDF()
+        del can
+        del fit
+
+
 def draw_std_propagation(run: int, events):
     lower = -50
     higher = 100
