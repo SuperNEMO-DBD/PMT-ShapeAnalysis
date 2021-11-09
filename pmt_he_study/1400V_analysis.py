@@ -232,22 +232,26 @@ def plot_charge(filename: str, charges):
 def plot_fit(filename: str, charges):
     c = ROOT.TCanvas("bi_spectrum", "Bi Spectrum", 800, 600)
     n_bins = 240
-    lower = 230
-    higher = 300
     min_charge = 0
     max_charge = 400
 
     freq, bin_edges = np.histogram(charges, bins=n_bins, range=[min_charge, max_charge])
     bin_width = bin_edges[2] - bin_edges[1]
 
+    max_1MeV = bin_edges[np.argmax(freq[20:]) + 20]
+
     bin_centres_0 = (bin_edges + bin_width / 2)[:-1]
-    low_bin = int(lower / bin_width)
-    high_bin = int(higher / bin_width)
     hist = ROOT.TH1D('', '', n_bins, min_charge, max_charge)
 
     for i in range(len(charges)):
         # print(charges[i])
-        hist.Fill(charges[i])
+        if charges[i] > 50:
+            hist.Fill(charges[i])
+
+    lower = max_1MeV - 20
+    higher = max_1MeV + 60
+    low_bin = int(lower / bin_width)
+    high_bin = int(higher / bin_width)
     hist.GetXaxis().SetRangeUser(lower, higher)
 
     fit = ROOT.TF1("fit",
