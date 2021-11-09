@@ -55,7 +55,7 @@ namespace po = boost::program_options;
 // this will be the construct to fill Int_to the TTree
 typedef struct {
     Int_t event_num, OM_ID, pulse_time;
-    Double_t pulse_charge, pulse_amplitude, baseline, ap_charge;
+    Double_t pulse_charge, pulse_amplitude, baseline, ap_charge, he_ap_charge;
 } EVENTN;
 
 typedef struct {
@@ -71,6 +71,7 @@ typedef struct {
     Int_t sweep_start, pre_trigger, trigger, trig_tolerance, apulse_time_cut;
     Double_t shape_cut, amp_cut, charge_cut, resistance;
     std::vector<Double_t> integration;
+    std::vector<Int_t> he_region;
     std::string template_file;
 } CONF;
 
@@ -92,6 +93,7 @@ MATCHFILTER sweep( std::vector<Double_t> &vec, CONF &config, Double_t baseline, 
 std::vector<std::vector<Double_t>> get_template_pulses( std::string template_file );
 Double_t get_inner_product( std::vector<Double_t> &vec1, std::vector<Double_t> &vec2 );
 Double_t get_ap_charge(std::vector<Double_t> &vec, Double_t baseline, CONF &config);
+Double_t get_he_ap_charge(std::vector<Double_t> &vec, Double_t baseline, CONF &config);
 
 
 Int_t main(Int_t argc, char* argv[])
@@ -174,6 +176,7 @@ Int_t main(Int_t argc, char* argv[])
     tree.Branch("pulse_charge",&eventn.pulse_charge);
     tree.Branch("pulse_amplitude",&eventn.pulse_amplitude);
     tree.Branch("ap_region_charge",&eventn.ap_charge);
+    tree.Branch("he_ap_region_charge",&eventn.ap_charge);
     tree.Branch("event_num",&eventn.event_num);
     tree.Branch("pulse_time",&eventn.pulse_time);
     tree.Branch("pulse_baseline",&eventn.baseline);
@@ -247,6 +250,7 @@ Int_t main(Int_t argc, char* argv[])
         Double_t baseline       = get_baseline( data, config_object );
         Double_t pulse_charge   = get_charge( data, baseline, config_object, peak_cell );
         Double_t ap_charge      = get_ap_charge( data, baseline, config_object );
+        Double_t he_ap_charge      = get_he_ap_charge( data, baseline, config_object );
 
         // std::cout << "charge : " << pulse_charge << std::endl;
 
@@ -276,6 +280,7 @@ Int_t main(Int_t argc, char* argv[])
         eventn.pulse_amplitude  = pulse_amplitude;
         eventn.pulse_charge     = pulse_charge;
         eventn.ap_charge        = ap_charge;
+        eventn.he_ap_charge     = he_ap_charge;
         eventn.baseline         = baseline;
         eventn.event_num        = channel_event_num[channel_indicator];
         eventn.OM_ID            = channel_indicator;
@@ -436,6 +441,7 @@ CONF read_config( std::string filename )
             else if ( settings[0] == "resistance" ) { config.resistance = std::stod(settings[1]); }
             else if ( settings[0] == "apulse_time_cut" ) { config.apulse_time_cut = std::stod(settings[1]); }
 	        else if ( settings[0] == "temp_file" ) { config.template_file = settings[1]; }
+            else if ( settings[0] == "he_region" ) { config.he_region.push_back(std::stoi(settings[1])); config.he_region.push_back(std::stoi(settings[2])); }
             else { continue; }
         }
     }
@@ -636,6 +642,15 @@ Double_t get_ap_charge(std::vector<Double_t> &vec, Double_t baseline, CONF &conf
 {
     Double_t charge{0.0};
     for ( Int_t i = (Int_t)config.sweep_start; i < (Int_t)vec.size() ; i++ )
+    {
+        charge += (vec[i] - baseline);
+    }
+    return (-1.0)*charge/( config.resistance );
+}
+Double_t get_he_ap_charge(std::vector<Double_t> &vec, Double_t baseline, CONF &config)
+{
+    Double_t charge{0.0};
+    for ( Int_t i = (Int_t)config.he_region[0]; i < config.he_region[1] ; i++ )
     {
         charge += (vec[i] - baseline);
     }
