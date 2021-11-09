@@ -80,6 +80,8 @@ def read_file(date: str, voltage: int, root_file_name: str, pmt_array: PMT_Array
                                       "_he_apulse_num_" + str(voltage) + "V")
         he_apulse_amplitude_hist = file.Get(date + "_" + pmt_array.get_pmt_object_number(i_om).get_pmt_id() +
                                             "_he_apulse_amplitudes_" + str(voltage) + "V")
+        ap_charge_hist = file.Get(date + "_" + pmt_array.get_pmt_object_number(i_om).get_pmt_id() +
+                                  "_ap_charge_spectrum_" + str(voltage) + "V")
 
         try:
             apulse_num_hist.GetEntries()
@@ -87,6 +89,7 @@ def read_file(date: str, voltage: int, root_file_name: str, pmt_array: PMT_Array
             apulse_amplitude_hist.GetEntries()
             he_apulse_num_hist.GetEntries()
             he_apulse_amplitude_hist.GetEntries()
+            ap_charge_hist.GetEntries()
         except:
             continue
 
@@ -108,6 +111,8 @@ def read_file(date: str, voltage: int, root_file_name: str, pmt_array: PMT_Array
         aan_err = apulse_num_hist.GetMeanError()
         aan_he = he_apulse_num_hist.GetMean()
         aan_he_err = he_apulse_num_hist.GetMeanError()
+        ap_charge = ap_charge_hist.GetMean()
+        ap_charge_err = ap_charge_hist.GetMeanError()
 
         pars = {
             "par": par,
@@ -117,7 +122,9 @@ def read_file(date: str, voltage: int, root_file_name: str, pmt_array: PMT_Array
             "aan": aan,
             "aan_err": aan_err,
             "aan_he": aan_he,
-            "aan_he_err": aan_he_err
+            "aan_he_err": aan_he_err,
+            "ap_charge": ap_charge,
+            "ap_charge_err": ap_charge_err
         }
         apulse_info[i_om].append(pars)
 
@@ -249,6 +256,31 @@ def plot_aan_ratio(dates: list, aan: list, output_directory: str, name: str):
     plt.close()
 
 
+def plot_ap_charge(date, ap_charge, output_directory: str, pmt_object: PMT_Object, name: str):
+    date = process_date(date)
+    try:
+        start = np.where(date == 0)[0][0]
+    except:
+        start = np.where(date == 1)[0][0]
+    mid = np.where(date == 98)[0][0]
+
+    plt.figure(num=None, figsize=(9, 5), dpi=80, facecolor='w', edgecolor='k')
+    plt.plot(date[:start + 1], np.array(ap_charge[:start + 1]), "g.", label="Atmospheric He")
+    plt.plot(date[start + 1:mid + 1], np.array(ap_charge[start + 1:mid + 1]), "b.", label="1% He")
+    plt.plot(date[mid + 1:], np.array(ap_charge[mid + 1:]), "r.", label="10% He")
+    plt.axvline(date[start], 0, 100, ls='--', color='k')
+    plt.axvline(date[mid], 0, 100, ls='--', color='k')
+    plt.xlabel("exposure days relative to 06/11/2019")
+    plt.ylabel("Average Charge /pC")
+    plt.title(pmt_object.get_pmt_id() + " Average After-pulse Region charge")
+    plt.grid()
+    # plt.ylim(0, 1.5)
+    plt.legend(loc='upper left')
+    plt.savefig(output_directory + "/summary_plots/" +
+                pmt_object.get_pmt_id() + "_ap_charge_vs_time" + name + ".pdf")
+    plt.close()
+
+
 def main():
     # Handle the input arguments:
     ##############################
@@ -286,6 +318,8 @@ def main():
     aan_err = [[] for i in range(pmt_array.get_pmt_total_number())]
     aan_he = [[] for i in range(pmt_array.get_pmt_total_number())]
     aan_he_err = [[] for i in range(pmt_array.get_pmt_total_number())]
+    ap_charge = [[] for i in range(pmt_array.get_pmt_total_number())]
+    ap_charge_err = [[] for i in range(pmt_array.get_pmt_total_number())]
     dates = [[] for i in range(pmt_array.get_pmt_total_number())]
 
     for i_file in tqdm.tqdm(range(filenames.size)):
@@ -317,6 +351,8 @@ def main():
             i_aan_he = apulse_info[i_om][0]["aan_he"]
             i_aan_err = apulse_info[i_om][0]["aan_err"]
             i_aan_he_err = apulse_info[i_om][0]["aan_he_err"]
+            i_ap_charge = apulse_info[i_om][0]["ap_charge"]
+            i_ap_charge_err = apulse_info[i_om][0]["ap_charge_err"]
 
             par[i_om].append(i_par)
             par_err[i_om].append(i_par_err/10)
@@ -326,6 +362,8 @@ def main():
             aan_err[i_om].append(i_aan_err)
             aan_he[i_om].append(i_aan_he)
             aan_he_err[i_om].append(i_aan_he_err)
+            ap_charge[i_om].append(i_ap_charge)
+            ap_charge_err[i_om].append(i_ap_charge_err)
 
             dates[i_om].append(int(date))
 
@@ -335,6 +373,7 @@ def main():
         plot_par(dates[i_om], par_he[i_om], output_directory, pmt_array.get_pmt_object_number(i_om), "_he_" + run_id)
         plot_aan(dates[i_om], aan[i_om], output_directory, pmt_array.get_pmt_object_number(i_om), "_" + run_id)
         plot_aan(dates[i_om], aan_he[i_om], output_directory, pmt_array.get_pmt_object_number(i_om), "_he_" + run_id)
+        plot_ap_charge(dates[i_om], ap_charge, output_directory, pmt_array.get_pmt_object_number(i_om), "_" + run_id)
 
     plot_par_ratio(dates, par, output_directory, "_" + run_id)
     plot_par_ratio(dates, par_he, output_directory, "_he_" + run_id)
