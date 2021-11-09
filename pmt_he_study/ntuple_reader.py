@@ -56,9 +56,9 @@ def read_tree(root_file_name: str, pmt_array: PMT_Array, output_file_location: s
         ap_charge_hist = ROOT.TH1D(date + "_" + pmt_array.get_pmt_object_number(i_om).get_pmt_id() + "_ap_charge_spectrum_" + str(voltage) + "V",
                                    date + "_" + pmt_array.get_pmt_object_number(i_om).get_pmt_id() + "_ap_charge_spectrum_" + str(voltage) + "V",
                                    nbins, 0, max_charge)
-        he_ap_charge_hist = ROOT.TH1D(date + "_" + pmt_array.get_pmt_object_number(i_om).get_pmt_id() + "_he_ap_charge_spectrum_" + str(voltage) + "V",
+        '''he_ap_charge_hist = ROOT.TH1D(date + "_" + pmt_array.get_pmt_object_number(i_om).get_pmt_id() + "_he_ap_charge_spectrum_" + str(voltage) + "V",
                                       date + "_" + pmt_array.get_pmt_object_number(i_om).get_pmt_id() + "_he_ap_charge_spectrum_" + str(voltage) + "V",
-                                      nbins, 0, max_charge)
+                                      nbins, 0, max_charge)'''
         amp_hist = ROOT.TH1D(date + "_" + pmt_array.get_pmt_object_number(i_om).get_pmt_id() + "_amplitude_spectrum_" + str(voltage) + "V",
                              date + "_" + pmt_array.get_pmt_object_number(i_om).get_pmt_id() + "_amplitude_spectrum_" + str(voltage) + "V",
                              nbins, 0, max_amp)
