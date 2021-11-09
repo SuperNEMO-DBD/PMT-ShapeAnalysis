@@ -257,6 +257,7 @@ def plot_aan_ratio(dates: list, aan: list, output_directory: str, name: str):
 
 
 def plot_ap_charge(date, ap_charge, output_directory: str, pmt_object: PMT_Object, name: str):
+    print(len(ap_charge), ap_charge)
     date = process_date(date)
     try:
         start = np.where(date == 0)[0][0]
