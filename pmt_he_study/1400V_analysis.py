@@ -248,7 +248,7 @@ def plot_fit(filename: str, charges):
         if charges[i] > 50:
             hist.Fill(charges[i])
 
-    lower = max_1MeV - 20
+    lower = max_1MeV - 15
     higher = max_1MeV + 60
     low_bin = int(lower / bin_width)
     high_bin = int(higher / bin_width)
@@ -265,7 +265,7 @@ def plot_fit(filename: str, charges):
 
     fit.SetParLimits(0, 0, 10000)
     fit.SetParLimits(1, lower, higher)
-    fit.SetParLimits(2, 0.8, 10)
+    fit.SetParLimits(2, 0.8, 20)
     fit.SetParameters(319, (higher + lower) / 2, 1.09)
 
     hist.Fit("fit", "S", "", lower, higher)
