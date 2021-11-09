@@ -29,10 +29,10 @@ def read_tree(root_file_name: str, pmt_array: PMT_Array, output_file_location: s
 
     if voltage == 1000:
         max_amp = 300
-        max_charge = 400
+        max_charge = 60
     else:
         max_amp = 1000
-        max_charge = 60
+        max_charge = 400
 
     tree = file.T
 
