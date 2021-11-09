@@ -257,7 +257,7 @@ def plot_aan_ratio(dates: list, aan: list, output_directory: str, name: str):
 
 
 def plot_ap_charge(date, ap_charge, output_directory: str, pmt_object: PMT_Object, name: str):
-    print(len(ap_charge), ap_charge)
+    # print(len(ap_charge), ap_charge)
     date = process_date(date)
     try:
         start = np.where(date == 0)[0][0]
@@ -374,7 +374,7 @@ def main():
         plot_par(dates[i_om], par_he[i_om], output_directory, pmt_array.get_pmt_object_number(i_om), "_he_" + run_id)
         plot_aan(dates[i_om], aan[i_om], output_directory, pmt_array.get_pmt_object_number(i_om), "_" + run_id)
         plot_aan(dates[i_om], aan_he[i_om], output_directory, pmt_array.get_pmt_object_number(i_om), "_he_" + run_id)
-        plot_ap_charge(dates[i_om], ap_charge, output_directory, pmt_array.get_pmt_object_number(i_om), "_" + run_id)
+        plot_ap_charge(dates[i_om], ap_charge[i_om], output_directory, pmt_array.get_pmt_object_number(i_om), "_" + run_id)
 
     plot_par_ratio(dates, par, output_directory, "_" + run_id)
     plot_par_ratio(dates, par_he, output_directory, "_he_" + run_id)
