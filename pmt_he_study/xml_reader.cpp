@@ -155,6 +155,7 @@ Int_t main(Int_t argc, char* argv[])
     std::cout << ">>> Resistance        : " << config_object.resistance << std::endl;
     std::cout << ">>> Time cut          : " << config_object.apulse_time_cut << std::endl;
     std::cout << ">>> Template file     : " << config_object.template_file << std::endl;
+    std::cout << ">>> He Region         : " << config_object.he_region[0] << "-" << config_object.he_region[1] << std::endl;
 
     description.template_file = config_object.template_file;
 
