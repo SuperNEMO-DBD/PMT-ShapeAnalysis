@@ -177,7 +177,7 @@ Int_t main(Int_t argc, char* argv[])
     tree.Branch("pulse_charge",&eventn.pulse_charge);
     tree.Branch("pulse_amplitude",&eventn.pulse_amplitude);
     tree.Branch("ap_region_charge",&eventn.ap_charge);
-    tree.Branch("he_ap_region_charge",&eventn.ap_charge);
+    tree.Branch("he_ap_region_charge",&eventn.he_ap_charge);
     tree.Branch("event_num",&eventn.event_num);
     tree.Branch("pulse_time",&eventn.pulse_time);
     tree.Branch("pulse_baseline",&eventn.baseline);
