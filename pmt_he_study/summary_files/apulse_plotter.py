@@ -82,6 +82,8 @@ def read_file(date: str, voltage: int, root_file_name: str, pmt_array: PMT_Array
                                             "_he_apulse_amplitudes_" + str(voltage) + "V")
         ap_charge_hist = file.Get(date + "_" + pmt_array.get_pmt_object_number(i_om).get_pmt_id() +
                                   "_ap_charge_spectrum_" + str(voltage) + "V")
+        he_ap_charge_hist = file.Get(date + "_" + pmt_array.get_pmt_object_number(i_om).get_pmt_id() +
+                                     "_he_ap_charge_spectrum_" + str(voltage) + "V")
 
         try:
             apulse_num_hist.GetEntries()
@@ -90,6 +92,7 @@ def read_file(date: str, voltage: int, root_file_name: str, pmt_array: PMT_Array
             he_apulse_num_hist.GetEntries()
             he_apulse_amplitude_hist.GetEntries()
             ap_charge_hist.GetEntries()
+            he_ap_charge_hist.GetEntries()
         except:
             continue
 
@@ -113,6 +116,8 @@ def read_file(date: str, voltage: int, root_file_name: str, pmt_array: PMT_Array
         aan_he_err = he_apulse_num_hist.GetMeanError()
         ap_charge = ap_charge_hist.GetMean()
         ap_charge_err = ap_charge_hist.GetMeanError()
+        he_ap_charge = he_ap_charge_hist.GetMean()
+        he_ap_charge_err = he_ap_charge_hist.GetMeanError()
 
         pars = {
             "par": par,
@@ -124,7 +129,9 @@ def read_file(date: str, voltage: int, root_file_name: str, pmt_array: PMT_Array
             "aan_he": aan_he,
             "aan_he_err": aan_he_err,
             "ap_charge": ap_charge,
-            "ap_charge_err": ap_charge_err
+            "ap_charge_err": ap_charge_err,
+            "he_ap_charge": he_ap_charge,
+            "he_ap_charge_err": he_ap_charge_err
         }
         apulse_info[i_om].append(pars)
 
@@ -354,6 +361,8 @@ def main():
             i_aan_he_err = apulse_info[i_om][0]["aan_he_err"]
             i_ap_charge = apulse_info[i_om][0]["ap_charge"]
             i_ap_charge_err = apulse_info[i_om][0]["ap_charge_err"]
+            i_he_ap_charge = apulse_info[i_om][0]["he_ap_charge"]
+            i_he_ap_charge_err = apulse_info[i_om][0]["he_ap_charge_err"]
 
             par[i_om].append(i_par)
             par_err[i_om].append(i_par_err/10)
@@ -365,6 +374,8 @@ def main():
             aan_he_err[i_om].append(i_aan_he_err)
             ap_charge[i_om].append(i_ap_charge)
             ap_charge_err[i_om].append(i_ap_charge_err)
+            he_ap_charge[i_om].append(i_he_ap_charge)
+            he_ap_charge_err[i_om].append(i_he_ap_charge_err)
 
             dates[i_om].append(int(date))
 
@@ -375,6 +386,7 @@ def main():
         plot_aan(dates[i_om], aan[i_om], output_directory, pmt_array.get_pmt_object_number(i_om), "_" + run_id)
         plot_aan(dates[i_om], aan_he[i_om], output_directory, pmt_array.get_pmt_object_number(i_om), "_he_" + run_id)
         plot_ap_charge(dates[i_om], ap_charge[i_om], output_directory, pmt_array.get_pmt_object_number(i_om), "_" + run_id)
+        plot_ap_charge(dates[i_om], he_ap_charge[i_om], output_directory, pmt_array.get_pmt_object_number(i_om), "_he_" + run_id)
 
     plot_par_ratio(dates, par, output_directory, "_" + run_id)
     plot_par_ratio(dates, par_he, output_directory, "_he_" + run_id)
