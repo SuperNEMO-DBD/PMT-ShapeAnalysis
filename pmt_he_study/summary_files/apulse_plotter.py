@@ -141,7 +141,6 @@ def read_file(date: str, voltage: int, root_file_name: str, pmt_array: PMT_Array
 
 def plot_par(date, par, output_directory: str, pmt_object: PMT_Object, name: str):
     date = process_date(date)
-    print(date)
     try:
         start = np.where(date == 0)[0][0]
     except:
