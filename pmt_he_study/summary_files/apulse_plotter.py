@@ -328,6 +328,8 @@ def main():
     aan_he_err = [[] for i in range(pmt_array.get_pmt_total_number())]
     ap_charge = [[] for i in range(pmt_array.get_pmt_total_number())]
     ap_charge_err = [[] for i in range(pmt_array.get_pmt_total_number())]
+    he_ap_charge = [[] for i in range(pmt_array.get_pmt_total_number())]
+    he_ap_charge_err = [[] for i in range(pmt_array.get_pmt_total_number())]
     dates = [[] for i in range(pmt_array.get_pmt_total_number())]
 
     for i_file in tqdm.tqdm(range(filenames.size)):
