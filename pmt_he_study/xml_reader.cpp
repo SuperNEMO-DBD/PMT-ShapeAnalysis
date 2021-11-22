@@ -99,7 +99,7 @@ Double_t get_ap_charge(std::vector<Double_t> &vec, Double_t baseline, CONF &conf
 Double_t get_he_ap_charge(std::vector<Double_t> &vec, Double_t baseline, CONF &config);
 bool check_saturation(std::vector<Double_t> &vec);
 std::vector<std::vector<Double_t>> get_pulse_from_root_file( std::string file );
-Double_t get_sat_charge(std::vector<Double_t> &vec, Double_t baseline, CONF &config, Int_t peak_cell,
+Double_t get_sat_charge(std::vector<Double_t> &vec, Double_t baseline, CONF &config,
                         std::vector<Double_t> &av_pulse);
 
 
@@ -264,7 +264,7 @@ Int_t main(Int_t argc, char* argv[])
 
         if (pulse_amplitude < config_object.pulse_amp_cut){ continue; }
         if (is_sat){
-            pulse_charge   = get_sat_charge( data, baseline, config_object, peak_cell, pulse_vectors[channel_indicator] );
+            pulse_charge   = get_sat_charge( data, baseline, config_object, pulse_vectors[channel_indicator] );
         }else {
             pulse_charge   = get_charge( data, baseline, config_object, peak_cell );
         }
@@ -687,7 +687,7 @@ bool check_saturation(std::vector<Double_t> &vec)
     }
     return false;
 }
-Double_t get_sat_charge(std::vector<Double_t> &vec, Double_t baseline, CONF &config, Int_t peak_cell,
+Double_t get_sat_charge(std::vector<Double_t> &vec, Double_t baseline, CONF &config,
                         std::vector<Double_t> &av_pulse, Int_t channel)
 {
     std::vector<int> pos;
@@ -750,9 +750,9 @@ Double_t get_sat_charge(std::vector<Double_t> &vec, Double_t baseline, CONF &con
     fit->SetParameters(-1000, 10);
 
     graph->Fit("fit", "0Q", "", 0, 14);
-    Double_t A = fit->GetParameter(0);
-    Double_t A_err = fit->GetParError(0);
-    Double_t mu = fit->GetParameter(1);
+    // Double_t A = fit->GetParameter(0);
+    // Double_t A_err = fit->GetParError(0);
+    // Double_t mu = fit->GetParameter(1);
 
     Double_t charge=0.0;
     for (Int_t k = 0; k < (Int_t)av_pulse.size(); k++)
