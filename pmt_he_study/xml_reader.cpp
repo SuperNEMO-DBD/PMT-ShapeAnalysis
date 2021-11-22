@@ -688,7 +688,7 @@ bool check_saturation(std::vector<Double_t> &vec)
     return false;
 }
 Double_t get_sat_charge(std::vector<Double_t> &vec, Double_t baseline, CONF &config, Int_t peak_cell,
-                        std::vector<Double_t> &av_pulse)
+                        std::vector<Double_t> &av_pulse, Int_t channel)
 {
     std::vector<int> pos;
     bool done_pos = false;
@@ -738,10 +738,16 @@ Double_t get_sat_charge(std::vector<Double_t> &vec, Double_t baseline, CONF &con
         }
     }
 
-    TF1* fit = new TF1("fit", "[0]*TMath::Gaus(x, [1], 2.219)", 0, 14);
+    Double_t temp_std;
+    if (channel = 0){
+        temp_std = 2.22;
+    }else{
+        temp_std = 2.14;
+    }
+    TF1* fit = new TF1("fit", "[0]*TMath::Gaus(x, [1], " + std::to_string(temp_std) + ")", 0, 14);
     fit->SetParLimits(0, -10000, 0);
     fit->SetParLimits(1, 0, 30);
-    fit->SetParameters(1000, 10);
+    fit->SetParameters(-1000, 10);
 
     graph->Fit("fit", "0Q", "", 0, 14);
     Double_t A = fit->GetParameter(0);
