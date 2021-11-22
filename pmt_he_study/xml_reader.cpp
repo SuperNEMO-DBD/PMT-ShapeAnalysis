@@ -50,7 +50,7 @@
 #include <TFile.h>
 #include <TH1D.h>
 #include <TF1.h>
-#include <TGraphError.h>
+#include <TGraphErrors.h>
 
 namespace po = boost::program_options;
 
@@ -717,7 +717,7 @@ Double_t get_sat_charge(std::vector<Double_t> &vec, Double_t baseline, CONF &con
         pulse.push_back(vec[i]);
     }
 
-    TGraphError* graph = new TGraphError();
+    TGraphErrors* graph = new TGraphErrors();
     int n_point = 0;
     for (Int_t j = 0; j < (int)pulse.size(); j++)
     {
