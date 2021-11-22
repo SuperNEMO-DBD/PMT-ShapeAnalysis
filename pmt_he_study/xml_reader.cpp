@@ -260,12 +260,13 @@ Int_t main(Int_t argc, char* argv[])
 
         Double_t baseline        = get_baseline( data, config_object );
         Double_t pulse_amplitude = get_amplitude( data, baseline );
+        Double_t pulse_charge = 0.0;
 
         if (pulse_amplitude < config_object.pulse_amp_cut){ continue; }
         if (is_sat){
-            Double_t pulse_charge   = get_sat_charge( data, baseline, config_object, peak_cell, pulse_vectors[channel_indicator] );
+            pulse_charge   = get_sat_charge( data, baseline, config_object, peak_cell, pulse_vectors[channel_indicator] );
         }else {
-            Double_t pulse_charge   = get_charge( data, baseline, config_object, peak_cell );
+            pulse_charge   = get_charge( data, baseline, config_object, peak_cell );
         }
         Double_t ap_charge      = get_ap_charge( data, baseline, config_object );
         Double_t he_ap_charge   = get_he_ap_charge( data, baseline, config_object );
