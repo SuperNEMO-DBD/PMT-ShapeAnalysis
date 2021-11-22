@@ -460,7 +460,7 @@ CONF read_config( std::string filename )
             else if ( settings[0] == "apulse_time_cut" ) { config.apulse_time_cut = std::stod(settings[1]); }
 	        else if ( settings[0] == "temp_file" ) { config.template_file = settings[1]; }
             else if ( settings[0] == "he_region" ) { config.he_region.push_back(std::stoi(settings[1])); config.he_region.push_back(std::stoi(settings[2])); }
-            else if ( settings[0] == "pulse_amp_cut" ) { config.pulse_amp_cut = settings[1]; }
+            else if ( settings[0] == "pulse_amp_cut" ) { config.pulse_amp_cut = std::stod(settings[1]); }
             else if ( settings[0] == "pulse_file" ) { config.pulse_file = settings[1]; }
             else { continue; }
         }
