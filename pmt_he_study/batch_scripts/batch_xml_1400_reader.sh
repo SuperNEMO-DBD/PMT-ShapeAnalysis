@@ -22,7 +22,7 @@ mkdir $root_dir/PMT-ShapeAnalysis/pmt_he_study/batch_files/$script_log_dir/logs
 #
 #
 # Files found  automatically
-ls $root_dir/data/raw_xml_files/*/*A1400_B1400* /unix/nemo3/PMT_He_Study_nemo3/data/raw_xml_files/*/*A1400_B1400* > $root_dir/PMT-ShapeAnalysis/pmt_he_study/batch_files/$script_log_dir/filenames.ascii
+ls $root_dir/data/raw_xml_files/*/*A1400_B1400* > $root_dir/PMT-ShapeAnalysis/pmt_he_study/batch_files/$script_log_dir/filenames.ascii
 data_file_list=`cat $root_dir/PMT-ShapeAnalysis/pmt_he_study/batch_files/$script_log_dir/filenames.ascii`
 #
 #

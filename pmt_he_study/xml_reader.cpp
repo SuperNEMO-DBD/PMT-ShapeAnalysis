@@ -39,6 +39,7 @@
 #include <string>
 #include <vector>
 #include <cmath>
+#include <math.h>
 
 // Argument parser
 #include <boost/program_options.hpp>
@@ -48,6 +49,8 @@
 #include <TDatime.h>
 #include <TFile.h>
 #include <TH1D.h>
+#include <TF1.h>
+#include <TGraphError.h>
 
 namespace po = boost::program_options;
 
@@ -69,10 +72,10 @@ typedef struct {
 
 typedef struct {
     Int_t sweep_start, pre_trigger, trigger, trig_tolerance, apulse_time_cut;
-    Double_t shape_cut, amp_cut, charge_cut, resistance;
+    Double_t shape_cut, amp_cut, charge_cut, resistance, pulse_amp_cut;
     std::vector<Double_t> integration;
     std::vector<Int_t> he_region;
-    std::string template_file;
+    std::string template_file, pulse_file;
 } CONF;
 
 typedef struct {
@@ -94,6 +97,10 @@ std::vector<std::vector<Double_t>> get_template_pulses( std::string template_fil
 Double_t get_inner_product( std::vector<Double_t> &vec1, std::vector<Double_t> &vec2 );
 Double_t get_ap_charge(std::vector<Double_t> &vec, Double_t baseline, CONF &config);
 Double_t get_he_ap_charge(std::vector<Double_t> &vec, Double_t baseline, CONF &config);
+bool check_saturation(std::vector<Double_t> &vec);
+std::vector<std::vector<Double_t>> get_pulse_from_root_file( std::string file );
+Double_t get_sat_charge(std::vector<Double_t> &vec, Double_t baseline, CONF &config, Int_t peak_cell,
+                        std::vector<Double_t> &av_pulse);
 
 
 Int_t main(Int_t argc, char* argv[])
@@ -146,6 +153,7 @@ Int_t main(Int_t argc, char* argv[])
     std::cout << ">>> Amp cut           : " << config_object.amp_cut << std::endl;
     std::cout << ">>> Shape cut         : " << config_object.shape_cut << std::endl;
     std::cout << ">>> Charge cut        : " << config_object.charge_cut << std::endl;
+    std::cout << ">>> Pulse Amp cut     : " << config_object.pulse_amp_cut << std::endl;
     std::cout << ">>> Pre-trigger       : " << config_object.pre_trigger << std::endl;
     std::cout << ">>> Trigger           : " << config_object.trigger << std::endl;
     std::cout << ">>> Trigger tolerance : " << config_object.trig_tolerance << std::endl;
@@ -155,12 +163,14 @@ Int_t main(Int_t argc, char* argv[])
     std::cout << ">>> Resistance        : " << config_object.resistance << std::endl;
     std::cout << ">>> Time cut          : " << config_object.apulse_time_cut << std::endl;
     std::cout << ">>> Template file     : " << config_object.template_file << std::endl;
+    std::cout << ">>> Pulse file        : " << config_object.pulse_file << std::endl;
     std::cout << ">>> He Region         : " << config_object.he_region[0] << "-" << config_object.he_region[1] << std::endl;
 
     description.template_file = config_object.template_file;
 
     TFile root_file( output_file.c_str(), "RECREATE" );
     std::vector<std::vector<Double_t>> template_vectors = get_template_pulses( description.template_file );
+    std::vector<std::vector<Double_t>> pulse_vectors = get_pulse_from_root_file( config_object.pulse_file );
     // ==================================================================
     
     root_file.cd();
@@ -236,22 +246,29 @@ Int_t main(Int_t argc, char* argv[])
         // Process      =================================================
         std::vector<Double_t> data = process_line( data_line, ' ' );
         //std::cout << "Data vector length: " << data.size() << std::endl;
+        bool is_sat = check_saturation(data);
 
         // Analysis     =================================================
         channel_event_num[channel_indicator] ++;
 
         Int_t peak_cell = get_peak_cell( data );
 
-        if ( peak_cell > config_object.trigger + config_object.trig_tolerance || peak_cell < config_object.trigger - config_object.trig_tolerance )
-        {
+        if ( peak_cell > config_object.trigger + config_object.trig_tolerance || peak_cell < config_object.trigger - config_object.trig_tolerance ) {
             // Waveform is likely empty so will not store
             continue;
         }
 
-        Double_t baseline       = get_baseline( data, config_object );
-        Double_t pulse_charge   = get_charge( data, baseline, config_object, peak_cell );
+        Double_t baseline        = get_baseline( data, config_object );
+        Double_t pulse_amplitude = get_amplitude( data, baseline );
+
+        if (pulse_amplitude < config_object.pulse_amp_cut){ continue; }
+        if (is_sat){
+            Double_t pulse_charge   = get_sat_charge( data, baseline, config_object, peak_cell, pulse_vectors[channel_indicator] );
+        }else {
+            Double_t pulse_charge   = get_charge( data, baseline, config_object, peak_cell );
+        }
         Double_t ap_charge      = get_ap_charge( data, baseline, config_object );
-        Double_t he_ap_charge      = get_he_ap_charge( data, baseline, config_object );
+        Double_t he_ap_charge   = get_he_ap_charge( data, baseline, config_object );
 
         // std::cout << "charge : " << pulse_charge << std::endl;
 
@@ -262,7 +279,6 @@ Int_t main(Int_t argc, char* argv[])
         }
 
         channel_waveform_num[channel_indicator]++;
-        Double_t pulse_amplitude = get_amplitude( data, baseline );
 
         if (test)
         {
@@ -443,6 +459,8 @@ CONF read_config( std::string filename )
             else if ( settings[0] == "apulse_time_cut" ) { config.apulse_time_cut = std::stod(settings[1]); }
 	        else if ( settings[0] == "temp_file" ) { config.template_file = settings[1]; }
             else if ( settings[0] == "he_region" ) { config.he_region.push_back(std::stoi(settings[1])); config.he_region.push_back(std::stoi(settings[2])); }
+            else if ( settings[0] == "pulse_amp_cut" ) { config.pulse_amp_cut = settings[1]; }
+            else if ( settings[0] == "pulse_file" ) { config.pulse_file = settings[1]; }
             else { continue; }
         }
     }
@@ -656,4 +674,109 @@ Double_t get_he_ap_charge(std::vector<Double_t> &vec, Double_t baseline, CONF &c
         charge += (vec[i] - baseline);
     }
     return (-1.0)*charge/( config.resistance );
+}
+bool check_saturation(std::vector<Double_t> &vec)
+{
+    for (Int_t i = 0; i < (Int_t)vec.size(); i++)
+    {
+        if (vec[i] == 0.0)
+        {
+            return true;
+        }
+    }
+    return false;
+}
+Double_t get_sat_charge(std::vector<Double_t> &vec, Double_t baseline, CONF &config, Int_t peak_cell,
+                        std::vector<Double_t> &av_pulse)
+{
+    std::vector<int> pos;
+    bool done_pos = false;
+    for (Int_t i = 0; i < (Int_t)vec.size(); i++)
+    {
+        if (vec[i] == 0.0)
+        {
+            done_pos = true;
+            pos.push_back(i);
+        } else{
+            if (done_pos){
+                break;
+            }
+        }
+    }
+
+    int middle = int(pos.size() / 2);
+    int the_pos=pos[middle];
+
+    std::vector<Double_t> pulse_r;
+    std::vector<Double_t> pulse;
+    std::vector<Double_t> new_pulse;
+    std::vector<Int_t> xi;
+    for ( Int_t i = the_pos - 10; i < the_pos + 20; i++ )
+    {
+        pulse_r.push_back(vec[i] - baseline);
+        pulse.push_back(vec[i]);
+    }
+
+    TGraphError* graph = new TGraphError();
+    int n_point = 0;
+    for (Int_t j = 0; j < (int)pulse.size(); j++)
+    {
+        if (j > 14)
+        {
+            break;
+        }
+        if (pulse[j] == 0)
+        {
+            continue;
+        }else{
+            //new_pulse.push_back(pulse_r[j]);
+            //xi.push_back(j);
+            graph->SetPoint(n_point, j, pulse_r[j]);
+            graph->SetPoint(n_point, 0, sqrt(pulse_r[j]));
+            n_point++;
+        }
+    }
+
+    TF1* fit = new TF1("fit", "[0]*TMath::Gaus(x, [1], 2.219)", 0, 14);
+    fit->SetParLimits(0, -10000, 0);
+    fit->SetParLimits(1, 0, 30);
+    fit->SetParameters(1000, 10);
+
+    graph->Fit("fit", "0Q", "", 0, 14);
+    Double_t A = fit->GetParameter(0);
+    Double_t A_err = fit->GetParError(0);
+    Double_t mu = fit->GetParameter(1);
+
+    Double_t charge=0.0;
+    for (Int_t k = 0; k < (Int_t)av_pulse.size(); k++)
+    {
+        charge += -1.0*av_pulse[k]*A;
+    }
+    delete graph;
+    delete fit;
+    return charge;
+}
+std::vector<std::vector<Double_t>> get_pulse_from_root_file( std::string file )
+{
+    std::vector<std::vector<Double_t>> pulses;
+    TFile pulse_root_file(file.c_str(), "READ");
+    for (Int_t itemp = 0; itemp < 2; itemp++)
+    {
+        std::vector<Double_t> temp_vector; // Define a temporary filling vector
+        //Get the template histogram from the file
+        std::string hist_name = "1400V_pulse_30ns_Ch" + std::to_string(itemp);
+
+        TH1D* template_hist = (TH1D*)pulse_root_file.Get(hist_name.c_str());
+
+        for (Int_t ihist = 1; ihist < template_hist->GetEntries(); ihist++)
+        {
+            temp_vector.push_back(template_hist->GetBinContent(ihist));
+        }
+        delete template_hist;
+
+        pulses.push_back(temp_vector);
+    }
+    pulse_root_file.Close();
+
+    return pulses;
 }

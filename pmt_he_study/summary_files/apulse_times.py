@@ -121,7 +121,7 @@ def main():
                 plt.axvline(2560, ls='--', color='b', label=r"$CH_4^+$")
                 plt.axvline(3850, ls='--', color='c', label=r"$CO_2^+$")
                 plt.legend(loc="upper right")
-                plt.ylim(0, 6)
+                plt.ylim(0, 15)
                 plt.xlim(800, 7000)
                 plt.xlabel("afterpulse time in waveform /ns")
                 plt.ylabel("normalised counts /%")
