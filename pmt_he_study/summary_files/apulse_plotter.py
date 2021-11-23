@@ -289,6 +289,39 @@ def plot_ap_charge(date, ap_charge, output_directory: str, pmt_object: PMT_Objec
     plt.close()
 
 
+def plot_aapc_vs_charge(date, charge, ap_charge, output_directory: str, pmt_object: PMT_Object, name: str):
+    date = process_date(date)
+    try:
+        start = np.where(date == 0)[0][0]
+    except:
+        start = np.where(date == 1)[0][0]
+    mid = np.where(date == 98)[0][0]
+
+    ratio = []
+    for i in range(len(charge)):
+        if charge[i] == 0:
+            ratio.append(0)
+        else:
+            ratio.append(ap_charge[i]/charge[i])
+    ratio = np.array(ratio)
+
+    plt.figure(num=None, figsize=(9, 5), dpi=80, facecolor='w', edgecolor='k')
+    plt.plot(date[:start + 1], ratio[:start + 1], "g.", label="Atmospheric He")
+    plt.plot(date[start + 1:mid + 1], ratio[start + 1:mid + 1], "b.", label="1% He")
+    plt.plot(date[mid + 1:], ratio[mid + 1:], "r.", label="10% He")
+    plt.axvline(date[start], 0, 100, ls='--', color='k')
+    plt.axvline(date[mid], 0, 100, ls='--', color='k')
+    plt.xlabel("exposure days relative to 06/11/2019")
+    plt.ylabel("ratio")
+    plt.title(pmt_object.get_pmt_id() + " Average After-pulse Region charge")
+    plt.grid()
+    # plt.ylim(0, 1.5)
+    plt.legend(loc='upper left')
+    plt.savefig(output_directory + "/summary_plots/" +
+                pmt_object.get_pmt_id() + "_ap_charge_vs_time" + name + ".pdf")
+    plt.close()
+
+
 def main():
     # Handle the input arguments:
     ##############################

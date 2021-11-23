@@ -41,6 +41,8 @@ def read_tree(root_file_name: str, pmt_array: PMT_Array, output_file_location: s
     charge_hists = []
     ap_charge_hists = []
     he_ap_charge_hists = []
+    ap_charge_charge_hists = []
+    he_ap_charge_charge_hists = []
     amp_hists = []
     baselines = []
     apulse_nums_hists = []
@@ -60,6 +62,12 @@ def read_tree(root_file_name: str, pmt_array: PMT_Array, output_file_location: s
         he_ap_charge_hist = ROOT.TH1D(date + "_" + pmt_array.get_pmt_object_number(i_om).get_pmt_id() + "_he_ap_charge_spectrum_" + str(voltage) + "V",
                                       date + "_" + pmt_array.get_pmt_object_number(i_om).get_pmt_id() + "_he_ap_charge_spectrum_" + str(voltage) + "V",
                                       nbins, 0, max_charge)
+        ap_charge_charge_hist = ROOT.TH1D(date + "_" + pmt_array.get_pmt_object_number(i_om).get_pmt_id() + "_ap_charge_charge_spectrum_" + str(voltage) + "V",
+                                          date + "_" + pmt_array.get_pmt_object_number(i_om).get_pmt_id() + "_ap_charge_charge_spectrum_" + str(voltage) + "V",
+                                          150, -1, 2)
+        he_ap_charge_charge_hist = ROOT.TH1D(date + "_" + pmt_array.get_pmt_object_number(i_om).get_pmt_id() + "_he_ap_charge_charge_spectrum_" + str(voltage) + "V",
+                                             date + "_" + pmt_array.get_pmt_object_number(i_om).get_pmt_id() + "_he_ap_charge_charge_spectrum_" + str(voltage) + "V",
+                                             150, -1, 2)
         amp_hist = ROOT.TH1D(date + "_" + pmt_array.get_pmt_object_number(i_om).get_pmt_id() + "_amplitude_spectrum_" + str(voltage) + "V",
                              date + "_" + pmt_array.get_pmt_object_number(i_om).get_pmt_id() + "_amplitude_spectrum_" + str(voltage) + "V",
                              nbins, 0, max_amp)
@@ -84,6 +92,8 @@ def read_tree(root_file_name: str, pmt_array: PMT_Array, output_file_location: s
         charge_hists.append(charge_hist)
         ap_charge_hists.append(ap_charge_hist)
         he_ap_charge_hists.append(he_ap_charge_hist)
+        ap_charge_charge_hists.append(ap_charge_charge_hist)
+        he_ap_charge_charge_hists.append(he_ap_charge_charge_hist)
         amp_hists.append(amp_hist)
         baselines.append(baseline)
         apulse_nums_hists.append(apulse_num)
@@ -108,6 +118,8 @@ def read_tree(root_file_name: str, pmt_array: PMT_Array, output_file_location: s
         pulse_charge = event.pulse_charge
         ap_charge = event.ap_region_charge
         he_ap_charge = event.he_ap_region_charge
+        charge_ratio = ap_charge/pulse_charge
+        he_charge_ratio = he_ap_charge / pulse_charge
         pulse_baseline = event.pulse_baseline
         apulse_num = event.apulse_num
         apulse_times = event.apulse_times
@@ -117,6 +129,8 @@ def read_tree(root_file_name: str, pmt_array: PMT_Array, output_file_location: s
         charge_hists[OM_ID].Fill(pulse_charge)
         ap_charge_hists[OM_ID].Fill(ap_charge)
         he_ap_charge_hists[OM_ID].Fill(he_ap_charge)
+        ap_charge_charge_hists[OM_ID].Fill(charge_ratio)
+        he_ap_charge_charge_hists[OM_ID].Fill(he_charge_ratio)
         amp_hists[OM_ID].Fill(pulse_amplitude)
         baselines[OM_ID].Fill(pulse_baseline)
 
@@ -155,6 +169,8 @@ def read_tree(root_file_name: str, pmt_array: PMT_Array, output_file_location: s
             charge_hists[i_om].Write()
             ap_charge_hists[i_om].Write()
             he_ap_charge_hists[i_om].Write()
+            ap_charge_charge_hists[i_om].Write()
+            he_ap_charge_charge_hists[i_om].Write()
             amp_hists[i_om].Write()
             baselines[i_om].Write()
             apulse_nums_hists[i_om].Write()
