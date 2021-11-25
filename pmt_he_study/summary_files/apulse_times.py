@@ -1,6 +1,6 @@
 import sys
 
-sys.path.insert(1, '../..')
+sys.path.insert(1, '../')
 
 import matplotlib.pyplot as plt
 import numpy as np

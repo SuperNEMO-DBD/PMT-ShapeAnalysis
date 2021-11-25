@@ -8,7 +8,9 @@ import tqdm
 
 # import python plotting and numpy modules
 import matplotlib.pyplot as plt
+import matplotlib
 import numpy as np
+from array import array
 from scipy.signal import find_peaks
 
 # import stats module
@@ -19,16 +21,34 @@ from functions.other_functions import pmt_parse_arguments, fit, chi2, process_da
 from src.PMT_Classes import *
 
 
-def model_day(x, p0, p1, p2):
-    y = []
-    for i in range(len(x)):
-        t = x[i]*3600*24
+class Model:
+    def __call__(self, x, pars):
+        p = 101325 / 10
+        p0 = pars[0]
+        p1 = pars[1]
+        L = pars[2]
+        t = x[0] * 3600 * 24
+
         temp = 0
-        for n in range(1,11):
-            temp += ((-1)**n/n**2)*(1 - np.exp(-(n**2)*(np.pi**2)*t/p1))
-        f2 = (2/np.pi**2)*p1*temp
-        y.append(p0*(t + f2) + p2)
-    return y
+        for n in range(1, 50):
+            temp += ((-1) ** n / n ** 2) * (1 - np.exp(-(n ** 2) * (np.pi ** 2) * t / (L * 6)))
+        f2 = (12 / np.pi ** 2) * L * temp
+        y = p0 * p * (t + f2) + p1
+        return y
+
+    def func(self, x, pars):
+        p = 101325 / 10
+        p0 = pars[0]
+        p1 = pars[1]
+        L = pars[2]
+        t = x * 3600 * 24
+
+        temp = 0
+        for n in range(1, 50):
+            temp += ((-1) ** n / n ** 2) * (1 - np.exp(-(n ** 2) * (np.pi ** 2) * t / (L * 6)))
+        f2 = (12 / np.pi ** 2) * L * temp
+        y = p0 * p * (t + f2) + p1
+        return y
 
 
 def create_file(file_name: str):
@@ -84,6 +104,10 @@ def read_file(date: str, voltage: int, root_file_name: str, pmt_array: PMT_Array
                                   "_ap_charge_spectrum_" + str(voltage) + "V")
         he_ap_charge_hist = file.Get(date + "_" + pmt_array.get_pmt_object_number(i_om).get_pmt_id() +
                                      "_he_ap_charge_spectrum_" + str(voltage) + "V")
+        ap_charge_charge_hist = file.Get(date + "_" + pmt_array.get_pmt_object_number(i_om).get_pmt_id() +
+                                         "_ap_charge_charge_spectrum_" + str(voltage) + "V")
+        he_ap_charge_charge_hist = file.Get(date + "_" + pmt_array.get_pmt_object_number(i_om).get_pmt_id() +
+                                            "_he_ap_charge_charge_spectrum_" + str(voltage) + "V")
 
         try:
             apulse_num_hist.GetEntries()
@@ -118,6 +142,8 @@ def read_file(date: str, voltage: int, root_file_name: str, pmt_array: PMT_Array
         ap_charge_err = ap_charge_hist.GetMeanError()
         he_ap_charge = he_ap_charge_hist.GetMean()
         he_ap_charge_err = he_ap_charge_hist.GetMeanError()
+        ratio = ap_charge_charge_hist.GetMean()
+        he_ratio = he_ap_charge_charge_hist.GetMean()
 
         pars = {
             "par": par,
@@ -131,7 +157,9 @@ def read_file(date: str, voltage: int, root_file_name: str, pmt_array: PMT_Array
             "ap_charge": ap_charge,
             "ap_charge_err": ap_charge_err,
             "he_ap_charge": he_ap_charge,
-            "he_ap_charge_err": he_ap_charge_err
+            "he_ap_charge_err": he_ap_charge_err,
+            "ratio": ratio,
+            "he_ratio": he_ratio
         }
         apulse_info[i_om].append(pars)
 
@@ -174,32 +202,89 @@ def plot_par(date, par, output_directory: str, pmt_object: PMT_Object, name: str
     plt.close()
 
 
-def plot_aan(date, aan, output_directory: str, pmt_object: PMT_Object, name: str):
-    date = process_date(date)
+def root_fit(x, y, yerr):
+    # guess = array('d', [1.52157116e-11, 6.84547311e-02, 1.13069872e+07])
+    guess = array('d', [(y[-1] - y[-50])/((x[-1] - x[-50])*3600*24) /10000, y[0], 300*3600*24])
+    names = ["p0", "p1", "L"]
+    model = Model()
+    graph = ROOT.TGraphErrors(len(y), array('d', [i for i in x]), array('d', [i for i in y]),
+                              array('d', [1 for i in range(len(x))]), array('d', [i for i in yerr]))
+
+    fit = ROOT.TF1("func", model, float(x[0]), float(x[-1]), len(guess))
+    for i in range(len(guess)):
+        fit.SetParameter(i, guess[i])
+        fit.SetParName(i, names[i])
+        fit.SetParLimits(i, guess[i] - abs(guess[i])/2, guess[i] + abs(guess[i])/2)
+
+    graph.Fit("func", "0Q")
+    pars = []
+    errs = []
+    chi = fit.GetChisquare() / fit.GetNDF()
+
+    for i in range(len(guess)):
+        pars.append(fit.GetParameter(i))
+        errs.append(fit.GetParError(i))
+    return pars, errs, chi
+
+
+def plot_aan(dates, aans, output_directory: str, name: str):
+    date_0 = process_date(dates[0])
+    date_1 = process_date(dates[1])
     try:
-        start = np.where(date == 0)[0][0]
+        start = np.where(date_0 == 0)[0][0]
     except:
-        start = np.where(date == 1)[0][0]
-    mid = np.where(date == 98)[0][0]
+        start = np.where(date_0 == 1)[0][0]
+    mid = np.where(date_0 == 98)[0][0]
 
-    popt, pcov = curve_fit(f=model_day, xdata=date[mid + 1:], ydata=np.array(aan[mid + 1:]),
-                           p0=[0.01, 0.01, 0.8], bounds=[[0, 0, 0], [1e5, 1e10, 100]])
+    '''popt, pcov = curve_fit(f=model_day, xdata=date[mid + 1:], ydata=np.array(aan[mid + 1:]),
+                           p0=[0.01, 0.01, 0.8], bounds=[[0, 0, 0], [1e5, 1e10, 100]])'''
+    aan_0 = np.array(aans[0])
+    aan_1 = np.array(aans[1])
 
-    plt.figure(num=None, figsize=(9, 5), dpi=80, facecolor='w', edgecolor='k')
-    plt.plot(date[:start + 1], np.array(aan[:start + 1]), "g.", label="Atmospheric He")
-    plt.plot(date[start + 1:mid + 1], np.array(aan[start + 1:mid + 1]), "b.", label="1% He")
-    plt.plot(date[mid + 1:], np.array(aan[mid + 1:]), "r.", label="10% He")
-    plt.plot(date[mid + 1:], model_day(date[mid + 1:], *popt), 'k-', label='model')
-    plt.axvline(date[start], 0, 100, ls='--', color='k')
-    plt.axvline(date[mid], 0, 100, ls='--', color='k')
-    plt.xlabel("exposure days relative to 06/11/2019")
+    x = np.array(date_0[mid + 1:]) - date_0[mid + 1:][0]
+    y = aan_0[mid + 1:]
+    yerr = aan_0[mid + 1:]*0.01
+    pars, errs, chi = root_fit(x, y, yerr)
+
+    fig1 = plt.figure(num=None, figsize=(9, 5), dpi=80, facecolor='w', edgecolor='k')
+    frame1 = fig1.add_axes((.1, .3, .8, .6))
+    frame1.set_xticklabels([])
+    plt.errorbar(date_0[:start + 1], aan_0[:start + 1], zorder=0,
+                 yerr=aan_0[:start + 1]*0.01, fmt="g.", label="Atmospheric He")
+    plt.errorbar(date_0[start + 1:mid + 1], aan_0[start + 1:mid + 1], zorder=0,
+                 yerr=aan_0[start + 1:mid + 1]*0.01, fmt="b.", label="1% He")
+    plt.errorbar(date_0[mid + 1:], aan_0[mid + 1:], zorder=0,
+                 yerr=aan_0[mid + 1:]*0.01, fmt="r.", label="10% He")
+    plt.errorbar(date_1, aan_1, zorder=0,
+                 yerr=aan_1*0.01, fmt="C1.", label="Control")
+    plt.plot(date_0[mid + 1:], Model().func(x, pars), 'k-', label='model', zorder=10,)
+    plt.axvline(date_0[start], 0, 100, ls='--', color='k')
+    plt.axvline(date_0[mid], 0, 100, ls='--', color='k')
+
+    handles, labels = plt.gca().get_legend_handles_labels()
+    patch = matplotlib.patches.Patch(color='white', label=r'$P_0 =$ {:.4e} ± {:.0e}'.format(pars[0], errs[0]))
+    patch_1 = matplotlib.patches.Patch(color='white', label=r'$P_1 =$ {:.4e} ± {:.0e}'.format(pars[1], errs[1]))
+    patch_2 = matplotlib.patches.Patch(color='white', label=r'$L =$ {:.0f} ± {:.0f}'.format(pars[2]/(3600*24), errs[2]/(3600*24)))
+    patch_3 = matplotlib.patches.Patch(color='white', label=r'$\chi^2_R =$ {:.2f}'.format(chi))
+    handles.extend([patch, patch_1, patch_2, patch_3])
+
     plt.ylabel("Average afterpulse number")
-    plt.title(pmt_object.get_pmt_id() + " AAN vs exposure time")
+    plt.title("AAN vs exposure time")
     plt.grid()
-    # plt.ylim(0, 1.5)
-    plt.legend(loc='upper left')
-    plt.savefig(output_directory + "/summary_plots/" +
-                pmt_object.get_pmt_id() + "_aan_vs_time" + name + ".pdf")
+    plt.legend(handles=handles, loc='upper left')
+    plt.xlim(-30, 420)
+
+    frame2 = fig1.add_axes((.1, .1, .8, .2))
+    plt.xlabel("exposure days relative to 06/11/2019")
+    plt.axhline(0, ls='--', color='black')
+    plt.ylabel("(model-data)/model")
+    plt.grid()
+    plt.xlim(-30, 420)
+    plt.errorbar(date_0[mid + 1:],
+                 (Model().func(x, pars) - aan_0[mid + 1:])/Model().func(x, pars),
+                 yerr=aan_0[mid + 1:]*0.01/Model().func(date_0[mid + 1:], pars), fmt="k.")
+
+    plt.savefig(output_directory + "/summary_plots/" + "aan_vs_time" + name + ".pdf")
     plt.close()
 
 
@@ -263,62 +348,124 @@ def plot_aan_ratio(dates: list, aan: list, output_directory: str, name: str):
     plt.close()
 
 
-def plot_ap_charge(date, ap_charge, output_directory: str, pmt_object: PMT_Object, name: str):
+def plot_ap_charge(dates, ap_charges, output_directory: str, name: str):
     # print(len(ap_charge), ap_charge)
-    date = process_date(date)
+    date_0 = process_date(dates[0])
+    date_1 = process_date(dates[1])
     try:
-        start = np.where(date == 0)[0][0]
+        start = np.where(date_0 == 0)[0][0]
     except:
-        start = np.where(date == 1)[0][0]
-    mid = np.where(date == 98)[0][0]
+        start = np.where(date_0 == 1)[0][0]
+    mid = np.where(date_0 == 98)[0][0]
 
-    plt.figure(num=None, figsize=(9, 5), dpi=80, facecolor='w', edgecolor='k')
-    plt.plot(date[:start + 1], np.array(ap_charge[:start + 1]), "g.", label="Atmospheric He")
-    plt.plot(date[start + 1:mid + 1], np.array(ap_charge[start + 1:mid + 1]), "b.", label="1% He")
-    plt.plot(date[mid + 1:], np.array(ap_charge[mid + 1:]), "r.", label="10% He")
-    plt.axvline(date[start], 0, 100, ls='--', color='k')
-    plt.axvline(date[mid], 0, 100, ls='--', color='k')
-    plt.xlabel("exposure days relative to 06/11/2019")
+    ap_charge_0 = np.array(ap_charges[0])
+    ap_charge_1 = np.array(ap_charges[1])
+
+    x = np.array(date_0[mid + 1:]) - date_0[mid + 1:][0]
+    y = np.array(ap_charge_0[mid + 1:])
+    yerr = np.array(ap_charge_0[mid + 1:]) * 0.01
+    pars, errs, chi = root_fit(x, y, yerr)
+
+    fig1 = plt.figure(num=None, figsize=(9, 5), dpi=80, facecolor='w', edgecolor='k')
+    frame1 = fig1.add_axes((.1, .3, .8, .6))
+    frame1.set_xticklabels([])
+    plt.errorbar(date_0[:start + 1], ap_charge_0[:start + 1], zorder=0,
+                 yerr=ap_charge_0[:start + 1]*0.01, fmt="g.", label="Atmospheric He")
+    plt.errorbar(date_0[start + 1:mid + 1], ap_charge_0[start + 1:mid + 1], zorder=0,
+                 yerr=ap_charge_0[start + 1:mid + 1]*0.01, fmt="b.", label="1% He")
+    plt.errorbar(date_0[mid + 1:], ap_charge_0[mid + 1:], zorder=0,
+                 yerr=ap_charge_0[mid + 1:]*0.01, fmt="r.", label="10% He")
+    plt.errorbar(date_1, ap_charge_1, zorder=0,
+                 yerr=ap_charge_1*0.01, fmt="C1.", label="Control")
+    plt.plot(date_0[mid + 1:], Model().func(x, pars), 'k-', label='model', zorder=10)
+    plt.axvline(date_0[start], 0, 100, ls='--', color='k')
+    plt.axvline(date_0[mid], 0, 100, ls='--', color='k')
+
+    handles, labels = plt.gca().get_legend_handles_labels()
+    patch = matplotlib.patches.Patch(color='white', label=r'$P_0 =$ {:.4e} ± {:.0e}'.format(pars[0], errs[0]))
+    patch_1 = matplotlib.patches.Patch(color='white', label=r'$P_1 =$ {:.4e} ± {:.0e}'.format(pars[1], errs[1]))
+    patch_2 = matplotlib.patches.Patch(color='white', label=r'$L =$ {:.0f} ± {:.0f}'.format(pars[2] / (3600 * 24),
+                                                                                            errs[2] / (3600 * 24)))
+    patch_3 = matplotlib.patches.Patch(color='white', label=r'$\chi^2_R =$ {:.2f}'.format(chi))
+    handles.extend([patch, patch_1, patch_2, patch_3])
+
     plt.ylabel("Average Charge /pC")
-    plt.title(pmt_object.get_pmt_id() + " Average After-pulse Region charge")
+    plt.title("Average After-pulse Region charge")
     plt.grid()
-    # plt.ylim(0, 1.5)
-    plt.legend(loc='upper left')
-    plt.savefig(output_directory + "/summary_plots/" +
-                pmt_object.get_pmt_id() + "_ap_charge_vs_time" + name + ".pdf")
+    plt.xlim(-30, 420)
+    plt.legend(handles=handles, loc='upper left')
+
+    frame2 = fig1.add_axes((.1, .1, .8, .2))
+    plt.xlabel("exposure days relative to 06/11/2019")
+    plt.axhline(0, ls='--', color='black')
+    plt.ylabel("(model-data)/model")
+    plt.grid()
+    plt.xlim(-30, 420)
+    plt.errorbar(date_0[mid + 1:],
+                 (Model().func(x, pars) - ap_charge_0[mid + 1:]) / Model().func(x, pars),
+                 yerr=ap_charge_0[mid + 1:] * 0.01 / Model().func(date_0[mid + 1:], pars), fmt="k.")
+
+    plt.savefig(output_directory + "/summary_plots/" + "ap_charge_vs_time" + name + ".pdf")
     plt.close()
 
 
-def plot_aapc_vs_charge(date, charge, ap_charge, output_directory: str, pmt_object: PMT_Object, name: str):
-    date = process_date(date)
+def plot_aapc_vs_charge(dates, ratios, output_directory: str, name: str):
+    date_0 = process_date(dates[0])
+    date_1 = process_date(dates[1])
     try:
-        start = np.where(date == 0)[0][0]
+        start = np.where(date_0 == 0)[0][0]
     except:
-        start = np.where(date == 1)[0][0]
-    mid = np.where(date == 98)[0][0]
+        start = np.where(date_0 == 1)[0][0]
+    mid = np.where(date_0 == 98)[0][0]
 
-    ratio = []
-    for i in range(len(charge)):
-        if charge[i] == 0:
-            ratio.append(0)
-        else:
-            ratio.append(ap_charge[i]/charge[i])
-    ratio = np.array(ratio)
+    ratio_0 = np.array(ratios[0])
+    ratio_1 = np.array(ratios[1])
 
-    plt.figure(num=None, figsize=(9, 5), dpi=80, facecolor='w', edgecolor='k')
-    plt.plot(date[:start + 1], ratio[:start + 1], "g.", label="Atmospheric He")
-    plt.plot(date[start + 1:mid + 1], ratio[start + 1:mid + 1], "b.", label="1% He")
-    plt.plot(date[mid + 1:], ratio[mid + 1:], "r.", label="10% He")
-    plt.axvline(date[start], 0, 100, ls='--', color='k')
-    plt.axvline(date[mid], 0, 100, ls='--', color='k')
-    plt.xlabel("exposure days relative to 06/11/2019")
-    plt.ylabel("ratio")
-    plt.title(pmt_object.get_pmt_id() + " Average After-pulse Region charge")
+    x = np.array(date_0[mid + 1:]) - date_0[mid + 1:][0]
+    y = np.array(ratio_0[mid + 1:])
+    yerr = np.array(ratio_0[mid + 1:]) * 0.01
+    pars, errs, chi = root_fit(x, y, yerr)
+
+    fig1 = plt.figure(num=None, figsize=(9, 5), dpi=80, facecolor='w', edgecolor='k')
+    frame1 = fig1.add_axes((.1, .3, .8, .6))
+    frame1.set_xticklabels([])
+    plt.errorbar(date_0[:start + 1], ratio_0[:start + 1], zorder=0,
+                 yerr=ratio_0[:start + 1]*0.01, fmt="g.", label="Atmospheric He")
+    plt.errorbar(date_0[start + 1:mid + 1], ratio_0[start + 1:mid + 1], zorder=0,
+                 yerr=ratio_0[start + 1:mid + 1]*0.01, fmt="b.", label="1% He")
+    plt.errorbar(date_0[mid + 1:], ratio_0[mid + 1:], zorder=0,
+                 yerr=ratio_0[mid + 1:]*0.01, fmt="r.", label="10% He")
+    plt.errorbar(date_1, ratio_1, zorder=0,
+                 yerr=ratio_1*0.01, fmt="C1.", label="Control")
+    plt.plot(date_0[mid + 1:], Model().func(x, pars), 'k-', label='model', zorder=10)
+    plt.axvline(date_0[start], 0, 100, ls='--', color='k')
+    plt.axvline(date_0[mid], 0, 100, ls='--', color='k')
+
+    handles, labels = plt.gca().get_legend_handles_labels()
+    patch = matplotlib.patches.Patch(color='white', label=r'$P_0 =$ {:.4e} ± {:.0e}'.format(pars[0], errs[0]))
+    patch_1 = matplotlib.patches.Patch(color='white', label=r'$P_1 =$ {:.4e} ± {:.0e}'.format(pars[1], errs[1]))
+    patch_2 = matplotlib.patches.Patch(color='white', label=r'$L =$ {:.0f} ± {:.0f}'.format(pars[2] / (3600 * 24),
+                                                                                            errs[2] / (3600 * 24)))
+    patch_3 = matplotlib.patches.Patch(color='white', label=r'$\chi^2_R =$ {:.2f}'.format(chi))
+    handles.extend([patch, patch_1, patch_2, patch_3])
+
+    plt.ylabel("charge ratio")
+    plt.title("Pulse charge apulse charge ratio")
     plt.grid()
-    # plt.ylim(0, 1.5)
-    plt.legend(loc='upper left')
-    plt.savefig(output_directory + "/summary_plots/" +
-                pmt_object.get_pmt_id() + "_ap_charge_vs_time" + name + ".pdf")
+    plt.legend(handles=handles, loc='upper left')
+    plt.xlim(-30, 420)
+
+    frame2 = fig1.add_axes((.1, .1, .8, .2))
+    plt.xlabel("exposure days relative to 06/11/2019")
+    plt.axhline(0, ls='--', color='black')
+    plt.ylabel("(model-data)/model")
+    plt.grid()
+    plt.xlim(-30, 420)
+    plt.errorbar(date_0[mid + 1:],
+                 (Model().func(x, pars) - ratio_0[mid + 1:]) / Model().func(x, pars),
+                 yerr=ratio_0[mid + 1:] * 0.01 / Model().func(date_0[mid + 1:], pars), fmt="k.")
+
+    plt.savefig(output_directory + "/summary_plots/" + "ap_charge_charge_vs_time" + name + ".pdf")
     plt.close()
 
 
@@ -363,6 +510,8 @@ def main():
     ap_charge_err = [[] for i in range(pmt_array.get_pmt_total_number())]
     he_ap_charge = [[] for i in range(pmt_array.get_pmt_total_number())]
     he_ap_charge_err = [[] for i in range(pmt_array.get_pmt_total_number())]
+    ratios = [[] for i in range(pmt_array.get_pmt_total_number())]
+    he_ratios = [[] for i in range(pmt_array.get_pmt_total_number())]
     dates = [[] for i in range(pmt_array.get_pmt_total_number())]
 
     for i_file in tqdm.tqdm(range(filenames.size)):
@@ -398,6 +547,8 @@ def main():
             i_ap_charge_err = apulse_info[i_om][0]["ap_charge_err"]
             i_he_ap_charge = apulse_info[i_om][0]["he_ap_charge"]
             i_he_ap_charge_err = apulse_info[i_om][0]["he_ap_charge_err"]
+            i_ratio = apulse_info[i_om][0]["ratio"]
+            i_he_ratio = apulse_info[i_om][0]["he_ratio"]
 
             par[i_om].append(i_par)
             par_err[i_om].append(i_par_err/10)
@@ -411,22 +562,22 @@ def main():
             ap_charge_err[i_om].append(i_ap_charge_err)
             he_ap_charge[i_om].append(i_he_ap_charge)
             he_ap_charge_err[i_om].append(i_he_ap_charge_err)
+            ratios[i_om].append(i_ratio)
+            he_ratios[i_om].append(i_he_ratio)
 
             dates[i_om].append(int(date))
 
-    for i_om in range(pmt_array.get_pmt_total_number()):
+    plot_ap_charge(dates, ap_charge, output_directory, "_" + run_id)
+    plot_ap_charge(dates, he_ap_charge, output_directory, "_he_" + run_id)
+    plot_aan(dates, aan, output_directory, "_" + run_id)
+    plot_aan(dates, aan_he, output_directory, "_he_" + run_id)
+    plot_aapc_vs_charge(dates, ratios, output_directory, "_" + run_id)
+    plot_aapc_vs_charge(dates, he_ratios, output_directory, "_he_" + run_id)
 
-        plot_par(dates[i_om], par[i_om], output_directory, pmt_array.get_pmt_object_number(i_om), "_" + run_id)
-        plot_par(dates[i_om], par_he[i_om], output_directory, pmt_array.get_pmt_object_number(i_om), "_he_" + run_id)
-        plot_aan(dates[i_om], aan[i_om], output_directory, pmt_array.get_pmt_object_number(i_om), "_" + run_id)
-        plot_aan(dates[i_om], aan_he[i_om], output_directory, pmt_array.get_pmt_object_number(i_om), "_he_" + run_id)
-        plot_ap_charge(dates[i_om], ap_charge[i_om], output_directory, pmt_array.get_pmt_object_number(i_om), "_" + run_id)
-        plot_ap_charge(dates[i_om], he_ap_charge[i_om], output_directory, pmt_array.get_pmt_object_number(i_om), "_he_" + run_id)
-
-    plot_par_ratio(dates, par, output_directory, "_" + run_id)
+    '''plot_par_ratio(dates, par, output_directory, "_" + run_id)
     plot_par_ratio(dates, par_he, output_directory, "_he_" + run_id)
     plot_aan_ratio(dates, aan, output_directory, "_" + run_id)
-    plot_aan_ratio(dates, aan_he, output_directory, "_he_" + run_id)
+    plot_aan_ratio(dates, aan_he, output_directory, "_he_" + run_id)'''
 
 
 if __name__ == '__main__':

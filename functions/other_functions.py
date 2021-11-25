@@ -1910,6 +1910,66 @@ def process_exposure(date_array: np.array):
             temp_date = 262 / 10 + 97 / 100
         if date == 201031:
             temp_date = 263 / 10 + 97 / 100
+        if date == 201101:
+            temp_date = 264 / 10 + 97 / 100
+        if date == 201102:
+            temp_date = 265 / 10 + 97 / 100
+        if date == 201103:
+            temp_date = 266 / 10 + 97 / 100
+        if date == 201104:
+            temp_date = 267 / 10 + 97 / 100
+        if date == 201105:
+            temp_date = 268 / 10 + 97 / 100
+        if date == 201106:
+            temp_date = 269 / 10 + 97 / 100
+        if date == 201107:
+            temp_date = 270 / 10 + 97 / 100
+        if date == 201108:
+            temp_date = 271 / 10 + 97 / 100
+        if date == 201109:
+            temp_date = 272 / 10 + 97 / 100
+        if date == 201110:
+            temp_date = 273 / 10 + 97 / 100
+        if date == 201111:
+            temp_date = 274 / 10 + 97 / 100
+        if date == 201112:
+            temp_date = 275 / 10 + 97 / 100
+        if date == 201113:
+            temp_date = 276 / 10 + 97 / 100
+        if date == 201114:
+            temp_date = 277 / 10 + 97 / 100
+        if date == 201115:
+            temp_date = 278 / 10 + 97 / 100
+        if date == 201116:
+            temp_date = 279 / 10 + 97 / 100
+        if date == 201117:
+            temp_date = 280 / 10 + 97 / 100
+        if date == 201118:
+            temp_date = 281 / 10 + 97 / 100
+        if date == 201119:
+            temp_date = 282 / 10 + 97 / 100
+        if date == 201120:
+            temp_date = 283 / 10 + 97 / 100
+        if date == 201121:
+            temp_date = 284 / 10 + 97 / 100
+        if date == 201122:
+            temp_date = 285 / 10 + 97 / 100
+        if date == 201123:
+            temp_date = 286 / 10 + 97 / 100
+        if date == 201124:
+            temp_date = 287 / 10 + 97 / 100
+        if date == 201125:
+            temp_date = 288 / 10 + 97 / 100
+        if date == 201126:
+            temp_date = 289 / 10 + 97 / 100
+        if date == 201127:
+            temp_date = 290 / 10 + 97 / 100
+        if date == 201128:
+            temp_date = 291 / 10 + 97 / 100
+        if date == 201129:
+            temp_date = 292 / 10 + 97 / 100
+        if date == 201130:
+            temp_date = 293 / 10 + 97 / 100
 
         output_list.append(temp_date)
 

@@ -9,6 +9,7 @@ from scipy.optimize import curve_fit
 from functions.other_functions import process_date, process_exposure, chi2, linear
 import pandas as pd
 from array import array
+from pmt_he_study.format_plot import *
 
 
 class Model:
@@ -164,7 +165,7 @@ class Model_Eff_0:
 
 
 def my_matrix():
-    df = pd.read_csv("/Users/williamquinn/Desktop/HeMatrix.txt",
+    df = pd.read_csv("/Users/williamquinn/Desktop/PMT_Project/HeMatrix.txt",
                      index_col=0)
     df = df / 500
     df.loc["i0", "0"] = 1
@@ -215,17 +216,20 @@ def get_data(path, files):
         except:
             print(1, path + i_file, date)
 
-    dates_ch0s = process_date(dates_ch0)[:-2]
-    dates_ch1s = process_date(dates_ch1)[:-2]
-    aan_ch0s = aan_ch0[:-2]
-    aan_ch1s = aan_ch1[:-2]
+    dates_ch0s = process_date(dates_ch0)
+    dates_ch1s = process_date(dates_ch1)
+    aan_ch0s = aan_ch0
+    aan_ch1s = aan_ch1
 
     start_ch0 = np.where(dates_ch0s == 98)[0][0]
     start_ch1 = np.where(dates_ch1s == 98)[0][0]
-    x = np.array(dates_ch0s[start_ch0:]) - dates_ch0s[start_ch0]
-    y = np.array(aan_ch0s[start_ch0:])
 
-    return x, y
+    x0 = np.array(dates_ch0s[start_ch0:]) - dates_ch0s[start_ch0]
+    y0 = np.array(aan_ch0s[start_ch0:])
+    x1 = np.array(dates_ch1s[start_ch1:]) - dates_ch1s[start_ch1]
+    y1 = np.array(aan_ch1s[start_ch1:])
+
+    return x0, y0, x1, y1
 
 
 def test_model(x, q, m, c):
@@ -264,26 +268,35 @@ def adjust_pars():
     return t_popt, t_pcov
 
 
-def plot_fit(name, model, x, y, yerr, pars, errs, chi):
-    fig1 = plt.figure(figsize=(9, 6), facecolor='white')
-    frame1 = fig1.add_axes((.1, .3, .8, .6))
-    plt.errorbar(x, y, yerr=yerr, fmt='k.', label='Exposed')
-    plt.plot(x, model.func(x, pars), 'g-', linewidth=3, zorder=10, label=r'Model $\chi_R=${:.2f}'.format(chi))
-    frame1.set_xticklabels([])  # Remove x-tic labels for the first frame
-    plt.grid()
-    plt.ylabel("Average apulse num")
-    plt.xlim(x[0], x[-1])
-    plt.legend(loc='upper left')
-    plt.title("Average apulse num vs exposure time: " + name)
+def plot_fit(name, model, x0, y0, yerr0, x1, y1, yerr1, pars, errs, chi):
+    fig1 = plt.figure(figsize=figsize, facecolor='white')
+    frame1 = fig1.add_axes((.13, .35, .8, .6))
+    frame1.set_xticklabels([])
 
-    frame2 = fig1.add_axes((.1, .1, .8, .2))
-    plt.errorbar(x, (model.func(x, pars) - y) / model.func(x, pars), yerr=yerr / model.func(x, pars),
-                 fmt='g.')
-    plt.axhline(0, ls='--', color='k')
-    plt.grid()
-    plt.xlim(x[0], x[-1])
+    plt.errorbar(x0, y0, yerr=yerr0, fmt='C0.', label='Exposed', zorder=0, markersize=1, linewidth=line_width)
+    plt.errorbar(x1, y1, yerr=yerr1, fmt='C1.', label='Control', zorder=0, markersize=1, linewidth=line_width)
+    plt.plot(x0, model.func(x0, pars), 'C4-', linewidth=line_width*2, zorder=10, label=r'Model')
+    plt.ylabel("Average After-Pulse Number")
+    plt.xlim(x0[0], x0[-1])
+
+    handles, labels = plt.gca().get_legend_handles_labels()
+
+    patch = patches.Patch(color='white', label=r'$P_0 =$ {:.2e} ± {:.0e}'.format(pars[0], errs[0]))
+    patch_1 = patches.Patch(color='white', label=r'$P_1 =$ {:.2f} ± {:.2f}'.format(pars[1], errs[1]))
+    patch_2 = patches.Patch(color='white', label=r'$L =$ {:.0f} ± {:.0f}'.format(pars[2]/(3600*24), errs[2]/(3600*24)))
+    patch_3 = patches.Patch(color='white', label=r'Model $\chi_R=${:.2f}'.format(chi))
+
+    handles.extend([patch, patch_1, patch_2, patch_3])
+    plt.legend(handles=handles, loc='best')
+    plt.title("Average Apulse Number vs Exposure Time")
+
+    frame2 = fig1.add_axes((.13, .15, .8, .2))
+    plt.errorbar(x0, (model.func(x0, pars) - y0) / model.func(x0, pars), yerr=yerr0 / model.func(x0, pars),
+                 fmt='C2.', markersize=1, zorder=0, linewidth=line_width)
+    plt.axhline(0, ls='--', color='k', zorder=10, linewidth=line_width)
+    plt.xlim(x0[0], x0[-1])
     # plt.ylim(-0.25, 0.25)
-    plt.ylabel("(model - data)/model")
+    plt.ylabel("(model - data)/model", fontsize=4)
     plt.xlabel("Days relative to 11/02/2020")
     plt.tight_layout()
     plt.savefig('/Users/williamquinn/Desktop/' + name + '.pdf')
@@ -293,17 +306,16 @@ def plot_fit(name, model, x, y, yerr, pars, errs, chi):
 def main(name: str):
     t_popt, t_pcov = adjust_pars()
 
-    filenames = open("/Users/williamquinn/Desktop/S95_A25/filenames.txt", "r")
+    filenames = open("/Users/williamquinn/Desktop/set_4/S95_A25/filenames.txt", "r")
     fl = filenames.readlines()
     files = []
     for index, line in enumerate(fl):
         files.append(line.strip())
-    path = "/Users/williamquinn/Desktop/S95_A25/"
+    path = "/Users/williamquinn/Desktop/set_4/S95_A25/"
 
-    x, y = get_data(path, files)
-    y_ = t_popt[0] * y * y + t_popt[1] * y + t_popt[0]
-
-    # y = y_
+    x0, y0, x1, y1 = get_data(path, files)
+    y_0 = t_popt[0] * y0 * y0 + t_popt[1] * y0 + t_popt[0]
+    y_1 = t_popt[0] * y1 * y1 + t_popt[1] * y1 + t_popt[0]
 
     '''c1 = ROOT.TCanvas("c1", "c1", 200, 10, 600, 400)
     c1.SetGrid()'''
@@ -326,12 +338,15 @@ def main(name: str):
         model = Model_Eff_0()
     else:
         return
-    yerr = np.ones_like(y)*0.05
+    yerr0 = np.ones_like(y0) * 0.05
+    yerr1 = np.ones_like(y1) * 0.05
+    yerr_0 = np.ones_like(y_0) * 0.05
+    yerr_1 = np.ones_like(y_1) * 0.05
 
-    graph = ROOT.TGraphErrors(len(y), array('d', [i for i in x]), array('d', [i for i in y]),
-                              array('d', [1 for i in range(len(x))]), array('d', [i for i in yerr]))
+    graph = ROOT.TGraphErrors(len(y0), array('d', [i for i in x0]), array('d', [i for i in y0]),
+                              array('d', [1 for i in range(len(x0))]), array('d', [i for i in yerr0]))
 
-    fit = ROOT.TF1("func", model, float(x[0]), float(x[-1]), len(guess))
+    fit = ROOT.TF1("func", model, float(x0[0]), float(x0[-1]), len(guess))
     for i in range(len(guess)):
         fit.SetParameter(i, guess[i])
         fit.SetParName(i, names[i])
@@ -345,31 +360,35 @@ def main(name: str):
     for i in range(len(guess)):
         pars.append(fit.GetParameter(i))
         errs.append(fit.GetParError(i))
+    del graph
+    del fit
 
-    plot_fit(name, model, x, y, yerr, pars, errs, chi)
+    plot_fit('raw_aan_data', model, x0, y0, yerr0, x1, y1, yerr1, pars, errs, chi)
 
-    '''graph.Draw("P")
+    graph = ROOT.TGraphErrors(len(y_0), array('d', [i for i in x0]), array('d', [i for i in y_0]),
+                              array('d', [1 for i in range(len(x0))]), array('d', [i for i in yerr_0]))
 
-    graph.SetLineColor(4)
-    graph.SetLineWidth(4)
-    graph.SetMarkerColor(4)
-    graph.SetMarkerSize(0.5)
-    graph.SetMarkerStyle(20)
-    graph.SetTitle(name)
-    graph.GetXaxis().SetTitle("Days since 11/02/2020")
-    graph.GetXaxis().SetRangeUser(x[0], x[-1])
-    graph.GetYaxis().SetTitle("Average After-pulse number")
-    graph.GetYaxis().SetRangeUser(0.0, 2.5)
-    graph.Draw("AP")
+    fit = ROOT.TF1("func", model, float(x0[0]), float(x0[-1]), len(guess))
+    for i in range(len(guess)):
+        fit.SetParameter(i, guess[i])
+        fit.SetParName(i, names[i])
+        # fit.SetParLimits(i, guess[i] - abs(guess[i]), guess[i] + abs(guess[i]))
 
-    c1.Update()
-    c1.Modified()
-    c1.SaveAs('~/Desktop/' + name + '.pdf')'''
+    graph.Fit("func", "R")
+    pars = []
+    errs = []
+    chi = fit.GetChisquare() / fit.GetNDF()
+
+    for i in range(len(guess)):
+        pars.append(fit.GetParameter(i))
+        errs.append(fit.GetParError(i))
+    del graph
+    del fit
+
+    plot_fit('adjusted_aan_data', model, x0, y_0, yerr_0, x1, y_1, yerr_1, pars, errs, chi)
 
     return
 
 
 if __name__ == "__main__":
-    names = ['Model', 'Model_Eff', 'Model_0', 'Model_Eff_0']
-    for name in names:
-        main(name)
+    main('Model')
