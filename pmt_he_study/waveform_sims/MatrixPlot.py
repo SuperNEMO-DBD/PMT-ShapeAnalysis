@@ -50,16 +50,16 @@ def adjust_pars(M):
     fig1 = plt.figure(figsize=figsize)
     frame1 = fig1.add_axes((.13, .35, .8, .6))
     plt.plot(f[my_list], means[my_list], 'o', markersize=marker_size)
-    plt.plot(f[my_list], test_model(f[my_list], *t_popt), label='model')
+    plt.plot(f[my_list], test_model(f[my_list], *t_popt), label=r'Model $y=qx^2 +mx + c$')
     frame1.set_xticklabels([])
     plt.ylabel("Corrected Average")
     plt.title("Average After-Pulse Number Corrected vs. Measured")
     plt.ylim(means[0], upper)
     plt.xlim(0, 4)
     handles, labels = plt.gca().get_legend_handles_labels()
-    patch = patches.Patch(color='white', label=r'$q =$ {:.4f} ± {:.4f}'.format(t_popt[0], np.sqrt(t_pcov[0, 0])))
-    patch_1 = patches.Patch(color='white', label=r'$m =$ {:.2f} ± {:.2f}'.format(t_popt[1], np.sqrt(t_pcov[1, 1])))
-    patch_2 = patches.Patch(color='white', label=r'$c =$ {:.2f} ± {:.2f}'.format(t_popt[2], np.sqrt(t_pcov[2, 2])))
+    patch = patches.Patch(color='white', label=r'$q =$ {:.3f} ± {:.3f}'.format(t_popt[0], np.sqrt(t_pcov[0, 0])))
+    patch_1 = patches.Patch(color='white', label=r'$m =$ {:.3f} ± {:.3f}'.format(t_popt[1], np.sqrt(t_pcov[1, 1])))
+    patch_2 = patches.Patch(color='white', label=r'$c =$ {:.3f} ± {:.3f}'.format(t_popt[2], np.sqrt(t_pcov[2, 2])))
     handles.extend([patch, patch_1, patch_2])
     plt.legend(handles=handles, loc='best')
     frame2 = fig1.add_axes((.13, .15, .8, .2))
@@ -72,7 +72,7 @@ def adjust_pars(M):
     plt.ylabel('(data - model)/model', fontsize=5)
     plt.axhline(0, ls='--', color='black')
     plt.tight_layout()
-    plt.savefig("/Users/williamquinn/Desktop/correction.pdf")
+    plt.savefig("/Users/williamquinn/Desktop/PMT_project/correction.pdf")
 
     return t_popt, t_pcov
 
@@ -139,7 +139,7 @@ def plot_comp(M):
 
     t_popt, t_pcov = adjust_pars(M)
 
-    y_ = t_popt[0] * y * y + t_popt[1] * y + t_popt[0]
+    y_ = t_popt[0] * y * y + t_popt[1] * y + t_popt[2]
 
     plt.figure(figsize=figsize, facecolor='white')
     plt.plot(x, y, 'C0s', label='Raw Data', markersize=marker_size/2)
@@ -150,7 +150,7 @@ def plot_comp(M):
     plt.title('Corrected Average After-Pulse Number Comparison')
     plt.legend(loc='best')
     plt.tight_layout()
-    plt.savefig("/Users/williamquinn/Desktop/comp.pdf")
+    plt.savefig("/Users/williamquinn/Desktop/PMT_Project/comp.pdf")
 
 
 def main():
@@ -174,7 +174,7 @@ def main():
     plt.xticks(np.arange(0.5, len(df.index), 1), df.index)
     plt.tight_layout()
     plt.title("Convolution Inefficiency")
-    plt.savefig("/Users/williamquinn/Desktop/HeMatrix.pdf")
+    plt.savefig("/Users/williamquinn/Desktop/PMT_Project/HeMatrix.pdf")
 
 
 if __name__ == "__main__":

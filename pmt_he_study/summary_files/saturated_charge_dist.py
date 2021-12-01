@@ -346,10 +346,10 @@ def plot_tot(traces, templates):
         plt.plot([k for k in range(len(waveform_r))], waveform_r, '.', label='PMT Pulse')
         plt.xlabel('Timestamp /ns')
         plt.ylabel('Voltage /mV')
+        plt.plot(xi, new_pulse, '.', label='Modelled Points')
         plt.plot([k for k in range(len(waveform_r))], new_temp, '.', label='Scaled Template')
         plt.plot(np.linspace(0, 15, 100), gaus_fix_sig_channel_0(np.linspace(0, 15, 100), *popt),
                  label='Model')
-        plt.plot(xi, new_pulse, '.', label='Model Points')
         plt.legend(loc='best')
         plt.title('Time-Over-Threshold Pulse Reconstruction')
         plt.tight_layout()

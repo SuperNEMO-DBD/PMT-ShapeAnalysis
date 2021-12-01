@@ -1,20 +1,23 @@
 import sys
 
-sys.path.insert(1, '../')
+sys.path.insert(1, '../../')
 
 # import ROOT and bash commands
 import ROOT
 
 # import python plotting and numpy modules
-from format_plot import *
+from pmt_he_study.format_plot import *
+from functions.other_functions import process_exposure
 import numpy as np
 
 
 def main():
-    filenames = ["/Users/williamquinn/Desktop/set_4/S95_A25/191106_A1400_B1400_t1613_output.root",
-                 "/Users/williamquinn/Desktop/set_4/S95_A25/200213_A1400_B1400_t1037_output.root",
+    filenames = ["/Users/williamquinn/Desktop/set_4/S95_A25/200306_A1400_B1400_t2134_output.root",
+                 "/Users/williamquinn/Desktop/set_4/S95_A25/200506_A1400_B1400_t2247_output.root",
+                 "/Users/williamquinn/Desktop/set_4/S95_A25/200706_A1400_B1400_t0012_output.root",
+                 "/Users/williamquinn/Desktop/set_4/S95_A25/200906_A1400_B1400_t2242_output.root",
                  "/Users/williamquinn/Desktop/set_4/S95_A25/201106_A1400_B1400_t1200_output.root"]
-    exposures = [0, 0.98, 30.28]
+    exposures = process_exposure(np.array([int(filenames[i].split("/")[-1].split("_")[0]) for i in range(len(filenames))]))
     fig = plt.figure(figsize=figsize, facecolor='white')
 
     markers = ["s", "^", "o"]
@@ -38,20 +41,21 @@ def main():
         width = bin_edges[-1] - bin_edges[-2]
         bin_centres = bin_edges[:-1] + width / 2
 
-        plt.bar(bin_centres, freq/num, width=width, alpha=0.3, color='C{}'.format(index))
-        plt.plot(bin_centres, freq/num, "C{}{}".format(index, markers[index]), markersize=marker_size,
-                 label='{} atm-day'.format(exposures[index]))
-
-    '''handles, labels = plt.gca().get_legend_handles_labels()
-    patch = patches.Patch(color='white', label='Helium Exposure /atm-day')
-    handles.insert(0, patch)'''
+        #plt.bar(bin_centres, freq/num, width=width, alpha=0.3, color='C{}'.format(index))
+        plt.plot(bin_centres, freq/num, "C{}-".format(index), markersize=marker_size,
+                 label='{:.2f}'.format(exposures[index]))
 
     plt.xlim(lower, upper)
-    plt.yscale('log')
+    #plt.yscale('log')
     plt.xlabel('After-Pulse Waveform Time /ns')
-    plt.ylabel('Normalised Counts')
+    plt.ylabel('Counts per Waveform')
     plt.title('After-Pulse Time Distributions')
-    plt.legend(loc='best')
+    handles, labels = plt.gca().get_legend_handles_labels()
+    patch = patches.Patch(color='white', label='Exposure')
+    patch1 = patches.Patch(color='white', label='atm-day')
+    handles.insert(0, patch1)
+    handles.insert(0, patch)
+    plt.legend(handles=handles, loc='best')
     plt.tight_layout()
     plt.savefig("/Users/williamquinn/Desktop/ap_times_dist.pdf")
 

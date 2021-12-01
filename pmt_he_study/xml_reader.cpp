@@ -270,7 +270,8 @@ Int_t main(Int_t argc, char* argv[])
         Double_t ap_charge      = get_ap_charge( data, baseline, config_object );
         Double_t he_ap_charge   = get_he_ap_charge( data, baseline, config_object );
 
-        // std::cout << "charge : " << pulse_charge << std::endl;
+        // std::cout << "
+        // : " << pulse_charge << std::endl;
 
         if ( pulse_charge < config_object.charge_cut )
         {
@@ -731,7 +732,7 @@ Double_t get_sat_charge(std::vector<Double_t> &vec, Double_t baseline, std::vect
             //new_pulse.push_back(pulse_r[j]);
             //xi.push_back(j);
             graph->SetPoint(n_point, j, pulse_r[j]);
-            graph->SetPoint(n_point, 0, sqrt(pulse_r[j]));
+            graph->SetPointError(n_point, j, sqrt(pulse_r[j]));
             n_point++;
         }
     }
