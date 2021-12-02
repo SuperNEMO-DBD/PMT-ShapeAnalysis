@@ -267,7 +267,7 @@ Int_t main(Int_t argc, char* argv[])
 
         if (pulse_amplitude < config_object.pulse_amp_cut){ continue; }
         if (is_sat){
-            std::vector<Double_t> pulse_pars = get_sat_charge( data, baseline, pulse_vectors[channel_indicator],
+            pulse_pars = get_sat_charge( data, baseline, pulse_vectors[channel_indicator],
                                                                 config_object, channel_indicator);
             pulse_charge = pulse_pars[0];
         }else {
