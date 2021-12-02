@@ -258,8 +258,9 @@ Int_t main(Int_t argc, char* argv[])
 
         Int_t peak_cell = get_peak_cell( data );
 
-        if ( 550 < peak_cell < 700)
+        if (peak_cell > 550)
         {
+            if (peak_cell < 750){continue;}
             std::cout << "Peak Cell" << peak_cell << std::endl;
             // Waveform is likely empty so will not store
         }else {continue;}
