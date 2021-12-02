@@ -59,6 +59,7 @@ namespace po = boost::program_options;
 typedef struct {
     Int_t event_num, OM_ID, pulse_time;
     Double_t pulse_charge, pulse_amplitude, baseline, ap_charge, he_ap_charge;
+    std::vector<Double_t> pulse_parameters;
 } EVENTN;
 
 typedef struct {
@@ -99,8 +100,8 @@ Double_t get_ap_charge(std::vector<Double_t> &vec, Double_t baseline, CONF &conf
 Double_t get_he_ap_charge(std::vector<Double_t> &vec, Double_t baseline, CONF &config);
 bool check_saturation(std::vector<Double_t> &vec);
 std::vector<std::vector<Double_t>> get_pulse_from_root_file( std::string file );
-Double_t get_sat_charge(std::vector<Double_t> &vec, Double_t baseline, std::vector<Double_t> &av_pulse, CONF &conf_object,
-                        Int_t channel );
+std::vector<Double_t> get_sat_charge(std::vector<Double_t> &vec, Double_t baseline, std::vector<Double_t> &av_pulse,
+                                     CONF &conf_object, Int_t channel );
 
 
 Int_t main(Int_t argc, char* argv[])
@@ -185,6 +186,7 @@ Int_t main(Int_t argc, char* argv[])
 
     // Branches for the main pulse
     tree.Branch("pulse_charge",&eventn.pulse_charge);
+    tree.Branch("pulse_charge_parameters",&eventn.pulse_parameters);
     tree.Branch("pulse_amplitude",&eventn.pulse_amplitude);
     tree.Branch("ap_region_charge",&eventn.ap_charge);
     tree.Branch("he_ap_region_charge",&eventn.he_ap_charge);
@@ -261,10 +263,13 @@ Int_t main(Int_t argc, char* argv[])
         Double_t baseline        = get_baseline( data, config_object );
         Double_t pulse_amplitude = get_amplitude( data, baseline );
         Double_t pulse_charge    = 0.0;
+        std::vector<Double_t> pulse_pars = {0.0, 0.0, 0.0, 0.0, 0.0};
 
         if (pulse_amplitude < config_object.pulse_amp_cut){ continue; }
         if (is_sat){
-            pulse_charge   = get_sat_charge( data, baseline, pulse_vectors[channel_indicator], config_object, channel_indicator);
+            std::vector<Double_t> pulse_pars = get_sat_charge( data, baseline, pulse_vectors[channel_indicator],
+                                                                config_object, channel_indicator);
+            pulse_charge = pulse_pars[0];
         }else {
             pulse_charge   = get_charge( data, baseline, config_object, peak_cell );
         }
@@ -298,6 +303,7 @@ Int_t main(Int_t argc, char* argv[])
 
         eventn.pulse_amplitude  = pulse_amplitude;
         eventn.pulse_charge     = pulse_charge;
+        eventn.pulse_parameters = pulse_pars;
         eventn.ap_charge        = ap_charge;
         eventn.he_ap_charge     = he_ap_charge;
         eventn.baseline         = baseline;
@@ -789,7 +795,7 @@ std::vector<std::vector<Double_t>> get_pulse_from_root_file( std::string file )
 
     return pulses;
 }
-Double_t get_sat_charge(std::vector<Double_t> &vec, Double_t baseline, std::vector<Double_t> &av_pulse, CONF &conf_object,
+std::vector<Double_t> get_sat_charge(std::vector<Double_t> &vec, Double_t baseline, std::vector<Double_t> &av_pulse, CONF &conf_object,
                         Int_t channel )
 {
     std::vector<int> pos;
@@ -864,8 +870,16 @@ Double_t get_sat_charge(std::vector<Double_t> &vec, Double_t baseline, std::vect
         charge += av_pulse[k];
     }
     charge = charge * A / conf_object.resistance;
+
+    std::vector<Double_t> pulse_pars;
+    pulse_pars.push_back(charge);
+    pulse_pars.push_back(fit->GetParameter(0));
+    pulse_pars.push_back(fit->GetParError(0));
+    pulse_pars.push_back(fit->GetParameter(1));
+    pulse_pars.push_back(fit->GetParError(1));
+
     delete graph;
     delete fit;
 
-    return charge;
+    return pulse_pars;
 }
