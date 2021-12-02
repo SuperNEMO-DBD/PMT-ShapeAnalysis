@@ -57,7 +57,7 @@ namespace po = boost::program_options;
 // Create a container to hold all the waveform information
 // this will be the construct to fill Int_to the TTree
 typedef struct {
-    Int_t event_num, OM_ID, pulse_time;
+    Int_t event_num, OM_ID, pulse_time, trigger_num;
     Double_t pulse_charge, pulse_amplitude, baseline, ap_charge, he_ap_charge;
     std::vector<Double_t> pulse_parameters;
 } EVENTN;
@@ -223,6 +223,7 @@ Int_t main(Int_t argc, char* argv[])
     std::vector<int> channel_event_num( 2, 0 );
     std::vector<int> thousand_counter( 2, 0 );
     std::vector<int> channel_waveform_num( 2, 0 );
+    int trigger_num = 0;
 
     TDatime().Print();
     std::cout << ">>> Beginning data read..." << std::endl;
@@ -244,6 +245,8 @@ Int_t main(Int_t argc, char* argv[])
             //std::cout << "Channel: " << channel_indicator << std::endl;
         }
         else{ continue; } // All other lines are garbage
+
+        trigger_num++;
 
         // Process      =================================================
         std::vector<Double_t> data = process_line( data_line, ' ' );
@@ -313,6 +316,7 @@ Int_t main(Int_t argc, char* argv[])
         eventn.event_num        = channel_event_num[channel_indicator];
         eventn.OM_ID            = channel_indicator;
         eventn.pulse_time       = peak_cell;
+        eventn.trigger_num      = trigger_num;
         tree.Fill();
 
         // If you are testing the code then break out of the while loop when you have found 1 good pulse
