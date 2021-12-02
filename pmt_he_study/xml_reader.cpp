@@ -255,8 +255,11 @@ Int_t main(Int_t argc, char* argv[])
 
         Int_t peak_cell = get_peak_cell( data );
 
-        if ( peak_cell > config_object.trigger + config_object.trig_tolerance || peak_cell < config_object.trigger - config_object.trig_tolerance ) {
+        /*if ( peak_cell > config_object.trigger + config_object.trig_tolerance || peak_cell < config_object.trigger - config_object.trig_tolerance ) {
             // Waveform is likely empty so will not store
+            continue;
+        }*/
+        if ( peak_cell > 5000 ){
             continue;
         }
 
@@ -265,7 +268,7 @@ Int_t main(Int_t argc, char* argv[])
         Double_t pulse_charge    = 0.0;
         std::vector<Double_t> pulse_pars = {0.0, 0.0, 0.0, 0.0, 0.0};
 
-        if (pulse_amplitude < config_object.pulse_amp_cut){ continue; }
+        // if (pulse_amplitude < config_object.pulse_amp_cut){ continue; }
         if (is_sat){
             pulse_pars = get_sat_charge( data, baseline, pulse_vectors[channel_indicator],
                                                                 config_object, channel_indicator);
@@ -279,11 +282,11 @@ Int_t main(Int_t argc, char* argv[])
         // std::cout << "
         // : " << pulse_charge << std::endl;
 
-        if ( pulse_charge < config_object.charge_cut )
+        /*if ( pulse_charge < config_object.charge_cut )
         {
             // Pulse is either too small or just noise
             continue;
-        }
+        }*/
 
         channel_waveform_num[channel_indicator]++;
 
