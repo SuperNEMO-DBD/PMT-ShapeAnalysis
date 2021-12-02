@@ -836,8 +836,8 @@ Double_t get_sat_charge(std::vector<Double_t> &vec, Double_t baseline, std::vect
             new_pulse.push_back(pulse_r[j]);
             xi.push_back(j);
             graph->SetPoint(n_point, j, pulse_r[j]);
-            graph->SetPointError(n_point, 0, sqrt(abs(pulse_r[j])))
-            n_point += 1
+            graph->SetPointError(n_point, 0, sqrt(abs(pulse_r[j])));
+            n_point++;
         }
     }
 
