@@ -815,7 +815,7 @@ Double_t get_sat_charge(std::vector<Double_t> &vec, Double_t baseline, std::vect
     std::vector<Double_t> pulse;
     std::vector<Double_t> new_pulse;
     std::vector<int> xi;
-    for (int i_pos = the_pos - 10; i_pos < the_pos + 20, i_pos++)
+    for (int i_pos = the_pos - 10; i_pos < the_pos + 20; i_pos++)
     {
         pulse_r.push_back(vec[i_pos] - baseline);
         pulse.push_back(vec[i_pos]);
