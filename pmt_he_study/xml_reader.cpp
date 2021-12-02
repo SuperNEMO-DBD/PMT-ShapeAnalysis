@@ -863,7 +863,7 @@ Double_t get_sat_charge(std::vector<Double_t> &vec, Double_t baseline, std::vect
     {
         charge += av_pulse[k];
     }
-    charge = charge * A / 50;
+    charge = charge * A / conf_object.resistance;
     delete graph;
     delete fit;
 
