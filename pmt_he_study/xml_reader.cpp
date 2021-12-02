@@ -260,6 +260,7 @@ Int_t main(Int_t argc, char* argv[])
 
         if ( config_object.trigger - config_object.trig_tolerance < peak_cell < config_object.trigger + config_object.trig_tolerance)
         {
+            std::cout << "Peak Cell" << peak_cell << std::endl;
             // Waveform is likely empty so will not store
         }else {continue;}
 
