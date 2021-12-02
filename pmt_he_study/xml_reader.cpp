@@ -367,7 +367,7 @@ std::vector<Double_t> process_line( const std::string & s, char delimiter )
         {
             continue;
         }else{
-            if ( (Int_t)token.length() < 4 && (Int_t)token.length() > 0 ){
+            if ( (Int_t)token.length() < 5 && (Int_t)token.length() > 0 ){
                 vec.push_back( (Double_t)std::atoi(token.c_str()) );
             }
         }
