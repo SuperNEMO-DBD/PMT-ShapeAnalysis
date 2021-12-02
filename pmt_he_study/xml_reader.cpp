@@ -707,7 +707,7 @@ Double_t get_he_ap_charge(std::vector<Double_t> &vec, Double_t baseline, CONF &c
 }
 bool check_saturation(std::vector<Double_t> &vec, Int_t peak_cell, CONF &conf_object )
 {
-    for (Int_t i = peak_cell - conf_object.trig_tolerance; i < peak_cell + conf_object + conf_object.trig_tolerance; i++)
+    for (Int_t i = peak_cell - conf_object.trig_tolerance; i < peak_cell + conf_object.trig_tolerance; i++)
     {
         if (vec[i] == 0.0)
         {
