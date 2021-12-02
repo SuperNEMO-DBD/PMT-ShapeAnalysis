@@ -688,7 +688,7 @@ bool check_saturation(std::vector<Double_t> &vec)
     }
     return false;
 }
-Double_t get_sat_charge(std::vector<Double_t> &vec, Double_t baseline, std::vector<Double_t> &av_pulse, CONF &conf_object,
+/*Double_t get_sat_charge(std::vector<Double_t> &vec, Double_t baseline, std::vector<Double_t> &av_pulse, CONF &conf_object,
                         Int_t channel )
 {
     std::vector<int> pos;
@@ -764,7 +764,7 @@ Double_t get_sat_charge(std::vector<Double_t> &vec, Double_t baseline, std::vect
     delete graph;
     delete fit;
     return charge;
-}
+}*/
 std::vector<std::vector<Double_t>> get_pulse_from_root_file( std::string file )
 {
     std::vector<std::vector<Double_t>> pulses;
@@ -788,4 +788,84 @@ std::vector<std::vector<Double_t>> get_pulse_from_root_file( std::string file )
     pulse_root_file.Close();
 
     return pulses;
+}
+Double_t get_sat_charge(std::vector<Double_t> &vec, Double_t baseline, std::vector<Double_t> &av_pulse, CONF &conf_object,
+                        Int_t channel )
+{
+    std::vector<int> pos;
+    bool done_pos = false;
+    for (int i_vec = 0; i_vec < int(vec.size()); i_vec++)
+    {
+        if (vec[i_vec] == 0.0)
+        {
+            done_pos = true;
+            pos.push_back(i_vec);
+        }else{
+            if (done_pos)
+            {
+                break;
+            }
+        }
+    }
+
+    int middle = int(pos.size() / 2);
+    int the_pos = pos[middle];
+
+    std::vector<Double_t> pulse_r;
+    std::vector<Double_t> pulse;
+    std::vector<Double_t> new_pulse;
+    std::vector<int> xi;
+    for (int i_pos = the_pos - 10; i_pos < the_pos + 20, i_pos++)
+    {
+        pulse_r.push_back(vec[i_pos] - baseline);
+        pulse.push_back(vec[i_pos]);
+    }
+
+    TGraphErrors* graph = new TGraphErrors();
+    int n_point = 0;
+    for (int j = 0; j < pulse.size(); j++)
+    {
+        if (j > 14)
+        {
+            break;
+        }
+        if (pulse[j] == 0)
+        {
+            continue;
+        }else{
+            new_pulse.push_back(pulse_r[j]);
+            xi.push_back(j);
+            graph->SetPoint(n_point, j, pulse_r[j]);
+            graph->SetPointError(n_point, 0, sqrt(abs(pulse_r[j])))
+            n_point += 1
+        }
+    }
+
+    Double_t temp_std;
+    if (channel == 0)
+    {
+        temp_std = 2.22;
+    }else {
+        temp_std = 2.14;
+    }
+
+    TF1* fit = new TF1("fit", ("[0]*TMath::Gaus(x, [1]," + to_string(temp_std) + ")").c_str(), 0, 14);
+    fit->SetParLimits(0, -3500, -900);
+    fit->SetParLimits(1, 5, 15);
+    fit->SetParameters(-1001, 10);
+
+    graph->Fit("fit", "0Q", "", 0, 14);
+    Double_t A = fit.GetParameter(0);
+    Double_t mu = fit.GetParameter(1);
+
+    Double_t charge = 0.0;
+    for (int k = 0; k < av_pulse.size(); ++k)
+    {
+        charge += av_pulse[k];
+    }
+    charge = charge * A / 50;
+    delete graph;
+    delete fit;
+
+    return charge;
 }
