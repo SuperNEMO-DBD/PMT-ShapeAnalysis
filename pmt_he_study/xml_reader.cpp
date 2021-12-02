@@ -853,6 +853,7 @@ std::vector<Double_t> get_sat_charge(std::vector<Double_t> &vec, Double_t baseli
     }
 
     if (pulse_r.size() == 0){
+        std::cout << "Empty pulse" << std::endl;
         std::vector<Double_t> temp;
         return temp;
     }
