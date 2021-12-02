@@ -296,7 +296,7 @@ Int_t main(Int_t argc, char* argv[])
             std::cout << ">>> Peak Cell         : " << peak_cell << std::endl;
         }
 
-        matchfilter = sweep( data, config_object, baseline, template_vectors[channel_indicator] );
+        // matchfilter = sweep( data, config_object, baseline, template_vectors[channel_indicator] );
 
         // Output       =================================================
         waveform = data;
