@@ -280,7 +280,10 @@ Int_t main(Int_t argc, char* argv[])
         if (is_sat){
             pulse_pars = get_sat_charge( data, baseline, pulse_vectors[channel_indicator],
                                          config_object, channel_indicator, peak_cell);
-            pulse_charge = pulse_pars[0];
+            if (pulse_pars.size() == 0){
+                pulse_charge = 0;
+            }else{pulse_charge = pulse_pars[0];}
+
         }else {
             pulse_charge   = get_charge( data, baseline, config_object, peak_cell );
         }
@@ -847,6 +850,11 @@ std::vector<Double_t> get_sat_charge(std::vector<Double_t> &vec, Double_t baseli
     {
         pulse_r.push_back(vec[i_pos] - baseline);
         pulse.push_back(vec[i_pos]);
+    }
+
+    if (pulse_r.size() == 0){
+        std::vector<Double_t> temp;
+        return temp;
     }
 
     TGraphErrors* graph = new TGraphErrors();
