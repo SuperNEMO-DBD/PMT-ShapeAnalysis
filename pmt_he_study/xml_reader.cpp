@@ -260,7 +260,7 @@ Int_t main(Int_t argc, char* argv[])
 
         Double_t baseline        = get_baseline( data, config_object );
         Double_t pulse_amplitude = get_amplitude( data, baseline );
-        Double_t pulse_charge = 0.0;
+        Double_t pulse_charge    = 0.0;
 
         if (pulse_amplitude < config_object.pulse_amp_cut){ continue; }
         if (is_sat){
@@ -746,7 +746,7 @@ Double_t get_sat_charge(std::vector<Double_t> &vec, Double_t baseline, std::vect
         temp_std = 2.14;
     }
     TF1* fit = new TF1("fit", ("[0]*TMath::Gaus(x, [1], " + std::to_string(temp_std) + ")").c_str(), 0, 14);
-    fit->SetParLimits(0, -10000, -900);
+    fit->SetParLimits(0, -3000, -900);
     fit->SetParLimits(1, 5, 15);
     fit->SetParameters(-1000, 10);
 
