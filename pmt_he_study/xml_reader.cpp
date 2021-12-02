@@ -401,7 +401,7 @@ Int_t get_peak_cell( std::vector<Double_t> &vec )
     }
     return peak_cell;
 }
-Double_t get_charge( std::vector<Double_t> &vec, Double_t baseline, CONF &config, Int_t peak_cell )
+/*Double_t get_charge( std::vector<Double_t> &vec, Double_t baseline, CONF &config, Int_t peak_cell )
 {
     Double_t charge{0.0};
 
@@ -424,6 +424,15 @@ Double_t get_charge( std::vector<Double_t> &vec, Double_t baseline, CONF &config
     }
 
     for ( Int_t i = start ; i < end ; i++ ) { charge += (vec[i] - baseline); }
+    return (-1.0)*charge/( config.resistance );
+}*/
+Double_t get_charge( std::vector<Double_t> &vec, Double_t baseline, CONF &config, Int_t peak_cell )
+{
+    Double_t charge{0.0};
+    for ( Int_t i = peak_cell - 10; i < peak_cell + 20 ; i++ )
+    {
+        charge += vec[i] - baseline;
+    }
     return (-1.0)*charge/( config.resistance );
 }
 Double_t get_baseline( std::vector<Double_t> &vec, CONF &config )
