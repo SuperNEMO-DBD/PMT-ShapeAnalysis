@@ -703,7 +703,7 @@ Double_t get_he_ap_charge(std::vector<Double_t> &vec, Double_t baseline, CONF &c
 }
 bool check_saturation(std::vector<Double_t> &vec)
 {
-    for (Int_t i = 0; i < (Int_t)vec.size(); i++)
+    for (Int_t i = 500; i < 800; i++)
     {
         if (vec[i] == 0.0)
         {
@@ -818,7 +818,7 @@ std::vector<Double_t> get_sat_charge(std::vector<Double_t> &vec, Double_t baseli
 {
     std::vector<int> pos;
     bool done_pos = false;
-    for (int i_vec = 500; i_vec < 800; i_vec++)
+    for (int i_vec = 0; i_vec < int(vec.size()); i_vec++)
     {
         if (vec[i_vec] == 0.0)
         {
