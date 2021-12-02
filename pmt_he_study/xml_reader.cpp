@@ -855,8 +855,8 @@ Double_t get_sat_charge(std::vector<Double_t> &vec, Double_t baseline, std::vect
     fit->SetParameters(-1001, 10);
 
     graph->Fit("fit", "0Q", "", 0, 14);
-    Double_t A = fit.GetParameter(0);
-    Double_t mu = fit.GetParameter(1);
+    Double_t A = fit->GetParameter(0);
+    Double_t mu = fit->GetParameter(1);
 
     Double_t charge = 0.0;
     for (int k = 0; k < av_pulse.size(); ++k)
