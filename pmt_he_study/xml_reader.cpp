@@ -258,87 +258,77 @@ Int_t main(Int_t argc, char* argv[])
 
         Int_t peak_cell = get_peak_cell( data );
 
-        if (peak_cell > 550)
-        {
-            if (peak_cell < 750){continue;}
-            std::cout << "Peak Cell" << peak_cell << std::endl;
-            // Waveform is likely empty so will not store
-        }else {continue;}
+        if (peak_cell < 550) {continue;}
+        else if (peak_cell > 750) {continue;}
+        else {
+            Double_t baseline = get_baseline(data, config_object);
+            // Double_t pulse_amplitude = get_amplitude( data, baseline );
+            Double_t pulse_amplitude = data[peak_cell];
+            Double_t pulse_charge = 0.0;
+            std::vector <Double_t> pulse_pars = {0.0, 0.0, 0.0, 0.0, 0.0};
 
-        /*if ( peak_cell > config_object.trigger + config_object.trig_tolerance || peak_cell < config_object.trigger - config_object.trig_tolerance ) {
-            // Waveform is likely empty so will not store
-            continue;
-        }*/
+            bool is_sat = check_saturation(data, peak_cell, config_object);
 
-        Double_t baseline        = get_baseline( data, config_object );
-        // Double_t pulse_amplitude = get_amplitude( data, baseline );
-        Double_t pulse_amplitude = data[peak_cell];
-        Double_t pulse_charge    = 0.0;
-        std::vector<Double_t> pulse_pars = {0.0, 0.0, 0.0, 0.0, 0.0};
+            if (pulse_amplitude < config_object.pulse_amp_cut) { continue; }
+            if (is_sat) {
+                pulse_pars = get_sat_charge(data, baseline, pulse_vectors[channel_indicator],
+                                            config_object, channel_indicator, peak_cell);
+                if (pulse_pars.size() == 0) {
+                    pulse_charge = 0;
+                } else { pulse_charge = pulse_pars[0]; }
 
-        bool is_sat = check_saturation(data, peak_cell, config_object);
+            } else {
+                pulse_charge = get_charge(data, baseline, config_object, peak_cell);
+            }
+            Double_t ap_charge = get_ap_charge(data, baseline, config_object);
+            Double_t he_ap_charge = get_he_ap_charge(data, baseline, config_object);
 
-        if (pulse_amplitude < config_object.pulse_amp_cut){ continue; }
-        if (is_sat){
-            pulse_pars = get_sat_charge( data, baseline, pulse_vectors[channel_indicator],
-                                         config_object, channel_indicator, peak_cell);
-            if (pulse_pars.size() == 0){
-                pulse_charge = 0;
-            }else{pulse_charge = pulse_pars[0];}
+            // std::cout << "
+            // : " << pulse_charge << std::endl;
 
-        }else {
-            pulse_charge   = get_charge( data, baseline, config_object, peak_cell );
-        }
-        Double_t ap_charge      = get_ap_charge( data, baseline, config_object );
-        Double_t he_ap_charge   = get_he_ap_charge( data, baseline, config_object );
+            if (pulse_charge < config_object.charge_cut) {
+                // Pulse is either too small or just noise
+                continue;
+            }
 
-        // std::cout << "
-        // : " << pulse_charge << std::endl;
+            channel_waveform_num[channel_indicator]++;
 
-        if ( pulse_charge < config_object.charge_cut )
-        {
-            // Pulse is either too small or just noise
-            continue;
-        }
+            if (test) {
+                // If you are testing the code then Print the things it calculates
+                std::cout << ">>> Amp               : " << pulse_amplitude << std::endl;
+                std::cout << ">>> Charge            : " << pulse_charge << std::endl;
+                std::cout << ">>> Baseline          : " << baseline << std::endl;
+                std::cout << ">>> Peak Cell         : " << peak_cell << std::endl;
+            }
 
-        channel_waveform_num[channel_indicator]++;
+            // matchfilter = sweep( data, config_object, baseline, template_vectors[channel_indicator] );
 
-        if (test)
-        {
-            // If you are testing the code then Print the things it calculates
-            std::cout << ">>> Amp               : " << pulse_amplitude << std::endl;
-            std::cout << ">>> Charge            : " << pulse_charge << std::endl;
-            std::cout << ">>> Baseline          : " << baseline << std::endl;
-            std::cout << ">>> Peak Cell         : " << peak_cell << std::endl;
-        }
+            // Output       =================================================
+            waveform = data;
 
-        // matchfilter = sweep( data, config_object, baseline, template_vectors[channel_indicator] );
+            eventn.pulse_amplitude = pulse_amplitude;
+            eventn.pulse_charge = pulse_charge;
+            eventn.pulse_parameters = pulse_pars;
+            eventn.ap_charge = ap_charge;
+            eventn.he_ap_charge = he_ap_charge;
+            eventn.baseline = baseline;
+            eventn.event_num = channel_event_num[channel_indicator];
+            eventn.OM_ID = channel_indicator;
+            eventn.pulse_time = peak_cell;
+            eventn.trigger_num = trigger_num;
+            tree.Fill();
 
-        // Output       =================================================
-        waveform = data;
+            // If you are testing the code then break out of the while loop when you have found 1 good pulse
+            if (vm.count("t")) { break; }
 
-        eventn.pulse_amplitude  = pulse_amplitude;
-        eventn.pulse_charge     = pulse_charge;
-        eventn.pulse_parameters = pulse_pars;
-        eventn.ap_charge        = ap_charge;
-        eventn.he_ap_charge     = he_ap_charge;
-        eventn.baseline         = baseline;
-        eventn.event_num        = channel_event_num[channel_indicator];
-        eventn.OM_ID            = channel_indicator;
-        eventn.pulse_time       = peak_cell;
-        eventn.trigger_num      = trigger_num;
-        tree.Fill();
-
-        // If you are testing the code then break out of the while loop when you have found 1 good pulse
-        if (vm.count("t")){break;}
-
-        // Show the progress of the read file
-        if ( channel_waveform_num[channel_indicator] % 1000 == 0)
-        {
-            thousand_counter[channel_indicator]++;
-            std::cout << std::endl;
-            TDatime().Print();
-            std::cout << ">>> #1000 waveforms analysed Ch" << channel_indicator << " : " << thousand_counter[channel_indicator] << std::endl;
+            // Show the progress of the read file
+            if (channel_waveform_num[channel_indicator] % 1000 == 0) {
+                thousand_counter[channel_indicator]++;
+                std::cout << std::endl;
+                TDatime().Print();
+                std::cout << ">>> #1000 waveforms analysed Ch" << channel_indicator << " : "
+                          << thousand_counter[channel_indicator] << std::endl;
+            }
         }
 
     } // End of File
