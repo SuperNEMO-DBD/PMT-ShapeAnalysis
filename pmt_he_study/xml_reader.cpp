@@ -98,10 +98,10 @@ std::vector<std::vector<Double_t>> get_template_pulses( std::string template_fil
 Double_t get_inner_product( std::vector<Double_t> &vec1, std::vector<Double_t> &vec2 );
 Double_t get_ap_charge(std::vector<Double_t> &vec, Double_t baseline, CONF &config);
 Double_t get_he_ap_charge(std::vector<Double_t> &vec, Double_t baseline, CONF &config);
-bool check_saturation(std::vector<Double_t> &vec);
+bool check_saturation(std::vector<Double_t> &vec, Int_t peak_cell, CONF &conf_object );
 std::vector<std::vector<Double_t>> get_pulse_from_root_file( std::string file );
-std::vector<Double_t> get_sat_charge(std::vector<Double_t> &vec, Double_t baseline, std::vector<Double_t> &av_pulse,
-                                     CONF &conf_object, Int_t channel );
+std::vector<Double_t> get_sat_charge(std::vector<Double_t> &vec, Double_t baseline, std::vector<Double_t> &av_pulse, CONF &conf_object,
+                                     Int_t channel, Int_t peak_cell );
 
 
 Int_t main(Int_t argc, char* argv[])
@@ -252,30 +252,34 @@ Int_t main(Int_t argc, char* argv[])
         // Process      =================================================
         std::vector<Double_t> data = process_line( data_line, ' ' );
         //std::cout << "Data vector length: " << data.size() << std::endl;
-        bool is_sat = check_saturation(data);
 
         // Analysis     =================================================
         channel_event_num[channel_indicator] ++;
 
         Int_t peak_cell = get_peak_cell( data );
 
+        if ( config_object.trigger - config_object.trig_tolerance < peak_cell < config_object.trigger + config_object.trig_tolerance)
+        {
+            // Waveform is likely empty so will not store
+        }else {continue;}
+
         /*if ( peak_cell > config_object.trigger + config_object.trig_tolerance || peak_cell < config_object.trigger - config_object.trig_tolerance ) {
             // Waveform is likely empty so will not store
             continue;
         }*/
-        if ( peak_cell > 5000 ){
-            continue;
-        }
 
         Double_t baseline        = get_baseline( data, config_object );
-        Double_t pulse_amplitude = get_amplitude( data, baseline );
+        // Double_t pulse_amplitude = get_amplitude( data, baseline );
+        Double_t pulse_amplitude = data[peak_cell];
         Double_t pulse_charge    = 0.0;
         std::vector<Double_t> pulse_pars = {0.0, 0.0, 0.0, 0.0, 0.0};
 
-        // if (pulse_amplitude < config_object.pulse_amp_cut){ continue; }
+        bool is_sat = check_saturation(data, peak_cell, config_object);
+
+        if (pulse_amplitude < config_object.pulse_amp_cut){ continue; }
         if (is_sat){
             pulse_pars = get_sat_charge( data, baseline, pulse_vectors[channel_indicator],
-                                                                config_object, channel_indicator);
+                                         config_object, channel_indicator, peak_cell);
             pulse_charge = pulse_pars[0];
         }else {
             pulse_charge   = get_charge( data, baseline, config_object, peak_cell );
@@ -286,11 +290,11 @@ Int_t main(Int_t argc, char* argv[])
         // std::cout << "
         // : " << pulse_charge << std::endl;
 
-        /*if ( pulse_charge < config_object.charge_cut )
+        if ( pulse_charge < config_object.charge_cut )
         {
             // Pulse is either too small or just noise
             continue;
-        }*/
+        }
 
         channel_waveform_num[channel_indicator]++;
 
@@ -701,9 +705,9 @@ Double_t get_he_ap_charge(std::vector<Double_t> &vec, Double_t baseline, CONF &c
     }
     return (-1.0)*charge/( config.resistance );
 }
-bool check_saturation(std::vector<Double_t> &vec)
+bool check_saturation(std::vector<Double_t> &vec, Int_t peak_cell, CONF &conf_object )
 {
-    for (Int_t i = 500; i < 800; i++)
+    for (Int_t i = peak_cell - conf_object.trig_tolerance; i < peak_cell + conf_object + conf_object.trig_tolerance; i++)
     {
         if (vec[i] == 0.0)
         {
@@ -814,11 +818,11 @@ std::vector<std::vector<Double_t>> get_pulse_from_root_file( std::string file )
     return pulses;
 }
 std::vector<Double_t> get_sat_charge(std::vector<Double_t> &vec, Double_t baseline, std::vector<Double_t> &av_pulse, CONF &conf_object,
-                        Int_t channel )
+                                     Int_t channel, Int_t peak_cell )
 {
     std::vector<int> pos;
     bool done_pos = false;
-    for (int i_vec = 0; i_vec < int(vec.size()); i_vec++)
+    for (int i_vec = peak_cell - conf_object.trig_tolerance; i_vec < peak_cell + conf_object.trig_tolerance; i_vec++)
     {
         if (vec[i_vec] == 0.0)
         {
