@@ -196,6 +196,7 @@ Int_t main(Int_t argc, char* argv[])
     tree.Branch("OM_ID",&eventn.OM_ID);
     tree.Branch("event_num_ch0",&description.tot_event_ch0);
     tree.Branch("event_num_ch1",&description.tot_event_ch1);
+    tree.Branch("trigger_num",&eventn.trigger_num);
 
     // Branch for the storing of the raw waveform
     // tree.Branch("waveform",&waveform);
