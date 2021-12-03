@@ -278,7 +278,7 @@ Int_t main(Int_t argc, char* argv[])
                 if (pulse_pars.size() == 0) {
                     pulse_charge = 0;
                 } else { pulse_charge = pulse_pars[0]; }
-                std::cout << "Sat charge: " << pulse_charge << std::endl;
+                // std::cout << "Sat charge: " << pulse_charge << std::endl;
             } else {
                 pulse_charge = get_charge(data, baseline, config_object, peak_cell);
             }
