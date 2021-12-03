@@ -265,7 +265,7 @@ Int_t main(Int_t argc, char* argv[])
         else {
             Double_t baseline = get_baseline(data, config_object);
             // Double_t pulse_amplitude = get_amplitude( data, baseline );
-            Double_t pulse_amplitude = data[peak_cell];
+            Double_t pulse_amplitude = data[peak_cell] - baseline;
             Double_t pulse_charge = 0.0;
             std::vector <Double_t> pulse_pars = {0.0, 0.0, 0.0, 0.0, 0.0};
 
