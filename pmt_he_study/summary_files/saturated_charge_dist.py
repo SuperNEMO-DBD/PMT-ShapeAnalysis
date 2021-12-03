@@ -2,6 +2,7 @@ import sys
 
 sys.path.insert(1, '..')
 import numpy as np
+import ROOT
 import matplotlib.pyplot as plt
 import tqdm
 from scipy.optimize import curve_fit
@@ -13,24 +14,24 @@ def get_pulse_par(x, y, baseline):
     x = np.array(x)
 
     pulse_length = len(x)
-    amplitude = np.min(y) - baseline;
+    amplitude = np.min(y) - baseline
     position = np.argmin(y)
 
     start = 0
     stop = 0
-    for i in range(position):
+    for i_pos in range(position):
 
-        if (y[i] - baseline) < (0.3 * amplitude):
-            start = i
-        if (y[i] - baseline) < (0.7 * amplitude):
-            stop = i
+        if (y[i_pos] - baseline) < (0.3 * amplitude):
+            start = i_pos
+        if (y[i_pos] - baseline) < (0.7 * amplitude):
+            stop = i_pos
 
     rise = stop - start
     onset = start
 
-    for i in range(position, pulse_length):
-        if (y[i] - baseline) > (amplitude / np.exp(1.0)):
-            stop = i;
+    for i_pos in range(position, pulse_length):
+        if (y[i_pos] - baseline) > (amplitude / np.exp(1.0)):
+            stop = i_pos
     fall = stop - position
 
     return onset, rise, fall
@@ -38,22 +39,22 @@ def get_pulse_par(x, y, baseline):
 
 def get_baseline(y):
     baseline = 0
-    for i in range(100):
-        baseline += y[i]
-    return baseline / 100
+    for i_bas in range(500):
+        baseline += y[i_bas]
+    return baseline / 500
 
 
 def get_amplitude(y, baseline):
-    return np.min(y) - baseline
+    return np.min(y[550:750]) - baseline
 
 
 def pulse(x, onset, rise, fall, pos):
     y = []
-    for i in range(len(x)):
-        if i < onset:
+    for i_pos in range(len(x)):
+        if i_pos < onset:
             y.append(0)
         else:
-            temp = -np.exp(-(x[i] - pos) / rise) + np.exp(-(x[i] - pos) / fall)
+            temp = -np.exp(-(x[i_pos] - pos) / rise) + np.exp(-(x[i_pos] - pos) / fall)
             y.append(temp)
     return y
 
@@ -80,7 +81,7 @@ def create_average_waveform(traces, filename):
     average_counter = [0, 0]
     fig = plt.figure(figsize=(9, 6), facecolor='white')
     for i in range(int(traces.length)):
-        trace = traces[i].firstChild.data.split(" ")[:-1]
+        trace = traces[i].firstChild.data.split(" ")[1:-1]
         channel = int(traces[i].attributes['channel'].value)
         waveform = np.array(trace, dtype='float')
 
@@ -143,6 +144,87 @@ def get_average_waveform(filename):
     return average_waveform
 
 
+def get_sat_charge(vec, baseline, av_pulse, channel, plot):
+    pos = []
+    done_pos = False
+    for i_vec in range(len(vec)):
+        if vec[i_vec] == 0.0:
+            done_pos = True
+            pos.append(i_vec)
+        else:
+            if done_pos:
+                break
+
+    middle = int(len(pos) / 2)
+    the_pos = pos[middle]
+
+    pulse_r = []
+    pulse = []
+    new_pulse = []
+    xi = []
+    for i_pos in range(the_pos - 10, the_pos + 20):
+        pulse_r.append(vec[i_pos] - baseline)
+        pulse.append(vec[i_pos])
+
+    graph = ROOT.TGraphErrors()
+    n_point = 0
+    for j in range(len(pulse)):
+        if j > 14:
+            break
+        if pulse[j] == 0:
+            continue
+        else:
+            new_pulse.append(pulse_r[j])
+            xi.append(j)
+            graph.SetPoint(n_point, j, pulse_r[j])
+            graph.SetPointError(n_point, 0, np.sqrt(abs(pulse_r[j])))
+            n_point += 1
+
+    temp_std = 0
+    if channel == 0:
+        temp_std = 2.22
+    else:
+        temp_std = 2.14
+
+    fit = ROOT.TF1("fit", "[0]*TMath::Gaus(x, [1], {})".format(temp_std), 0, 14)
+    fit.SetParLimits(0, -10000, -900)
+    fit.SetParLimits(1, 5, 15)
+    fit.SetParameters(-1001, 10)
+
+    graph.Fit("fit", "0Q", "", 0, 14)
+    A = fit.GetParameter(0)
+    mu = fit.GetParameter(1)
+    A_err = fit.GetParError(0)
+    mu_err = fit.GetParError(1)
+    x = np.array([k for k in range(len(pulse_r) - 15)])
+
+    charge = 0.0
+    for k in range(len(av_pulse)):
+        charge += av_pulse[k]
+    charge = charge * A / 50
+    del graph
+    del fit
+
+    if plot:
+        fig = plt.figure(figsize=figsize, facecolor='white')
+        plt.plot([k for k in range(len(pulse_r))], pulse_r, '.', label='PMT Pulse')
+        plt.xlabel('Timestamp /ns')
+        plt.ylabel('Voltage /mV')
+        plt.plot(xi, new_pulse, '.', label='Modelled Points')
+        plt.plot([k for k in range(len(pulse_r))], -1*np.array(av_pulse)*A, '.', label='Scaled Template')
+        if channel == 0:
+            y = gaus_fix_sig_channel_0(np.linspace(0, 15, 100), A, mu)
+        else:
+            y = gaus_fix_sig_channel_1(np.linspace(0, 15, 100), A, mu)
+        plt.plot(np.linspace(0, 15, 100), y, label='Model')
+        plt.legend(loc='best')
+        plt.title('Time-Over-Threshold Pulse Reconstruction')
+        plt.tight_layout()
+        plt.savefig("/Users/williamquinn/Desktop/PMT_Project/tot_plot.pdf")
+
+    return [charge, A, A_err, mu, mu_err]
+
+
 def get_pulse_width(average_waveforms):
     sigmas = []
     for i_om in range(2):
@@ -175,7 +257,7 @@ def write_charges(traces, filename, templates):
     charge_file = open(filename, "w")
     charge_file.write('channel, charge, sat_charge, ap_charge\n')
     for i in tqdm.tqdm(range(int(traces.length))):
-        trace = traces[i].firstChild.data.split(" ")[:-1]
+        trace = traces[i].firstChild.data.split(" ")[1:-1]
         channel = int(traces[i].attributes['channel'].value)
 
         waveform = np.array(trace, dtype='float')
@@ -183,58 +265,36 @@ def write_charges(traces, filename, templates):
         baseline = get_baseline(waveform)
         amplitude = get_amplitude(waveform, baseline)
 
+        peak = np.argmin(waveform[550:750]) + 550
+
         if amplitude > -50:
             continue
 
         if 0 in waveform:
-            pass
+            pos = np.where(waveform == 0)[0]
+            middle = int(len(pos) / 2)  # = int(2.5) = 2
+            pos = pos[middle]  # 3
+
+            charge = -1*np.sum((waveform - baseline)[pos - 10:pos + 20]) / 50
+
+            variables = get_sat_charge(waveform, baseline, templates[channel], channel, False)
+            sat_charge = variables[0]
+
+            ap_charge = -1*np.sum((waveform - baseline)[800:]) / 50
+
+            sat_charges[channel].append(sat_charge)
+            charges[channel].append(charges)
+            ap_charges[channel].append(ap_charge)
+            charge_file.write('{},{},{},{}\n'.format(channel, charge, sat_charge, ap_charge))
         else:
-            charge = np.sum((waveform - baseline)[pos - 10:pos + 20]) / 50
-            ap_charge = np.sum((waveform - baseline)[800:]) / 50
+            charge = -1*np.sum((waveform - baseline)[peak - 10:peak + 20]) / 50
+            ap_charge = -1*np.sum((waveform - baseline)[800:]) / 50
 
             charges[channel].append(charge)
             sat_charges[channel].append(charge)
             ap_charges[channel].append(ap_charge)
             charge_file.write('{},{},{},{}\n'.format(channel, charge, charge, ap_charge))
             continue
-
-        # pos = np.argmin(waveform - baseline)
-        pos = np.where(waveform == 0)[0]
-
-        middle = int(len(pos) / 2)  # = int(2.5) = 2
-        pos = pos[middle]  # 3
-        size = np.min(waveform - baseline)
-
-        waveform_r = (waveform - baseline)[pos - 10:pos + 20]
-        pulse = waveform[pos - 10:pos + 20]
-
-        new_pulse = []
-        xi = []
-        for j in range(len(pulse)):
-            if j > 14:
-                break
-            if pulse[j] == 0:
-                continue
-            else:
-                new_pulse.append(waveform_r[j])
-                xi.append(j)
-
-        if channel == 0:
-            popt, pcov = curve_fit(f=gaus_fix_sig_channel_0, xdata=np.array(xi), ydata=new_pulse,
-                                   bounds=[[-10000, 0], [0, 40]])
-        else:
-            popt, pcov = curve_fit(f=gaus_fix_sig_channel_1, xdata=np.array(xi), ydata=new_pulse,
-                                   bounds=[[-10000, 0], [0, 40]])
-
-        new_temp = -1 * templates[channel] * popt[0]
-        sat_charge = np.sum(new_temp) / 50
-        charge = np.sum((waveform - baseline)[pos - 10:pos + 20]) / 50
-        ap_charge = np.sum((waveform - baseline)[800:]) / 50
-
-        sat_charges[channel].append(sat_charge)
-        charges[channel].append(charges)
-        ap_charges[channel].append(ap_charge)
-        charge_file.write('{},{},{},{}\n'.format(channel, charge, sat_charge, ap_charge))
     charge_file.close()
 
 
@@ -254,9 +314,9 @@ def get_charges(filename):
         sat_charge = float(line_list[2])
         ap_charge = float(line_list[3])
 
-        charges[channel].append(-1*charge)
-        sat_charges[channel].append(-1*sat_charge)
-        ap_charges[channel].append(-1*ap_charge)
+        charges[channel].append(charge)
+        sat_charges[channel].append(sat_charge)
+        ap_charges[channel].append(ap_charge)
     return charges, sat_charges, ap_charges
 
 
@@ -294,7 +354,7 @@ def plot_charge_comp(charges, sat_charges):
 
 def plot_tot(traces, templates):
     for i in range(int(traces.length)):
-        trace = traces[i].firstChild.data.split(" ")[:-1]
+        trace = traces[i].firstChild.data.split(" ")[1:-1]
         channel = int(traces[i].attributes['channel'].value)
 
         waveform = np.array(trace, dtype='float')
@@ -308,78 +368,34 @@ def plot_tot(traces, templates):
             continue
 
         if 0 in waveform:
-            pass
+            variables = get_sat_charge(waveform, baseline, templates[channel], channel, True)
+            break
         else:
             continue
-
-        # pos = np.argmin(waveform - baseline)
-        pos = np.where(waveform == 0)[0]
-
-        middle = int(len(pos) / 2)  # = int(2.5) = 2
-        pos = pos[middle]  # 3
-        size = np.min(waveform - baseline)
-
-        waveform_r = (waveform - baseline)[pos - 10:pos + 20]
-        pulse = waveform[pos - 10:pos + 20]
-
-        new_pulse = []
-        xi = []
-        for j in range(len(pulse)):
-            if j > 14:
-                break
-            if pulse[j] == 0:
-                continue
-            else:
-                new_pulse.append(waveform_r[j])
-                xi.append(j)
-
-        if channel == 0:
-            popt, pcov = curve_fit(f=gaus_fix_sig_channel_0, xdata=np.array(xi), ydata=new_pulse,
-                                   bounds=[[-10000, 0], [0, 40]])
-        else:
-            popt, pcov = curve_fit(f=gaus_fix_sig_channel_1, xdata=np.array(xi), ydata=new_pulse,
-                                   bounds=[[-10000, 0], [0, 40]])
-
-        new_temp = -1 * templates[channel] * popt[0]
-
-        fig = plt.figure(figsize=figsize, facecolor='white')
-        plt.plot([k for k in range(len(waveform_r))], waveform_r, '.', label='PMT Pulse')
-        plt.xlabel('Timestamp /ns')
-        plt.ylabel('Voltage /mV')
-        plt.plot(xi, new_pulse, '.', label='Modelled Points')
-        plt.plot([k for k in range(len(waveform_r))], new_temp, '.', label='Scaled Template')
-        plt.plot(np.linspace(0, 15, 100), gaus_fix_sig_channel_0(np.linspace(0, 15, 100), *popt),
-                 label='Model')
-        plt.legend(loc='best')
-        plt.title('Time-Over-Threshold Pulse Reconstruction')
-        plt.tight_layout()
-        plt.savefig("/Users/williamquinn/Desktop/PMT_Project/tot_plot.pdf")
-
-        break
 
 
 def main():
     filename = "/Users/williamquinn/Desktop/PMT_Project/A1400_B1400_t1119.xml"
-    file = minidom.parse(filename)
-    traces = file.getElementsByTagName('trace')
+    ##file = minidom.parse(filename)
+    #traces = file.getElementsByTagName('trace')
 
     av_pulse_file = "/Users/williamquinn/Desktop/PMT_Project/average_pulses.csv"
     charge_file = "/Users/williamquinn/Desktop/PMT_Project/charges.csv"
 
     #create_average_waveform(traces, av_pulse_file)
-    average_waveforms = get_average_waveform(av_pulse_file)
+    #average_waveforms = get_average_waveform(av_pulse_file)
 
-    sigmas = get_pulse_width(average_waveforms)
+    '''sigmas = get_pulse_width(average_waveforms)
     global sig0
     global sig1
-    sig0, sig1 = sigmas[0], sigmas[1]
+    sig0, sig1 = sigmas[0], sigmas[1]'''
 
-    plot_tot(traces, average_waveforms)
+    #plot_tot(traces, average_waveforms)
 
     #write_charges(traces, charge_file, average_waveforms)
-    #charges, sat_charges, ap_charges = get_charges(charge_file)
+    charges, sat_charges, ap_charges = get_charges(charge_file)
 
-    #plot_charge_comp(charges[0], sat_charges[0])
+    plot_charge_comp(charges[0], sat_charges[0])
 
 
 if __name__ == "__main__":

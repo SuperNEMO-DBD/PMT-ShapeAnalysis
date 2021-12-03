@@ -303,7 +303,7 @@ Int_t main(Int_t argc, char* argv[])
                 std::cout << ">>> Peak Cell         : " << peak_cell << std::endl;
             }
 
-            // matchfilter = sweep( data, config_object, baseline, template_vectors[channel_indicator] );
+            matchfilter = sweep( data, config_object, baseline, template_vectors[channel_indicator] );
 
             // Output       =================================================
             waveform = data;
@@ -820,7 +820,7 @@ std::vector<Double_t> get_sat_charge(std::vector<Double_t> &vec, Double_t baseli
 {
     std::vector<int> pos;
     bool done_pos = false;
-    for (int i_vec = peak_cell - conf_object.trig_tolerance; i_vec < peak_cell + conf_object.trig_tolerance; i_vec++)
+    for (int i_vec = 550; i_vec < 750; i_vec++)
     {
         if (vec[i_vec] == 0.0)
         {
@@ -909,3 +909,7 @@ std::vector<Double_t> get_sat_charge(std::vector<Double_t> &vec, Double_t baseli
 
     return pulse_pars;
 }
+/*Double_t get_pulse_time()
+{
+
+}*/
