@@ -60,6 +60,7 @@ typedef struct {
     Int_t event_num, OM_ID, pulse_time, trigger_num;
     Double_t pulse_charge, pulse_amplitude, baseline, ap_charge, he_ap_charge;
     std::vector<Double_t> pulse_parameters;
+    bool is_sat;
 } EVENTN;
 
 typedef struct {
@@ -197,6 +198,7 @@ Int_t main(Int_t argc, char* argv[])
     tree.Branch("event_num_ch0",&description.tot_event_ch0);
     tree.Branch("event_num_ch1",&description.tot_event_ch1);
     tree.Branch("trigger_num",&eventn.trigger_num);
+    tree.Branch("is_sat",&eventn.is_sat);
 
     // Branch for the storing of the raw waveform
     // tree.Branch("waveform",&waveform);
@@ -224,7 +226,7 @@ Int_t main(Int_t argc, char* argv[])
     std::vector<int> channel_event_num( 2, 0 );
     std::vector<int> thousand_counter( 2, 0 );
     std::vector<int> channel_waveform_num( 2, 0 );
-    int trigger_num = 0;
+    int trigger_num = -1;
 
     TDatime().Print();
     std::cout << ">>> Beginning data read..." << std::endl;
@@ -316,6 +318,7 @@ Int_t main(Int_t argc, char* argv[])
             eventn.OM_ID = channel_indicator;
             eventn.pulse_time = peak_cell;
             eventn.trigger_num = trigger_num;
+            eventn.is_sat = is_sat;
             tree.Fill();
 
             // If you are testing the code then break out of the while loop when you have found 1 good pulse
