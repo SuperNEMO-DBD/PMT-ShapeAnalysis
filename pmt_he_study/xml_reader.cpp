@@ -847,11 +847,11 @@ std::vector<Double_t> get_sat_charge(std::vector<Double_t> &vec, Double_t baseli
         pulse.push_back(vec[i_pos]);
     }
 
-    if (pulse_r.size() == 0){
+    /*if (pulse_r.size() == 0){
         std::cout << "Empty pulse" << std::endl;
         std::vector<Double_t> temp;
         return temp;
-    }
+    }*/
 
     TGraphErrors* graph = new TGraphErrors();
     int n_point = 0;
