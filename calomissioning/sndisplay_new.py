@@ -3,12 +3,32 @@ import numpy as np
 from random import gauss
 
 
-class calorimeter:
+class palette:
+    def __init__(self):
+        nRGBs = 6
+        stops = np.array([0.00, 0.20, 0.40, 0.60, 0.80, 1.00], dtype='float64')
+        red = np.array([0.25, 0.00, 0.20, 1.00, 1.00, 0.90], dtype='float64')
+        green = np.array([0.25, 0.80, 1.00, 1.00, 0.80, 0.00], dtype='float64')
+        blue = np.array([1.00, 1.00, 0.20, 0.00, 0.00, 0.00], dtype='float64')
+        self.palette_index = ROOT.TColor.CreateGradientColorTable(nRGBs, stops, red, green, blue, 100)
 
-    def __init__(self, new_name: str):
+    def get_index(self):
+        return self.palette_index
+
+
+'''// // // // // // // // // // // // // //
+// sndisplay::calorimeter //
+// // // // // // // // // // // // // //'''
+
+
+class calorimeter:
+    def __init__(self, new_name: str, with_palette: bool):
+        self.palette_index = palette()
         self.name = new_name
-        self.canvas_it = ROOT.TCanvas(f'C_it_{self.name}', self.name, 900, 600)
-        self.canvas_fr = ROOT.TCanvas(f'C_fr_{self.name}', self.name, 900, 600)
+        # self.canvas_it = ROOT.TCanvas(f'C_it_{self.name}', self.name, 900, 600)
+        # self.canvas_fr = ROOT.TCanvas(f'C_fr_{self.name}', self.name, 900, 600)
+        self.canvas_it = None
+        self.canvas_fr = None
         # TODO: check this
         self.nmwall = 520
         self.nxwall = 128
@@ -39,19 +59,25 @@ class calorimeter:
         self.range_min = -1
         self.range_max = -1
 
-        spacerx = 0.0125
-        spacery = 0.0250
+        spacery = 0.0125
+        if with_palette:
+            spacerx = 0.0093458
+            mw_sizex = (1 - 5 * spacerx) / (20 + 4 + 1.5)
+        else:
+            spacerx = 0.0100
+            mw_sizex = (1-4*spacerx)/(20+4)
 
         mw_sizey = (1 - 4 * spacery) / (13 + 2)
         gv_sizey = mw_sizey
         xw_sizey = mw_sizey * 13. / 16.
 
-        mw_sizex = (1 - 4 * spacerx) / (20 + 4)
         gv_sizex = mw_sizex * 20. / 16.
         xw_sizex = mw_sizex
 
+
         '''// // // // // // // // // // // // //
-        // MWALL initialisation //
+        // MWALL
+        initialisation //
         // // // // // // // // // // // // //'''
 
         for mw_side in range(2):
@@ -78,14 +104,15 @@ class calorimeter:
                     self.ombox.append(box)
 
                     omid_string = f'M:{mw_side}.{mw_column}.{mw_row}'
-                    omid_text = ROOT.TText(x1 + 0.5 * mw_sizex, y1 + 0.667 * mw_sizey, omid_string)
+                    omid_text = ROOT.TText(x1 + 0.5 * mw_sizex, y1 + 0.7 * mw_sizey, omid_string)
                     omid_text.SetTextSize(0.014)
                     omid_text.SetTextAlign(22)
                     self.omid_text_v.append(omid_text)
 
                     omnum_string = f'{omnum}'
-                    omnum_text = ROOT.TText(x1 + 0.5 * mw_sizex, y1 + 0.333 * mw_sizey, omnum_string)
-                    omnum_text.SetTextSize(0.02)
+                    omnum_text = ROOT.TText(x1 + 0.5 * mw_sizex, y1 + 0.7 * mw_sizey, omnum_string)
+                    omnum_text.SetTextFont(42)
+                    omnum_text.SetTextSize(0.013)
                     omnum_text.SetTextAlign(22)
                     self.omnum_text_v.append(omnum_text)
 
@@ -95,7 +122,7 @@ class calorimeter:
                     content_err_text.SetTextAlign(22)
                     self.content_err_text_v.append(content_err_text)
 
-                    content_text = ROOT.TText(x1 + 0.5 * mw_sizex, y1 + 0.333 * mw_sizey, "")
+                    content_text = ROOT.TText(x1 + 0.5 * mw_sizex, y1 + 0.3 * mw_sizey, "")
                     content_text.SetTextSize(0.02)
                     content_text.SetTextAlign(22)
                     self.content_text_v.append(content_text)
@@ -137,14 +164,16 @@ class calorimeter:
                         self.ombox.append(box)
 
                         omid_string = f'X:{xw_side}.{xw_wall}.{xw_column}.{xw_row}'
-                        omid_text = ROOT.TText(x1 + 0.5 * mw_sizex, y1 + 0.6 * mw_sizey, omid_string)
-                        omid_text.SetTextSize(0.014)
+                        omid_text = ROOT.TText(x1 + 0.5 * mw_sizex, y1 + 0.7 * mw_sizey, omid_string)
+                        omid_text.SetTextFont(42)
+                        omid_text.SetTextSize(0.013)
                         omid_text.SetTextAlign(22)
                         self.omid_text_v.append(omid_text)
 
                         omnum_string = f'{omnum}'
                         omnum_text = ROOT.TText(x1 + 0.5 * xw_sizex, y1 + 0.333 * xw_sizey, omnum_string)
-                        omnum_text.SetTextSize(0.02)
+                        omnum_text.SetTextFont(42)
+                        omnum_text.SetTextSize(0.013)
                         omnum_text.SetTextAlign(22)
                         self.omnum_text_v.append(omnum_text)
 
@@ -154,7 +183,7 @@ class calorimeter:
                         content_err_text.SetTextAlign(22)
                         self.content_err_text_v.append(content_err_text)
 
-                        content_text = ROOT.TText(x1 + 0.5 * xw_sizex, y1 + 0.333 * xw_sizey, "")
+                        content_text = ROOT.TText(x1 + 0.5 * xw_sizex, y1 + 0.3 * xw_sizey, "")
                         content_text.SetTextSize(0.02)
                         content_text.SetTextAlign(22)
                         self.content_text_v.append(content_text)
@@ -187,13 +216,15 @@ class calorimeter:
                     self.ombox.append(box)
 
                     omid_string = f'G:{gv_side}.{gv_wall}.{gv_column}'
-                    omid_text = ROOT.TText(x1 + 0.5 * gv_sizex, y1 + 0.667 * gv_sizey, omid_string)
-                    omid_text.SetTextSize(0.014)
+                    omid_text = ROOT.TText(x1 + 0.5 * gv_sizex, y1 + 0.7 * gv_sizey, omid_string)
+                    omid_text.SetTextFont(42)
+                    omid_text.SetTextSize(0.013)
                     omid_text.SetTextAlign(22)
                     self.omid_text_v.append(omid_text)
 
                     omnum_string = f'{omnum}'
-                    omnum_text = ROOT.TText(x1 + 0.5 * gv_sizex, y1 + 0.333 * gv_sizey, omnum_string)
+                    omnum_text = ROOT.TText(x1 + 0.5 * gv_sizex, y1 + 0.7 * gv_sizey, omnum_string)
+                    omnum_text.SetTextFont(42)
                     omnum_text.SetTextSize(0.02)
                     omnum_text.SetTextAlign(22)
                     self.omnum_text_v.append(omnum_text)
@@ -204,27 +235,44 @@ class calorimeter:
                     content_err_text.SetTextAlign(22)
                     self.content_err_text_v.append(content_err_text)
 
-                    content_text = ROOT.TText(x1 + 0.5 * gv_sizex, y1 + 0.333 * gv_sizey, "")
+                    content_text = ROOT.TText(x1 + 0.5 * gv_sizex, y1 + 0.3 * gv_sizey, "")
                     content_text.SetTextSize(0.02)
                     content_text.SetTextAlign(22)
                     self.content_text_v.append(content_text)
 
-        self.it_label = ROOT.TText(spacerx, spacery + gv_sizey + spacery + 13 * mw_sizey + spacery + 0.25 * gv_sizey,
+        self.it_label = ROOT.TText(spacerx+xw_sizex, spacery + gv_sizey + spacery + 13 * mw_sizey + spacery + 0.5 * gv_sizey,
                                    "  ITALY")
-        self.it_label.SetTextSize(0.036)
+        self.it_label.SetTextSize(0.028)
+        self.it_label.SetTextAlign(22)
 
-        self.fr_label = ROOT.TText(spacerx, spacery + gv_sizey + spacery + 13 * mw_sizey + spacery + 0.25 * gv_sizey,
+        self.fr_label = ROOT.TText(spacerx+xw_sizex, spacery + gv_sizey + spacery + 13 * mw_sizey + spacery + 0.5 * gv_sizey,
                                    "FRANCE")
-        self.fr_label.SetTextSize(0.036)
+        self.fr_label.SetTextSize(0.028)
+        self.fr_label.SetTextAlign(22)
 
-        stops = np.array([0.00, 0.20, 0.40, 0.60, 0.80, 1.00], dtype='float64')
-        red = np.array([0.25, 0.00, 0.20, 1.00, 1.00, 0.90], dtype='float64')
-        green = np.array([0.25, 0.80, 1.00, 1.00, 0.80, 0.00], dtype='float64')
-        blue = np.array([1.00, 1.00, 0.20, 0.00, 0.00, 0.00], dtype='float64')
+        self.palette_histo = None
+        self.palette_axis = None
+        if with_palette:
+            palette_sizey = mw_sizey * 13
+            palette_sizex = mw_sizex * 1.5
 
-        nRGBs = 6
+            palette_histo = ROOT.TH2D("{}_palette_histo".format(self.name), "", 1, 0, 1, 1, 0, 1)
+            palette_histo.GetZaxis().SetNdivisions(509)
+            palette_histo.GetZaxis().SetLabelSize(0.024)
+            palette_histo.GetZaxis().SetLabelFont(62)
+            palette_histo.SetMinimum(self.range_min)
+            palette_histo.SetMaximum(self.range_max)
+            palette_histo.SetContour(100)
+            self.palette_histo = palette_histo
 
-        self.palette_index = ROOT.TColor.CreateGradientColorTable(nRGBs, stops, red, green, blue, 100)
+            palette_axis = ROOT.TPaletteAxis()
+            palette_axis.SetHistogram(palette_histo)
+            palette_axis.SetX1NDC(1-spacerx-palette_sizex * (5. / 6))
+            palette_axis.SetY1NDC(spacery+gv_sizey+spacery+palette_sizey / 8.)
+            palette_axis.SetX2NDC(1-spacerx-palette_sizex * (3. / 6))
+            palette_axis.SetY2NDC(1-palette_axis.GetY1NDC())
+            palette_axis.SetY2NDC(1-palette_axis.GetY1NDC())
+            self.palette_axis = palette_axis
 
     def setrange(self, xmin: float, xmax: float):
         self.range_min = xmin
@@ -245,6 +293,28 @@ class calorimeter:
         self.draw_content = True
 
     def draw(self):
+
+        if self.palette_axis is not None:
+            canvas_width = 1284
+        else:
+            canvas_width = 1200
+        canvas_height = 780
+
+        if self.canvas_it is None:
+            self.canvas_it = ROOT.TCanvas("{}_canvas_it".format(self.name), "{} (IT side)".format(self.name),
+                                          canvas_width, canvas_height)
+            decoration_width = canvas_width - self.canvas_it.GetWw()
+            decoration_height = canvas_height - self.canvas_it.GetWh()
+            self.canvas_it.SetWindowSize(canvas_width + decoration_width, canvas_height + decoration_height)
+            self.canvas_it.SetFixedAspectRatio()
+
+        if self.canvas_fr is None:
+            self.canvas_fr = ROOT.TCanvas("{}_canvas_fr".format(self.name), "{} (FR side)".format(self.name),
+                                          canvas_width, canvas_height)
+            decoration_width = canvas_width - self.canvas_fr.GetWw()
+            decoration_height = canvas_height - self.canvas_fr.GetWh()
+            self.canvas_fr.SetWindowSize(canvas_width + decoration_width, canvas_height + decoration_height)
+            self.canvas_fr.SetFixedAspectRatio()
 
         if self.draw_content:
             for omnum in range(self.nb_om):
@@ -273,7 +343,7 @@ class calorimeter:
                 self.ombox[id_].Draw("l")
                 if self.draw_omid:
                     self.omid_text_v[id_].Draw()
-                if self.draw_omnum:
+                elif self.draw_omnum:
                     self.omnum_text_v[id_].Draw()
                 if self.draw_content_err and self.content_err[id_] is not None:
                     self.content_err_text_v[id_].Draw()
@@ -310,6 +380,8 @@ class calorimeter:
                     self.content_text_v[id_].Draw()
 
         self.it_label.Draw()
+        if self.palette_axis is not None:
+            self.palette_axis.Draw()
         self.canvas_it.SetEditable(False)
 
         '''// // // // // // /
@@ -363,6 +435,8 @@ class calorimeter:
                     self.content_text_v[id_].Draw()
 
         self.fr_label.Draw()
+        if self.palette_axis is not None:
+            self.palette_axis.Draw()
         self.canvas_fr.SetEditable(False)
 
         self.update()
@@ -370,12 +444,13 @@ class calorimeter:
     def reset(self):
         for omnum in range(self.nb_om):
             self.content[omnum] = None
-
-        for omnum in range(self.nb_om):
-            self.ombox[omnum].SetFillColor(0)
+            self.content_text_v[omnum].Clear()
+            self.ombox[omnum].SetFillColor(14)
 
         self.canvas_it.Modified()
         self.canvas_it.Update()
+        self.canvas_fr.Modified()
+        self.canvas_fr.Update()
         ROOT.gSystem.ProcessEvents()
 
     def getcontent(self, omnum: int):
@@ -436,6 +511,9 @@ class calorimeter:
 
         self.content[omnum] = value
 
+    def set_colour(self, omnum: int, colour):
+        self.ombox[omnum].SetFillColor(colour)
+
     def fill(self, omnum: int):
         if self.content[omnum] is None:
             val = 1
@@ -465,10 +543,15 @@ class calorimeter:
 
         for omnum in range(self.nb_om):
             if self.content[omnum] is not None:
-                self.ombox[omnum].SetFillColor(
-                    self.palette_index + int(99 * (self.content[omnum] - content_min) / (content_max - content_min)))
+                colour_index = int(99*(self.content[omnum] - content_min)/(content_max - content_min))
+                self.ombox[omnum].SetFillColor(self.palette_index.get_index() + int(colour_index))
             else:
                 self.ombox[omnum].SetFillColor(14)
+
+        if self.palette_axis is not None:
+            self.palette_histo.SetMinimum(content_min)
+            self.palette_histo.SetMaximum(content_max)
+            self.palette_histo.SetContour(100)
 
         self.canvas_it.Modified()
         self.canvas_it.Update()
@@ -483,9 +566,14 @@ class calorimeter:
         self.canvas_fr.SaveAs(location + "/" + self.name + '_fr.pdf')
 
 
-class tracker:
+'''// // // // // // // // // // // //
+// sndisplay::tracker //
+// // // // // // // // // // // //'''
 
-    def __init__(self, new_name: str):
+
+class tracker:
+    def __init__(self, new_name: str, with_palette):
+        self.palette_index = palette()
         self.name = new_name
         self.canvas = None
         self.draw_cellid = False
@@ -496,14 +584,18 @@ class tracker:
         self.range_max = -1
         self.nb_cell = 2034
         self.content = [None for i in range(self.nb_cell)]
-        self.spacerx = 0.0125
+        self.spacerx = 0.0082
         self.spacery = 0.0500
-        self.cell_sizex = (1 - 2 * self.spacerx) / 113.0
+        if with_palette:
+            self.cell_sizex = (1 - 3 * self.spacerx) / (113. + 2)
+        else:
+            self.cell_sizex = (1 - 2 * self.spacerx) / 113.0
         self.cell_sizey = (1 - 3 * self.spacery) / (9 * 2)
         self.cellbox = []
         self.cellid_text_v = []
         self.cellnum_text_v = []
-        self.content_text_v =[]
+        self.content_text_v = []
+        self.row_text_v = []
 
         '''// // // // // // // // // // // // //
         // CELLS initialisation //
@@ -511,20 +603,20 @@ class tracker:
 
         for cell_side in range(2):
             for cell_row in range(113):
+                x1 = self.spacerx + cell_row * self.cell_sizex
                 for cell_layer in range(9):
                     cellnum = cell_side * 113 * 9 + cell_row * 9 + cell_layer
 
-                    x1 = self.spacerx + cell_row * self.cell_sizex
                     y1 = self.spacery
 
                     if cell_side == 0:
                         y1 += 9 * self.cell_sizey + self.spacery + cell_layer * self.cell_sizey
                     else:
-                        y1 += (8-cell_layer) * self.cell_sizey
+                        y1 += (8 - cell_layer) * self.cell_sizey
 
                     x2 = x1 + self.cell_sizex
                     y2 = y1 + self.cell_sizey
-                    width = x2-x1
+                    width = x2 - x1
 
                     box = ROOT.TBox(x1, y1, x2, y2)
                     box.SetFillColor(0)
@@ -532,35 +624,62 @@ class tracker:
                     self.cellbox.append(box)
 
                     cellid_string = "{}.{}.{}".format(cell_side, cell_layer, cell_row)
-                    cellid_text = ROOT.TText(x1+0.33 * self.cell_sizex, y1+0.667 * self.cell_sizey, cellid_string)
+                    cellid_text = ROOT.TText(x1 + 0.5 * self.cell_sizex, y1 + 0.667 * self.cell_sizey, cellid_string)
                     cellid_text.SetTextSize(0.01)
                     cellid_text.SetTextAlign(22)
                     self.cellid_text_v.append(cellid_text)
 
                     cellnum_string = "{}".format(cellnum)
-                    cellnum_text = ROOT.TText(x1+0.33 * self.cell_sizex, y1+0.667 * self.cell_sizey, cellnum_string)
+                    cellnum_text = ROOT.TText(x1 + 0.5 * self.cell_sizex, y1 + 0.333 * self.cell_sizey, cellnum_string)
                     cellnum_text.SetTextSize(0.01)
                     cellnum_text.SetTextAlign(22)
                     self.cellnum_text_v.append(cellnum_text)
 
-                    content_text = ROOT.TText(x1+0.33 * self.cell_sizex, y1+0.333 * self.cell_sizey, "")
+                    content_text = ROOT.TText(x1 + 0.5 * self.cell_sizex, y1 + 0.333 * self.cell_sizey, "")
                     content_text.SetTextSize(0.01)
                     content_text.SetTextAlign(22)
                     self.content_text_v.append(content_text)
 
-        self.it_label = ROOT.TText(self.spacerx, 2.25 * self.spacery+2 * 9 * self.cell_sizey, "ITALY")
+                if (cell_row % 5) == 0:
+                    row_text = ROOT.TText(x1 + 0.5 * self.cell_sizex, 0.5, "{}".format(cell_row))
+                    row_text.SetTextSize(0.03)
+                    row_text.SetTextAngle(90)
+                    row_text.SetTextAlign(22)
+                    self.row_text_v.append(row_text)
+
+        self.it_label = ROOT.TText(self.spacerx, 2.5*self.spacery+2*9*self.cell_sizey, "ITALY")
         self.it_label.SetTextSize(0.036)
+        self.it_label.SetTextAlign(12)
 
-        self.fr_label = ROOT.TText(self.spacerx, 0.25 * self.spacery, "FRANCE")
+        self.fr_label = ROOT.TText(self.spacerx, 0.5*self.spacery, "FRANCE")
         self.fr_label.SetTextSize(0.036)
+        self.fr_label.SetTextAlign(12)
 
-        nRGBs = 6
-        stops = np.array([0.00, 0.20, 0.40, 0.60, 0.80, 1.00], dtype='float64')
-        red = np.array([0.25, 0.00, 0.20, 1.00, 1.00, 0.90], dtype='float64')
-        green = np.array([0.25, 0.80, 1.00, 1.00, 0.80, 0.00], dtype='float64')
-        blue = np.array([1.00, 1.00, 0.20, 0.00, 0.00, 0.00], dtype='float64')
+        self.palette_histo = None
+        self.palette_axis = None
 
-        self.palette_index = ROOT.TColor.CreateGradientColorTable(nRGBs, stops, red, green, blue, 100)
+        if with_palette:
+            palette_sizex = 2 * self.cell_sizex
+            palette_sizey = self.cell_sizey * 9 * 2 + self.spacery
+
+            palette_histo = ROOT.TH2D("{}_palette_histo".format(self.name), "", 1, 0, 1, 1, 0, 1)
+            palette_histo.GetZaxis().SetNdivisions(509)
+            palette_histo.GetZaxis().SetLabelSize(0.032)
+            palette_histo.GetZaxis().SetLabelFont(62)
+            palette_histo.GetZaxis().SetTickLength(0.009)
+            palette_histo.SetMinimum(self.range_min)
+            palette_histo.SetMaximum(self.range_max)
+            palette_histo.SetContour(100)
+            self.palette_histo = palette_histo
+
+            palette_axis = ROOT.TPaletteAxis()
+            palette_axis.SetHistogram(palette_histo)
+            palette_axis.SetX1NDC(1 - self.spacerx - palette_sizex)
+            palette_axis.SetY1NDC(self.spacery)
+            palette_axis.SetX2NDC(1 - self.spacerx - palette_sizex / 2)
+            palette_axis.SetY2NDC(self.spacery + palette_sizey)
+            palette_axis.SetY2NDC(1 - palette_axis.GetY1NDC())
+            self.palette_axis = palette_axis
 
     def setrange(self, zmin: float, zmax: float):
         self.range_min = zmin
@@ -577,9 +696,21 @@ class tracker:
         self.draw_content = True
 
     def draw(self):
+        if self.palette_axis is not None:
+            canvas_width = 1231 * 2
+        else:
+            canvas_width = 1200 * 2
+        canvas_height = 221 * 2
+
         if self.canvas is None:
-            name = "C_{}".format(self.name)
-            self.canvas = ROOT.TCanvas(name, name, 1500, 300)
+            self.canvas = ROOT.TCanvas("{}_canvas".format(self.name), "{}".format(self.name), int(canvas_width / 2), int(canvas_height / 2))
+
+            decoration_width = canvas_width / 2 - self.canvas.GetWw()
+            decoration_height = canvas_height / 2 - self.canvas.GetWh()
+            scroll_height = 16
+            self.canvas.SetWindowSize(int(canvas_width * 3 / 4 + decoration_width),
+                                      int(canvas_height + decoration_height + scroll_height))
+            self.canvas.SetCanvasSize(canvas_width, canvas_height)
 
         if self.draw_content:
             for cellnum in range(self.nb_cell):
@@ -604,6 +735,12 @@ class tracker:
                     if self.draw_content and self.content[cellnum] is not None:
                         self.content_text_v[cellnum].Draw()
 
+        if self.palette_axis is not None:
+            self.palette_axis.Draw()
+
+        for row in range(len(self.row_text_v)):
+            self.row_text_v[row].Draw()
+
         self.it_label.Draw()
         self.fr_label.Draw()
 
@@ -613,8 +750,9 @@ class tracker:
 
     def reset(self):
         for cellnum in range(self.nb_cell):
-            self.content[cellnum] = 0
-            self.cellbox[cellnum].SetFillColor(0)
+            self.content[cellnum] = None
+            self.cellbox[cellnum].SetFillColor(14)
+            self.content_text_v[cellnum].Clear()
 
         self.canvas.Modified()
         self.canvas.Update()
@@ -667,9 +805,14 @@ class tracker:
                     color_index = 0
                 elif color_index >= 100:
                     color_index = 99
-                self.cellbox[cellnum].SetFillColor(int(self.palette_index + color_index))
+                self.cellbox[cellnum].SetFillColor(int(self.palette_index.get_index() + color_index))
             else:
                 self.cellbox[cellnum].SetFillColor(14)
+
+        if self.palette_axis is not None:
+            self.palette_histo.SetMinimum(content_min)
+            self.palette_histo.SetMaximum(content_max)
+            self.palette_histo.SetContour(100)
 
         self.canvas.Modified()
         self.canvas.Update()
@@ -680,9 +823,15 @@ class tracker:
         self.canvas.SaveAs(location + "/" + self.name + '_tr.pdf')
 
 
+'''// // // // // // // // // // // // // // /
+// sndisplay::demonstrator //
+// // // // // // // // // // // // // // /'''
+
+
 class demonstrator:
 
     def __init__(self, new_name: str):
+        self.palette_index = palette()
         self.name = new_name
         self.demonstrator_canvas = None
         self.range_min = -1
@@ -690,13 +839,14 @@ class demonstrator:
 
         '''// TOP_VIEW //'''
 
-        self.spacerx = 0.0125
-        self.spacery = 0.0250
+        self.spacerx = 0.005
+        self.spacery = 0.025
+        self.title_sizey = 0.0615
 
-        self.mw_sizey = (1 - 2 * self.spacery) / (2.0 + 4 * 1.035 + 0.313)
+        self.mw_sizey = (1-2*self.spacery-self.title_sizey)/(2.0 + 4*1.035 + 0.125)
         self.xw_sizey = 1.035 * self.mw_sizey
-        self.se_sizey = 0.313 * self.mw_sizey
-        self.gg_sizey = (1 - 2 * self.spacery - 2 * self.mw_sizey - self.se_sizey) / 18.0
+        self.se_sizey = 0.125 * self.mw_sizey
+        self.gg_sizey = (1-2*self.spacery-self.title_sizey-2*self.mw_sizey-self.se_sizey)/18.0
 
         self.mw_sizex = (1 - 2 * self.spacerx) / (20 + 2 * 0.5 * 0.720)
         self.xw_sizex = (1 - 2 * self.spacerx - 20 * self.mw_sizex)
@@ -737,7 +887,7 @@ class demonstrator:
         for xw_side in range(2):
             for xw_wall in range(2):
                 for xw_column in range(2):
-                    omnum = 40 + xw_side * 2 * 2 + xw_wall * 2 + xw_column
+                    # omnum = 40 + xw_side * 2 * 2 + xw_wall * 2 + xw_column
 
                     x1 = self.spacerx + xw_wall * (self.xw_sizex+113 * self.gg_sizex)
                     x2 = x1 + self.xw_sizex
@@ -766,7 +916,7 @@ class demonstrator:
         for gg_side in range(2):
             for gg_row in range(113):
                 for gg_layer in range(9):
-                    ggnum = gg_side * 113 * 9 + gg_row * 9 + gg_layer
+                    # ggnum = gg_side * 113 * 9 + gg_row * 9 + gg_layer
                     x1 = self.spacerx + self.xw_sizex + gg_row * self.gg_sizex
 
                     y1 = self.spacery + self.mw_sizey
@@ -789,14 +939,9 @@ class demonstrator:
                     ellipse.SetFillColor(0)
                     ellipse.SetLineWidth(1)
                     self.top_gg_ellipse.append(ellipse)
-
-        nRGBs = 6
-        stops = np.array([0.00, 0.20, 0.40, 0.60, 0.80, 1.00], dtype='float64')
-        red = np.array([0.25, 0.00, 0.20, 1.00, 1.00, 0.90], dtype='float64')
-        green = np.array([0.25, 0.80, 1.00, 1.00, 0.80, 0.00], dtype='float64')
-        blue = np.array([1.00, 1.00, 0.20, 0.00, 0.00, 0.00], dtype='float64')
-
-        self.palette_index = ROOT.TColor.CreateGradientColorTable(nRGBs, stops, red, green, blue, 100)
+        self.title = ROOT.TText(self.spacerx, 1 - self.title_sizey * 3 / 4, "")
+        self.title.SetTextSize(0.056)
+        self.title.SetTextAlign(12)
 
     def setrange(self, zmin: float, zmax: float):
         self.range_min = zmin
@@ -804,8 +949,15 @@ class demonstrator:
 
     def draw_top(self):
         if self.demonstrator_canvas is None:
-            name = "C_demonstrator_{}".format(self.name)
-            self.demonstrator_canvas = ROOT.TCanvas(name, name, 1800, 450)
+            canvas_width = 1600
+            canvas_height = 400
+
+            self.demonstrator_canvas = ROOT.TCanvas("C_demonstrator_{}".format(self.name), "{}".format(self.name),
+                                                    canvas_width, canvas_height)
+            decoration_width = canvas_width - self.demonstrator_canvas.GetWw()
+            decoration_height = canvas_height - self.demonstrator_canvas.GetWh()
+            self.demonstrator_canvas.SetWindowSize(canvas_width + decoration_width, canvas_height + decoration_height)
+            self.demonstrator_canvas.SetFixedAspectRatio()
 
         for mw_side in range(2):
             for mw_column in range(20):
@@ -826,7 +978,7 @@ class demonstrator:
                     top_gg_num = gg_side * 113 * 9 + gg_row * 9 + gg_layer
                     self.top_gg_box[top_gg_num].Draw("l")
                     self.top_gg_ellipse[top_gg_num].Draw("l")
-
+        self.title.Draw()
         self.update()
 
     def setomcontent(self, om_num: int, value: float):
@@ -873,17 +1025,20 @@ class demonstrator:
 
     def reset(self):
         for om in range(len(self.top_om_content)):
-            self.top_om_content[om] = 0
-            self.top_om_box[om].SetFillColor(0)
+            self.top_om_content[om] = None
+            self.top_om_box[om].SetFillColor(14)
 
         for gg in range(len(self.top_gg_content)):
-            self.top_gg_content[gg] = 0
-            self.top_gg_ellipse[gg].SetFillColor(0)
+            self.top_gg_content[gg] = None
+            self.top_gg_ellipse[gg].SetFillColor(14)
 
         self.demonstrator_canvas.Modified()
         self.demonstrator_canvas.Update()
 
         ROOT.gSystem.ProcessEvents()
+
+    def settitle(self, text: str):
+        self.title.SetText(self.title.GetX(), self.title.GetY(), text)
 
     def update(self):
         top_content_min = self.top_om_content[0]
@@ -914,7 +1069,7 @@ class demonstrator:
                     color_index = 0
                 elif color_index >= 100:
                     color_index = 99
-                self.top_om_box[om].SetFillColor(int(self.palette_index + color_index))
+                self.top_om_box[om].SetFillColor(int(self.palette_index.get_index() + color_index))
             else:
                 self.top_om_box[om].SetFillColor(0)
 
@@ -925,7 +1080,7 @@ class demonstrator:
                     color_index = 0
                 elif color_index >= 100:
                     color_index = 99
-                self.top_gg_ellipse[gg].SetFillColor(int(self.palette_index + color_index))
+                self.top_gg_ellipse[gg].SetFillColor(int(self.palette_index.get_index() + color_index))
             else:
                 self.top_gg_ellipse[gg].SetFillColor(0)
 
@@ -938,8 +1093,8 @@ class demonstrator:
         self.demonstrator_canvas.SaveAs(location + "/" + self.name + '_d.pdf')
 
 
-def sndisplay_test():
-    sncalo = calorimeter('test')
+def sndisplay_calo_test():
+    sncalo = calorimeter('test', with_palette=True)
 
     sncalo.draw_omid_label()
     sncalo.draw_content_label('{:.1f}')
@@ -954,5 +1109,64 @@ def sndisplay_test():
     sncalo.save(".")
 
 
+def sndisplay_tracker_test():
+    sntracker = tracker('test', with_palette=True)
+
+    sntracker.draw_cellid_label()
+    sntracker.draw_content_label('{:.1f}')
+
+    for cell in range(2034):
+        sntracker.setcontent(cell, gauss(100.0, 10.0))
+
+    '''for omnum in range(712):
+        sncalo.setcontent(omnum, gauss(50.0, 10.0))'''
+
+    sntracker.draw()
+    sntracker.save(".")
+
+
+def sndisplay_demon_test():
+    sndemonstrator = demonstrator("demonstrator_test")
+    anode_and_two_cathodes = 1
+    anode_and_one_cathode = 0.85
+    anode_and_no_cathode = 0.7
+    two_cathodes_only = 0.5
+    one_cathode_only = 0.2
+
+    sndemonstrator.setggcontent_(0,  7, 7, anode_and_two_cathodes)
+    sndemonstrator.setggcontent_(0,  7, 8, anode_and_one_cathode)
+    sndemonstrator.setggcontent_(0,  8, 6, one_cathode_only)
+    sndemonstrator.setggcontent_(0,  8, 7, anode_and_two_cathodes)
+    sndemonstrator.setggcontent_(0,  9, 2, anode_and_one_cathode)
+    sndemonstrator.setggcontent_(0,  9, 3, anode_and_two_cathodes)
+    sndemonstrator.setggcontent_(0,  9, 4, anode_and_two_cathodes)
+    sndemonstrator.setggcontent_(0, 10, 0, anode_and_no_cathode)
+    sndemonstrator.setggcontent_(0, 10, 1, anode_and_one_cathode)
+
+    sndemonstrator.setggcontent_(1,  8, 6, one_cathode_only)
+    sndemonstrator.setggcontent_(1,  8, 7, anode_and_one_cathode)
+    sndemonstrator.setggcontent_(1,  9, 3, one_cathode_only)
+    sndemonstrator.setggcontent_(1,  9, 4, anode_and_one_cathode)
+    sndemonstrator.setggcontent_(1,  9, 5, anode_and_one_cathode)
+    sndemonstrator.setggcontent_(1,  9, 6, anode_and_one_cathode)
+    sndemonstrator.setggcontent_(1,  9, 7, anode_and_one_cathode)
+    sndemonstrator.setggcontent_(1, 10, 0, anode_and_no_cathode)
+    sndemonstrator.setggcontent_(1, 10, 1, anode_and_two_cathodes)
+    sndemonstrator.setggcontent_(1, 10, 2, anode_and_two_cathodes)
+    sndemonstrator.setggcontent_(1, 10, 3, anode_and_two_cathodes)
+    sndemonstrator.setggcontent_(1, 11, 0, anode_and_one_cathode)
+
+    sndemonstrator.settitle("RUN 609 // TRIGGER 9")
+    sndemonstrator.draw_top()
+
+    for side in range(2):
+        for row in range(15, 113):
+            for layer in range(9):
+                sndemonstrator.setggcolor_(side, row, layer, 14)
+    sndemonstrator.save(".")
+
+
 if __name__ == '__main__':
-    sndisplay_test()
+    sndisplay_calo_test()
+    sndisplay_tracker_test()
+    sndisplay_demon_test()

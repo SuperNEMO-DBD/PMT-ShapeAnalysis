@@ -131,7 +131,6 @@ int main (int argc, char *argv[])
 
     const double calo_tdc2ns = snfee::model::feb_constants::SAMLONG_DEFAULT_TDC_LSB_NS;
     const double calo_adc2mv = snfee::model::feb_constants::SAMLONG_ADC_VOLTAGE_LSB_MV;
-
     const double tracker_tdc2sec = 1000.0E-9/snfee::model::feb_constants::FEAST_CLOCK_FREQUENCY_MHZ;
 
     ////////////////////////////////
