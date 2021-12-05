@@ -9,20 +9,18 @@
 #include <snfee/snfee.h>
 #include <snfee/io/multifile_data_reader.h>
 #include <snfee/data/raw_trigger_data.h>
+#include <snfee/data/raw_event_data.h>
+#include <snfee/data/calo_digitized_hit.h>
+#include <snfee/data/tracker_digitized_hit.h>
+#include <snfee/data/time.h>
 
 // This project:
 #include <sncabling/sncabling.h>
 #include <sncabling/om_id.h>
 #include <sncabling/label.h>
 #include <sncabling/gg_cell_id.h>
-
 #include <sncabling/service.h>
 #include <sncabling/calo_signal_cabling.h>
-
-#include <snfee/data/raw_event_data.h>
-#include <snfee/data/calo_digitized_hit.h>
-#include <snfee/data/tracker_digitized_hit.h>
-#include <snfee/data/time.h>
 
 #include "TFile.h"
 #include "TTree.h"

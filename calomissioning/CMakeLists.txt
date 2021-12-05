@@ -1,14 +1,25 @@
 # - Example project for accessing SuperNEMO RTD data (Raw Trigger Data)
+if(${CMAKE_SOURCE_DIR} STREQUAL ${CMAKE_BINARY_DIR})
+    message(STATUS "The project requires an out-of-source build.")
+    message(STATUS "Please remove these files from ${CMAKE_BINARY_DIR} first:")
+    message(STATUS "  CMakeCache.txt")
+    message(STATUS "  CMakeFiles")
+    message(STATUS "Once these files are removed, create a separate directory")
+    message(STATUS "and run CMake from there, pointing it to:")
+    message(STATUS "  ${CMAKE_SOURCE_DIR}")
+    message(FATAL_ERROR "in-source build detected")
+endif()
 
+# Project setup
 cmake_minimum_required(VERSION 3.3 FATAL_ERROR)
-project(snfee_read_rtd LANGUAGES CXX)
+project(snfee_examples_read_red VERSION 0.1.0)
 
-# - Load Custom Modules
+# - Load Builtin/Custom Modules
+include(GNUInstallDirs)
 list(INSERT CMAKE_MODULE_PATH 0 ${PROJECT_SOURCE_DIR}/cmake)
 message(STATUS "[info] CMAKE_MODULE_PATH = '${CMAKE_MODULE_PATH}'")
 
-find_package(SNFrontEndElectronics)
-message(STATUS  "SNFrontEndElectronics_INCLUDE_DIR=${SNFrontEndElectronics_INCLUDE_DIR}")
+find_package(SNFrontEndElectronics REQUIRED)
 include_directories(${SNFrontEndElectronics_INCLUDE_DIRS})
 
 # - Executable:
