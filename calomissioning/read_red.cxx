@@ -386,17 +386,17 @@ int main (int argc, char *argv[])
 	            const snfee::data::timestamp bottom_cathode_timestamp = gg_timestamps.get_bottom_cathode_time();
 	            const snfee::data::timestamp top_cathode_timestamp = gg_timestamps.get_bottom_cathode_time();
 
-                tracker_event.timestamp_r0.push_back(anode_timestamp_r0.timestamp);
-                tracker_event.timestamp_r1.push_back(anode_timestamp_r1.timestamp);
-                tracker_event.timestamp_r2.push_back(anode_timestamp_r2.timestamp);
-                tracker_event.timestamp_r3.push_back(anode_timestamp_r3.timestamp);
-                tracker_event.timestamp_r4.push_back(anode_timestamp_r4.timestamp);
-                tracker_event.time_anode.push_back((double)anode_timestamp_r0.timestamp*tracker_tdc2sec);
+                tracker_event.timestamp_r0.push_back(anode_timestamp_r0.timestamp());
+                tracker_event.timestamp_r1.push_back(anode_timestamp_r1.timestamp());
+                tracker_event.timestamp_r2.push_back(anode_timestamp_r2.timestamp());
+                tracker_event.timestamp_r3.push_back(anode_timestamp_r3.timestamp());
+                tracker_event.timestamp_r4.push_back(anode_timestamp_r4.timestamp());
+                tracker_event.time_anode.push_back((double)anode_timestamp_r0.timestamp().timestamp*tracker_tdc2sec);
 
-                tracker_event.timestamp_r5.push_back(bottom_cathode_timestamp.timestamp);
-                tracker_event.timestamp_r6.push_back(top_cathode_timestamp.timestamp);
-                tracker_event.time_bottom_cathode.push_back((double)bottom_cathode_timestamp.timestamp*tracker_tdc2sec);
-                tracker_event.time_top_cathode.push_back((double)top_cathode_timestamp.timestamp*tracker_tdc2sec);
+                tracker_event.timestamp_r5.push_back(bottom_cathode_timestamp.timestamp());
+                tracker_event.timestamp_r6.push_back(top_cathode_timestamp.timestamp());
+                tracker_event.time_bottom_cathode.push_back((double)bottom_cathode_timestamp.timestamp()*tracker_tdc2sec);
+                tracker_event.time_top_cathode.push_back((double)top_cathode_timestamp.timestamp()*tracker_tdc2sec);
 	        }
 	    }
 
