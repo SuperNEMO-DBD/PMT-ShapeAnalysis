@@ -130,36 +130,33 @@ int main (int argc, char *argv[])
     event_tree->Branch("event_time",    &eventn.event_time);
 
     // Calorimeter
-    event_tree->Branch("calo_fee_amplitude",    &calo.fee_amplitude);
-    event_tree->Branch("calo_fee_baseline",     &calo.fee_baseline);
-    event_tree->Branch("calo_fee_charge",       &calo.fee_charge);
-    event_tree->Branch("calo_om_column",        &calo.om_column);
-    event_tree->Branch("calo_om_wall",          &calo.om_wall);
-    event_tree->Branch("calo_om_side",          &calo.om_side);
-    event_tree->Branch("calo_om_row",           &calo.om_row);
-    event_tree->Branch("calo_om_num",           &calo.om_num);
-    event_tree->Branch("calo_baseline",         &calo.baseline);
-    event_tree->Branch("calo_charge",           &calo.charge);
-    event_tree->Branch("calo_amplitude",        &calo.amplitude);
-    event_tree->Branch("calo_tdc",              &calo.tdc);
-    event_tree->Branch("calo_time",             &calo.time);
-    event_tree->Branch("calo_flag",             &calo.flag);
+    event_tree->Branch("calo_om_column",        &calo_event.om_column);
+    event_tree->Branch("calo_om_wall",          &calo_event.om_wall);
+    event_tree->Branch("calo_om_side",          &calo_event.om_side);
+    event_tree->Branch("calo_om_row",           &calo_event.om_row);
+    event_tree->Branch("calo_om_num",           &calo_event.om_num);
+    event_tree->Branch("calo_baseline",         &calo_event.baseline);
+    event_tree->Branch("calo_charge",           &calo_event.charge);
+    event_tree->Branch("calo_amplitude",        &calo_event.amplitude);
+    event_tree->Branch("calo_tdc",              &calo_event.tdc);
+    event_tree->Branch("calo_time",             &calo_event.time);
+    event_tree->Branch("calo_flag",             &calo_event.flag);
 
     // Tracker
-    event_tree->Branch("tracker_cell_side",             &tracker.cell_side);
-    event_tree->Branch("tracker_cell_row",              &tracker.cell_row);
-    event_tree->Branch("tracker_cell_layer",            &tracker.cell_layer);
-    event_tree->Branch("tracker_cell_num",              &tracker.cell_num);
-    event_tree->Branch("tracker_timestamp_r0",          &tracker.timestamp_r0);
-    event_tree->Branch("tracker_timestamp_r1",          &tracker.timestamp_r1);
-    event_tree->Branch("tracker_timestamp_r2",          &tracker.timestamp_r2);
-    event_tree->Branch("tracker_timestamp_r3",          &tracker.timestamp_r3);
-    event_tree->Branch("tracker_timestamp_r4",          &tracker.timestamp_r4);
-    event_tree->Branch("tracker_timestamp_r5",          &tracker.timestamp_r5);
-    event_tree->Branch("tracker_timestamp_r6",          &tracker.timestamp_r6);
-    event_tree->Branch("tracker_time_anode",            &tracker.time_anode);
-    event_tree->Branch("tracker_time_top_cathode",      &tracker.time_top_cathode);
-    event_tree->Branch("tracker_time_bottom_cathode",   &tracker.time_bottom_cathode);
+    event_tree->Branch("tracker_cell_side",             &tracker_event.cell_side);
+    event_tree->Branch("tracker_cell_row",              &tracker_event.cell_row);
+    event_tree->Branch("tracker_cell_layer",            &tracker_event.cell_layer);
+    event_tree->Branch("tracker_cell_num",              &tracker_event.cell_num);
+    event_tree->Branch("tracker_timestamp_r0",          &tracker_event.timestamp_r0);
+    event_tree->Branch("tracker_timestamp_r1",          &tracker_event.timestamp_r1);
+    event_tree->Branch("tracker_timestamp_r2",          &tracker_event.timestamp_r2);
+    event_tree->Branch("tracker_timestamp_r3",          &tracker_event.timestamp_r3);
+    event_tree->Branch("tracker_timestamp_r4",          &tracker_event.timestamp_r4);
+    event_tree->Branch("tracker_timestamp_r5",          &tracker_event.timestamp_r5);
+    event_tree->Branch("tracker_timestamp_r6",          &tracker_event.timestamp_r6);
+    event_tree->Branch("tracker_time_anode",            &tracker_event.time_anode);
+    event_tree->Branch("tracker_time_top_cathode",      &tracker_event.time_top_cathode);
+    event_tree->Branch("tracker_time_bottom_cathode",   &tracker_event.time_bottom_cathode);
 
     snfee::initialize();
 
