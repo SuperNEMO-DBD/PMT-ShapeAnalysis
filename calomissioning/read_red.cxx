@@ -140,7 +140,8 @@ int main (int argc, char *argv[])
     event_tree->Branch("calo_amplitude",        &calo_event.amplitude);
     event_tree->Branch("calo_tdc",              &calo_event.tdc);
     event_tree->Branch("calo_time",             &calo_event.time);
-    event_tree->Branch("calo_flag",             &calo_event.flag);
+    event_tree->Branch("calo_high_t",           &calo_event.high_t);
+    event_tree->Branch("calo_low_t",            &calo_event.high_t);
 
     // Tracker
     event_tree->Branch("tracker_cell_side",             &tracker_event.cell_side);
@@ -177,6 +178,8 @@ int main (int argc, char *argv[])
     const double calo_adc2mv = snfee::model::feb_constants::SAMLONG_ADC_VOLTAGE_LSB_MV;
     const double tracker_tdc2sec = 1000.0E-9/snfee::model::feb_constants::FEAST_CLOCK_FREQUENCY_MHZ;
     int baseline_nsamples = 16*8; // 50 ns
+    int pre_charge  = 16*4;  //  -25 ns
+    int post_charge = 16*36; // +225 ns
 
     while (red_source.has_record_tag())
     {
@@ -248,7 +251,7 @@ int main (int argc, char *argv[])
                 calo_column_num = om_id.get_column();
                 calo_row_num = om_id.get_row();
                 calo_om_num = 520 + calo_side_num * 64 + calo_wall_num * 32 + calo_column_num * 16 + calo_row_num;
-            } else if (calo_om_id.is_gveto()) {
+            } else if (om_id.is_gveto()) {
                 calo_side_num = om_id.get_side();
                 calo_wall_num = om_id.get_wall();
                 calo_column_num = om_id.get_column();
@@ -272,8 +275,8 @@ int main (int argc, char *argv[])
 	        // // High/Low threshold flags
 	        bool ht = red_calo_hit.is_high_threshold();
 	        bool lt = red_calo_hit.is_low_threshold_only();
-            calo_event.high_t = ht;
-            calo_event.low_t  = lt;
+            calo_event.high_t.push_back(ht);
+            calo_event.low_t.push_back(lt);
 
 	        // // Wavecatcher firmware measurement
             // I do not trust these
@@ -340,9 +343,9 @@ int main (int argc, char *argv[])
 
             ////////////////////////////////////////
 
-            calo.baseline.push_back(calo_baseline);
-            calo.amplitude.push_back(calo_ampl_min);
-            calo.charge.push_back(calo_charge);
+            calo_event.baseline.push_back(calo_baseline);
+            calo_event.amplitude.push_back(calo_ampl_min);
+            calo_event.charge.push_back(calo_charge);
 	    }
 
         // Scan tracker hits
@@ -353,9 +356,9 @@ int main (int argc, char *argv[])
 
 	        // CELL ID from SNCabling
 	        const sncabling::gg_cell_id gg_id = red_tracker_hit.get_cell_id();
-            tracker_side_num    = tracker_cell_id.get_side();
-            tracker_row_num     = tracker_cell_id.get_row();
-            tracker_layer_num   = tracker_cell_id.get_layer();
+            tracker_side_num    = gg_id.get_side();
+            tracker_row_num     = gg_id.get_row();
+            tracker_layer_num   = gg_id.get_layer();
 
             tracker_cell_num = 113 * 9 * tracker_side_num + 9 * tracker_row_num + tracker_layer_num;
             tracker_event.cell_side.push_back(tracker_side_num);
@@ -383,17 +386,17 @@ int main (int argc, char *argv[])
 	            const snfee::data::timestamp bottom_cathode_timestamp = gg_timestamps.get_bottom_cathode_time();
 	            const snfee::data::timestamp top_cathode_timestamp = gg_timestamps.get_bottom_cathode_time();
 
-                tracker_event.timestamp_r0.push_back(anode_timestamp_r0);
-                tracker_event.timestamp_r1.push_back(anode_timestamp_r1);
-                tracker_event.timestamp_r2.push_back(anode_timestamp_r2);
-                tracker_event.timestamp_r3.push_back(anode_timestamp_r3);
-                tracker_event.timestamp_r4.push_back(anode_timestamp_r4);
-                tracker_event.time_anode.push_back(anode_timestamp_r0*tracker_tdc2sec);
+                tracker_event.timestamp_r0.push_back(anode_timestamp_r0.get_timestamp());
+                tracker_event.timestamp_r1.push_back(anode_timestamp_r1.get_timestamp());
+                tracker_event.timestamp_r2.push_back(anode_timestamp_r2.get_timestamp());
+                tracker_event.timestamp_r3.push_back(anode_timestamp_r3.get_timestamp());
+                tracker_event.timestamp_r4.push_back(anode_timestamp_r4.get_timestamp());
+                tracker_event.time_anode.push_back((double)anode_timestamp_r0.get_timestamp()*tracker_tdc2sec);
 
-                tracker_event.timestamp_r5.push_back(bottom_cathode_timestamp);
-                tracker_event.timestamp_r6.push_back(top_cathode_timestamp);
-                tracker_event.time_bottom_cathode.push_back(bottom_cathode_timestamp*tracker_tdc2sec);
-                tracker_event.time_top_cathode.push_back(top_cathode_timestamp*tracker_tdc2sec);
+                tracker_event.timestamp_r5.push_back(bottom_cathode_timestamp.get_timestamp());
+                tracker_event.timestamp_r6.push_back(top_cathode_timestamp.get_timestamp());
+                tracker_event.time_bottom_cathode.push_back((double)bottom_cathode_timestamp*tracker_tdc2sec);
+                tracker_event.time_top_cathode.push_back((double)top_cathode_timestamp*tracker_tdc2sec);
 	        }
 	    }
 
