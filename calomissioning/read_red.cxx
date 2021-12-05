@@ -403,7 +403,7 @@ int main (int argc, char *argv[])
         // Increment the counter
         red_counter++;
 
-        event_tree->Fill()
+        event_tree->Fill();
 
     } // (while red_source.has_record_tag())
 

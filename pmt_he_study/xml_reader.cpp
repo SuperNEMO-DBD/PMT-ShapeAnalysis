@@ -890,6 +890,8 @@ std::vector<Double_t> get_sat_charge(std::vector<Double_t> &vec, Double_t baseli
     Double_t A = fit->GetParameter(0);
     Double_t mu = fit->GetParameter(1);
 
+    if (A < -3500 || A > -900){std::cout << "The code is breaking the laws of physics" << std::endl;}
+
     Double_t charge = 0.0;
     for (int k = 0; k < av_pulse.size(); ++k)
     {
