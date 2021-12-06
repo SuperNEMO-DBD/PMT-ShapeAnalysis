@@ -201,7 +201,7 @@ int main (int argc, char *argv[])
         // Reference time from trigger
         const snfee::data::timestamp & red_reference_time = red.get_reference_time();
         eventn.event_tdc = red_reference_time.get_ticks();
-        eventn.event_tdc = red_reference_time.get_ticks()*td;
+        eventn.event_tdc = red_reference_time.get_ticks()*tracker_tdc2sec;
 
         // Container of merged TriggerID(s) by event builder
         const std::set<int32_t> & red_trigger_ids = red.get_origin_trigger_ids();
