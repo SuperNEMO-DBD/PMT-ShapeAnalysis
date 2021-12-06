@@ -80,6 +80,7 @@ typedef struct {
 
 typedef struct {
     int32_t event_num;
+    uint64_t event_tdc;
     double event_time;
 } EVENTN;
 
@@ -199,7 +200,8 @@ int main (int argc, char *argv[])
 
         // Reference time from trigger
         const snfee::data::timestamp & red_reference_time = red.get_reference_time();
-        eventn.event_time = red_reference_time.get_ticks();
+        eventn.event_tdc = red_reference_time.get_ticks();
+        eventn.event_tdc = red_reference_time.get_ticks()*td;
 
         // Container of merged TriggerID(s) by event builder
         const std::set<int32_t> & red_trigger_ids = red.get_origin_trigger_ids();
@@ -361,10 +363,6 @@ int main (int argc, char *argv[])
             tracker_layer_num   = gg_id.get_layer();
 
             tracker_cell_num = 113 * 9 * tracker_side_num + 9 * tracker_row_num + tracker_layer_num;
-            tracker_event.cell_side.push_back(tracker_side_num);
-            tracker_event.cell_row.push_back(tracker_row_num);
-            tracker_event.cell_layer.push_back(tracker_layer_num);
-            tracker_event.cell_num.push_back(tracker_cell_num);
 
 	        // GG timestamps
 	        const std::vector<snfee::data::tracker_digitized_hit::gg_times> & gg_timestamps_v = red_tracker_hit.get_times();
@@ -397,6 +395,11 @@ int main (int argc, char *argv[])
                 tracker_event.timestamp_r6.push_back(top_cathode_timestamp.get_ticks());
                 tracker_event.time_bottom_cathode.push_back((double)bottom_cathode_timestamp.get_ticks()*tracker_tdc2sec);
                 tracker_event.time_top_cathode.push_back((double)top_cathode_timestamp.get_ticks()*tracker_tdc2sec);
+
+                tracker_event.cell_side.push_back(tracker_side_num);
+                tracker_event.cell_row.push_back(tracker_row_num);
+                tracker_event.cell_layer.push_back(tracker_layer_num);
+                tracker_event.cell_num.push_back(tracker_cell_num);
 	        }
 	    }
 
