@@ -199,7 +199,7 @@ int main (int argc, char *argv[])
 
         // Reference time from trigger
         const snfee::data::timestamp & red_reference_time = red.get_reference_time();
-        eventn.event_time = red_reference_time;
+        eventn.event_time = red_reference_time.get_ticks();
 
         // Container of merged TriggerID(s) by event builder
         const std::set<int32_t> & red_trigger_ids = red.get_origin_trigger_ids();
@@ -234,7 +234,7 @@ int main (int argc, char *argv[])
 	        const snfee::data::calo_digitized_hit::rtd_origin & origin = red_calo_hit.get_origin();
 	        // origin.get_trigger_id()
 	        // origin.get_hit_number()
-            uint64_t calo_tdc = red_calo_hit.get_tdc();        // TDC timestamp (48 bits)
+            uint64_t calo_tdc = red_calo_hit.get_reference_time().get_ticks();// TDC timestamp (48 bits)
             calo_event.tdc.push_back(calo_tdc);
             calo_event.time.push_back(calo_tdc * 6.25E-9);
 
