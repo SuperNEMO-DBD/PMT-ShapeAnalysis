@@ -141,7 +141,7 @@ int main (int argc, char *argv[])
     event_tree->Branch("calo_tdc",              &calo_event.tdc);
     event_tree->Branch("calo_time",             &calo_event.time);
     event_tree->Branch("calo_high_t",           &calo_event.high_t);
-    event_tree->Branch("calo_low_t",            &calo_event.high_t);
+    event_tree->Branch("calo_low_t",            &calo_event.low_t);
 
     // Tracker
     event_tree->Branch("tracker_cell_side",             &tracker_event.cell_side);
@@ -384,7 +384,7 @@ int main (int argc, char *argv[])
 
 	            // CATHODE timestamps
 	            const snfee::data::timestamp bottom_cathode_timestamp = gg_timestamps.get_bottom_cathode_time();
-	            const snfee::data::timestamp top_cathode_timestamp = gg_timestamps.get_bottom_cathode_time();
+	            const snfee::data::timestamp top_cathode_timestamp = gg_timestamps.get_top_cathode_time();
 
                 tracker_event.timestamp_r0.push_back(anode_timestamp_r0.get_ticks());
                 tracker_event.timestamp_r1.push_back(anode_timestamp_r1.get_ticks());
