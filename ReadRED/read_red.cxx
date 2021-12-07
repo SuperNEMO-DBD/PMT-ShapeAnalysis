@@ -417,7 +417,7 @@ int main (int argc, char *argv[])
 
     std::cout << "File closed" << std::endl;
 
-    snfee::terminate();
+    // snfee::terminate();
 
     return 0;
 }
