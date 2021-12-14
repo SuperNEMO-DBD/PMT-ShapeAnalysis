@@ -460,7 +460,7 @@ int main (int argc, char *argv[])
                 tracker_event.tr_is_fr.push_back(tr_is_fr);
                 tracker_event.tr_is_it.push_back(tr_is_it);
 	        }else{
-                std::cout << std::endl << "Event Num: " << eventn.event_num << " Cell: " << tracker_cell_num << " size: " << gg_timestamps_v.size() << std::endl;
+                std::cout << std::endl << std::endl << "Event Num: " << eventn.event_num << " Cell: " << tracker_cell_num << " size: " << gg_timestamps_v.size() << std::endl;
                 for (int i = 0; i < gg_timestamps_v.size(); ++i) {
                     std::cout << std::endl << i << ": " << std::endl;
                     const snfee::data::tracker_digitized_hit::gg_times &gg_timestamps = gg_timestamps_v[i];
