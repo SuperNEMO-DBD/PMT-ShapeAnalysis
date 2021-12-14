@@ -459,6 +459,24 @@ int main (int argc, char *argv[])
                 tracker_event.tr_is_it.push_back(tr_is_it);
 	        }else{
                 std::cout << "Event Num: " << eventn.event_num << " Cell: " << tracker_cell_num << " size: " << gg_timestamps_v.size() << std::endl;
+                for (int i = 0; i < gg_timestamps_v.size(); ++i) {
+                    const snfee::data::tracker_digitized_hit::gg_times & gg_timestamps = gg_timestamps_v[i];
+                    // ANODE timestamps
+                    const snfee::data::timestamp anode_timestamp_r0 = gg_timestamps.get_anode_time(0);
+
+                    // CATHODE timestamps
+                    const snfee::data::timestamp bottom_cathode_timestamp = gg_timestamps.get_bottom_cathode_time();
+                    const snfee::data::timestamp top_cathode_timestamp = gg_timestamps.get_top_cathode_time();
+                    std::vector<unsigned long long int> temp = {anode_timestamp_r0.get_ticks(),
+                                                                bottom_cathode_timestamp.get_ticks(),
+                                                                top_cathode_timestamp.get_ticks()};
+                    for (int j = 0; j < temp.size(); ++j) {
+                        if (temp[j] == 0){
+                            std::cout << j << std::endl;
+                        }
+                    }
+                }
+                std::cout << std::endl;
             }
 	    }
 
