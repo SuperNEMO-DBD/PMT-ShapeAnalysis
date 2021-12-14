@@ -421,13 +421,13 @@ int main (int argc, char *argv[])
 	            const snfee::data::timestamp bottom_cathode_timestamp = gg_timestamps.get_bottom_cathode_time();
 	            const snfee::data::timestamp top_cathode_timestamp = gg_timestamps.get_top_cathode_time();
 
-                unsigned long long int r0 = (anode_timestamp_r0.get_ticks() == (unsigned long long int)9223372036854775808)       ? -9999 : anode_timestamp_r0.get_ticks();
-                unsigned long long int r1 = (anode_timestamp_r1.get_ticks() == (unsigned long long int)9223372036854775808)       ? -9999 : anode_timestamp_r1.get_ticks();
-                unsigned long long int r2 = (anode_timestamp_r2.get_ticks() == (unsigned long long int)9223372036854775808)       ? -9999 : anode_timestamp_r2.get_ticks();
-                unsigned long long int r3 = (anode_timestamp_r3.get_ticks() == (unsigned long long int)9223372036854775808)       ? -9999 : anode_timestamp_r3.get_ticks();
-                unsigned long long int r4 = (anode_timestamp_r4.get_ticks() == (unsigned long long int)9223372036854775808)       ? -9999 : anode_timestamp_r4.get_ticks();
-                unsigned long long int r5 = (bottom_cathode_timestamp.get_ticks() == (unsigned long long int)9223372036854775808) ? -9999 : bottom_cathode_timestamp.get_ticks();
-                unsigned long long int r6 = (top_cathode_timestamp.get_ticks() == (unsigned long long int)9223372036854775808)    ? -9999 : top_cathode_timestamp.get_ticks();
+                unsigned long long int r0 = (anode_timestamp_r0.get_ticks() == 9223372036854775808)       ? -9999 : anode_timestamp_r0.get_ticks();
+                unsigned long long int r1 = (anode_timestamp_r1.get_ticks() == 9223372036854775808)       ? -9999 : anode_timestamp_r1.get_ticks();
+                unsigned long long int r2 = (anode_timestamp_r2.get_ticks() == 9223372036854775808)       ? -9999 : anode_timestamp_r2.get_ticks();
+                unsigned long long int r3 = (anode_timestamp_r3.get_ticks() == 9223372036854775808)       ? -9999 : anode_timestamp_r3.get_ticks();
+                unsigned long long int r4 = (anode_timestamp_r4.get_ticks() == 9223372036854775808)       ? -9999 : anode_timestamp_r4.get_ticks();
+                unsigned long long int r5 = (bottom_cathode_timestamp.get_ticks() == 9223372036854775808) ? -9999 : bottom_cathode_timestamp.get_ticks();
+                unsigned long long int r6 = (top_cathode_timestamp.get_ticks() == 9223372036854775808)    ? -9999 : top_cathode_timestamp.get_ticks();
 
                 std::cout << "r0 " << r0 << std::endl;
                 std::cout << "r1 " << r1 << std::endl;
