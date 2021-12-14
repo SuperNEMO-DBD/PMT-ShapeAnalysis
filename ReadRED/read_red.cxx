@@ -458,7 +458,7 @@ int main (int argc, char *argv[])
                 tracker_event.tr_is_fr.push_back(tr_is_fr);
                 tracker_event.tr_is_it.push_back(tr_is_it);
 	        }else{
-                std::cout << "Cell: " << tracker_cell_num << " size: " << gg_timestamps_v.size() << std::endl;
+                std::cout << "Event Num: " << eventn.event_num << " Cell: " << tracker_cell_num << " size: " << gg_timestamps_v.size() << std::endl;
             }
 	    }
 
