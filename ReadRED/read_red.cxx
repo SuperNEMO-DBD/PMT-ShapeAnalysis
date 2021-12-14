@@ -67,7 +67,7 @@ typedef struct {
     // OM num
     std::vector<short> om_num;
 
-    std::vector<bool> is_mw, is_xw, is_gv, calo_is_fr, calo_is_it;
+    std::vector<bool> is_mw, is_xw, is_gv, is_fr, is_it;
 
     std::vector<int> high_t;
     std::vector<int> low_t;
@@ -142,8 +142,8 @@ int main (int argc, char *argv[])
     event_tree->Branch("calo_om_side",          &calo_event.om_side);
     event_tree->Branch("calo_om_row",           &calo_event.om_row);
     event_tree->Branch("calo_om_num",           &calo_event.om_num);
-    event_tree->Branch("calo_is_fr",            &calo_event.calo_is_fr);
-    event_tree->Branch("calo_is_it",            &calo_event.calo_is_it);
+    event_tree->Branch("calo_is_fr",            &calo_event.is_fr);
+    event_tree->Branch("calo_is_it",            &calo_event.is_it);
     event_tree->Branch("calo_is_mw",            &calo_event.is_mw);
     event_tree->Branch("calo_is_xw",            &calo_event.is_xw);
     event_tree->Branch("calo_is_gv",            &calo_event.is_gv);
