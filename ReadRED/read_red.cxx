@@ -460,10 +460,10 @@ int main (int argc, char *argv[])
                 tracker_event.tr_is_fr.push_back(tr_is_fr);
                 tracker_event.tr_is_it.push_back(tr_is_it);
 	        }else{
-                std::cout << "Event Num: " << eventn.event_num << " Cell: " << tracker_cell_num << " size: " << gg_timestamps_v.size() << std::endl;
+                std::cout << std::endl << "Event Num: " << eventn.event_num << " Cell: " << tracker_cell_num << " size: " << gg_timestamps_v.size() << std::endl;
                 for (int i = 0; i < gg_timestamps_v.size(); ++i) {
                     std::cout << std::endl << i << ": " << std::endl;
-                    const snfee::data::tracker_digitized_hit::gg_times & gg_timestamps = gg_timestamps_v[i];
+                    const snfee::data::tracker_digitized_hit::gg_times &gg_timestamps = gg_timestamps_v[i];
                     // ANODE timestamps
                     const snfee::data::timestamp anode_timestamp_r0 = gg_timestamps.get_anode_time(0);
 
@@ -475,12 +475,11 @@ int main (int argc, char *argv[])
                                                                 top_cathode_timestamp.get_ticks()};
                     for (int j = 0; j < temp.size(); ++j) {
                         // std::cout << temp[j] << std::endl;
-                        if (temp[j] != 9223372036854775808){
+                        if (temp[j] != 9223372036854775808) {
                             std::cout << types[j] << " ";
                         }
                     }
                 }
-                std::cout << std::endl;
             }
 	    }
 
