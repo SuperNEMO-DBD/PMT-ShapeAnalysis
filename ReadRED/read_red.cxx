@@ -40,6 +40,7 @@ typedef struct {
 
     // CELL num
     std::vector<short> cell_num;
+    std::vector<bool> tr_is_fr, tr_is_it;
 
     std::vector<unsigned long long int> timestamp_r0;
     std::vector<unsigned long long int> timestamp_r1;
@@ -52,6 +53,7 @@ typedef struct {
     std::vector<double> time_anode;
     std::vector<double> time_top_cathode;
     std::vector<double> time_bottom_cathode;
+    std::vector<double> time_anode_first_lt, time_anode_first_ht, time_anode_second_lt, time_anode_second_ht;
 
 } TRACKER ;
 
@@ -65,16 +67,20 @@ typedef struct {
     // OM num
     std::vector<short> om_num;
 
+    std::vector<bool> is_mw, is_xw, is_gv, calo_is_fr, calo_is_it;
+
     std::vector<int> high_t;
     std::vector<int> low_t;
 
     std::vector<uint64_t> tdc;
+    std::vector<uint64_t> tcfd;
     std::vector<double>  time; // v2
 
     // my data
     std::vector<double> baseline;
     std::vector<double> amplitude;
     std::vector<double> charge;
+    std::vector<double> energy;
 
 } CALO ;
 
@@ -136,10 +142,16 @@ int main (int argc, char *argv[])
     event_tree->Branch("calo_om_side",          &calo_event.om_side);
     event_tree->Branch("calo_om_row",           &calo_event.om_row);
     event_tree->Branch("calo_om_num",           &calo_event.om_num);
+    event_tree->Branch("calo_is_fr",            &calo_event.calo_is_fr);
+    event_tree->Branch("calo_is_it",            &calo_event.calo_is_it);
+    event_tree->Branch("calo_is_mw",            &calo_event.is_mw);
+    event_tree->Branch("calo_is_xw",            &calo_event.is_xw);
+    event_tree->Branch("calo_is_gv",            &calo_event.is_gv);
     event_tree->Branch("calo_baseline",         &calo_event.baseline);
     event_tree->Branch("calo_charge",           &calo_event.charge);
     event_tree->Branch("calo_amplitude",        &calo_event.amplitude);
     event_tree->Branch("calo_tdc",              &calo_event.tdc);
+    event_tree->Branch("calo_tcfd",             &calo_event.tcfd);
     event_tree->Branch("calo_time",             &calo_event.time);
     event_tree->Branch("calo_high_t",           &calo_event.high_t);
     event_tree->Branch("calo_low_t",            &calo_event.low_t);
@@ -149,6 +161,8 @@ int main (int argc, char *argv[])
     event_tree->Branch("tracker_cell_row",              &tracker_event.cell_row);
     event_tree->Branch("tracker_cell_layer",            &tracker_event.cell_layer);
     event_tree->Branch("tracker_cell_num",              &tracker_event.cell_num);
+    event_tree->Branch("tracker_is_fr",                 &tracker_event.tr_is_fr);
+    event_tree->Branch("tracker_is_it",                 &tracker_event.tr_is_it);
     event_tree->Branch("tracker_timestamp_r0",          &tracker_event.timestamp_r0);
     event_tree->Branch("tracker_timestamp_r1",          &tracker_event.timestamp_r1);
     event_tree->Branch("tracker_timestamp_r2",          &tracker_event.timestamp_r2);
@@ -159,6 +173,10 @@ int main (int argc, char *argv[])
     event_tree->Branch("tracker_time_anode",            &tracker_event.time_anode);
     event_tree->Branch("tracker_time_top_cathode",      &tracker_event.time_top_cathode);
     event_tree->Branch("tracker_time_bottom_cathode",   &tracker_event.time_bottom_cathode);
+    event_tree->Branch("tracker_time_anode_first_ht",   &tracker_event.time_anode_first_ht);
+    event_tree->Branch("tracker_time_anode_first_lt",   &tracker_event.time_anode_first_lt);
+    event_tree->Branch("tracker_time_anode_second_ht",  &tracker_event.time_anode_second_ht);
+    event_tree->Branch("tracker_time_anode_second_lt",  &tracker_event.time_anode_second_lt);
 
     snfee::initialize();
 
@@ -175,12 +193,12 @@ int main (int argc, char *argv[])
     // RED counter
     std::size_t red_counter = 0;
 
-    const double calo_tdc2ns = snfee::model::feb_constants::SAMLONG_DEFAULT_TDC_LSB_NS;
-    const double calo_adc2mv = snfee::model::feb_constants::SAMLONG_ADC_VOLTAGE_LSB_MV;
-    const double tracker_tdc2sec = 1000.0E-9/snfee::model::feb_constants::FEAST_CLOCK_FREQUENCY_MHZ;
-    int baseline_nsamples = 16*8; // 50 ns
-    int pre_charge  = 16*4;  //  -25 ns
-    int post_charge = 16*36; // +225 ns
+    const double calo_tdc2ns        = snfee::model::feb_constants::SAMLONG_DEFAULT_TDC_LSB_NS;
+    const double calo_adc2mv        = snfee::model::feb_constants::SAMLONG_ADC_VOLTAGE_LSB_MV;
+    const double tracker_tdc2sec    = 1000.0E-9/snfee::model::feb_constants::FEAST_CLOCK_FREQUENCY_MHZ;
+    int baseline_nsamples           = 16*8;     // 50 ns
+    int pre_charge                  = 16*4;     //  -25 ns
+    int post_charge                 = 16*36;    // +225 ns
 
     while (red_source.has_record_tag())
     {
@@ -228,6 +246,13 @@ int main (int argc, char *argv[])
         int tracker_row_num   = -1;
         int tracker_layer_num = -1;
         int tracker_cell_num  = -1;
+        bool calo_is_fr = false;
+        bool calo_is_it = false;
+        bool is_mw = false;
+        bool is_xw = false;
+        bool is_gv = false;
+        bool tr_is_fr = false;
+        bool tr_is_it = false;
 
         // Scan calo hits
         for (const snfee::data::calo_digitized_hit & red_calo_hit : red_calo_hits)
@@ -247,26 +272,35 @@ int main (int argc, char *argv[])
                 calo_column_num = om_id.get_column();
                 calo_row_num = om_id.get_row();
                 calo_om_num = calo_side_num * 20 * 13 + calo_column_num * 13 + calo_row_num;
+                is_mw = true;
             } else if (om_id.is_xwall()) {
                 calo_side_num = om_id.get_side();
                 calo_wall_num = om_id.get_wall();
                 calo_column_num = om_id.get_column();
                 calo_row_num = om_id.get_row();
                 calo_om_num = 520 + calo_side_num * 64 + calo_wall_num * 32 + calo_column_num * 16 + calo_row_num;
+                is_xw = true;
             } else if (om_id.is_gveto()) {
                 calo_side_num = om_id.get_side();
                 calo_wall_num = om_id.get_wall();
                 calo_column_num = om_id.get_column();
                 calo_om_num = 520 + 128 + calo_side_num * 32 + calo_wall_num * 16 + calo_column_num;
+                is_gv = true;
             } else {
                 // handle reference OM
                 // printf("*** channel %d/%02d/%02d is not mapped\n", crate_num, board_num, channel_num);
             }
+            if (calo_side_num == 1){calo_is_fr = true;}else{calo_is_it = true;}
             calo_event.om_side.push_back(calo_side_num);
             calo_event.om_wall.push_back(calo_wall_num);
             calo_event.om_row.push_back(calo_row_num);
             calo_event.om_column.push_back(calo_column_num);
             calo_event.om_num.push_back(calo_om_num);
+            calo_event.is_it.push_back(calo_is_it);
+            calo_event.is_fr.push_back(calo_is_fr);
+            calo_event.is_mw.push_back(is_mw);
+            calo_event.is_xw.push_back(is_xw);
+            calo_event.is_gv.push_back(is_gv);
 
 	        // Reference time (TDC)
 	        const snfee::data::timestamp & reference_time = red_calo_hit.get_reference_time();
@@ -362,6 +396,7 @@ int main (int argc, char *argv[])
             tracker_row_num     = gg_id.get_row();
             tracker_layer_num   = gg_id.get_layer();
 
+            if (tracker_side_num == 1){tr_is_fr = true;}else{tr_is_it = true;}
             tracker_cell_num = 113 * 9 * tracker_side_num + 9 * tracker_row_num + tracker_layer_num;
 
 	        // GG timestamps
@@ -384,23 +419,47 @@ int main (int argc, char *argv[])
 	            const snfee::data::timestamp bottom_cathode_timestamp = gg_timestamps.get_bottom_cathode_time();
 	            const snfee::data::timestamp top_cathode_timestamp = gg_timestamps.get_top_cathode_time();
 
-                tracker_event.timestamp_r0.push_back(anode_timestamp_r0.get_ticks());
-                tracker_event.timestamp_r1.push_back(anode_timestamp_r1.get_ticks());
-                tracker_event.timestamp_r2.push_back(anode_timestamp_r2.get_ticks());
-                tracker_event.timestamp_r3.push_back(anode_timestamp_r3.get_ticks());
-                tracker_event.timestamp_r4.push_back(anode_timestamp_r4.get_ticks());
-                tracker_event.time_anode.push_back((double)anode_timestamp_r0.get_ticks()*tracker_tdc2sec);
+                unsigned long long int r0 = (anode_timestamp_r0.get_ticks() == 0)       ? -9999 : anode_timestamp_r0.get_ticks();
+                unsigned long long int r1 = (anode_timestamp_r1.get_ticks() == 0)       ? -9999 : anode_timestamp_r1.get_ticks();
+                unsigned long long int r2 = (anode_timestamp_r2.get_ticks() == 0)       ? -9999 : anode_timestamp_r2.get_ticks();
+                unsigned long long int r3 = (anode_timestamp_r3.get_ticks() == 0)       ? -9999 : anode_timestamp_r3.get_ticks();
+                unsigned long long int r4 = (anode_timestamp_r4.get_ticks() == 0)       ? -9999 : anode_timestamp_r4.get_ticks();
+                unsigned long long int r5 = (bottom_cathode_timestamp.get_ticks() == 0) ? -9999 : bottom_cathode_timestamp.get_ticks();
+                unsigned long long int r6 = (top_cathode_timestamp.get_ticks() == 0)    ? -9999 : top_cathode_timestamp.get_ticks();
 
-                tracker_event.timestamp_r5.push_back(bottom_cathode_timestamp.get_ticks());
-                tracker_event.timestamp_r6.push_back(top_cathode_timestamp.get_ticks());
-                tracker_event.time_bottom_cathode.push_back((double)bottom_cathode_timestamp.get_ticks()*tracker_tdc2sec);
-                tracker_event.time_top_cathode.push_back((double)top_cathode_timestamp.get_ticks()*tracker_tdc2sec);
+                tracker_event.timestamp_r0.push_back(r0);
+                tracker_event.timestamp_r1.push_back(r1);
+                tracker_event.timestamp_r2.push_back(r2);
+                tracker_event.timestamp_r3.push_back(r3);
+                tracker_event.timestamp_r4.push_back(r4);
+                tracker_event.timestamp_r5.push_back(r5);
+                tracker_event.timestamp_r6.push_back(r6);
+
+                double t0 = (r0 == -9999) ? -9999.9 : (double)r0*tracker_tdc2sec;
+                double t1 = (r1 == -9999) ? -9999.9 : (double)r1*tracker_tdc2sec;
+                double t2 = (r2 == -9999) ? -9999.9 : (double)r2*tracker_tdc2sec;
+                double t3 = (r3 == -9999) ? -9999.9 : (double)r3*tracker_tdc2sec;
+                double t4 = (r4 == -9999) ? -9999.9 : (double)r4*tracker_tdc2sec;
+                double t5 = (r5 == -9999) ? -9999.9 : (double)r5*tracker_tdc2sec;
+                double t6 = (r6 == -9999) ? -9999.9 : (double)r6*tracker_tdc2sec;
+
+                tracker_event.time_anode.push_back(t0);
+                tracker_event.time_anode_first_lt.push_back(t1);
+                tracker_event.time_anode_first_ht.push_back(t2);
+                tracker_event.time_anode_second_lt.push_back(t3);
+                tracker_event.time_anode_second_ht.push_back(t4);
+                tracker_event.time_bottom_cathode.push_back(t5);
+                tracker_event.time_top_cathode.push_back(t6);
 
                 tracker_event.cell_side.push_back(tracker_side_num);
                 tracker_event.cell_row.push_back(tracker_row_num);
                 tracker_event.cell_layer.push_back(tracker_layer_num);
                 tracker_event.cell_num.push_back(tracker_cell_num);
-	        }
+                tracker_event.tr_is_fr.push_back(tr_is_fr);
+                tracker_event.tr_is_it.push_back(tr_is_it);
+	        }else{
+                std::cout << "Cell: " << tracker_cell_num << " size: " << gg_timestamps_v.size() << std::endl;
+            }
 	    }
 
         // Increment the counter

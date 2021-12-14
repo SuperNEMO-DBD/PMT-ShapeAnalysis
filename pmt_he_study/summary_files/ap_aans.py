@@ -230,7 +230,7 @@ def main():
     pmt_array.set_pmt_id("GAO607", 0)
     pmt_array.set_pmt_id("GAO612", 1)
 
-    filenames_txt = "/Users/williamquinn/Desktop/set_4/S95_A25/filenames.txt"
+    filenames_txt = "/Users/williamquinn/Desktop/set_5/S95_A25/filenames.txt"
     try:
         print(">>> Reading data from file: {}".format(filenames_txt))
         date_file = open(filenames_txt, 'r')
@@ -253,7 +253,7 @@ def main():
         date = filename.split("_")[0]
         voltage = int(filename.split("_")[1].split("A")[1])
 
-        file = ROOT.TFile("/Users/williamquinn/Desktop/set_4/S95_A25/" + filename, "READ")
+        file = ROOT.TFile("/Users/williamquinn/Desktop/set_5/S95_A25/" + filename, "READ")
         file.cd()
 
         for i_om in range(2):

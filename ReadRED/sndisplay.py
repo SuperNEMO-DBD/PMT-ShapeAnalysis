@@ -623,7 +623,7 @@ class tracker:
                     box.SetLineWidth(1)
                     self.cellbox.append(box)
 
-                    cellid_string = "{}.{}.{}".format(cell_side, cell_layer, cell_row)
+                    cellid_string = "{}.{}.{}".format(cell_side, cell_row, cell_layer)
                     cellid_text = ROOT.TText(x1 + 0.5 * self.cell_sizex, y1 + 0.667 * self.cell_sizey, cellid_string)
                     cellid_text.SetTextSize(0.01)
                     cellid_text.SetTextAlign(22)

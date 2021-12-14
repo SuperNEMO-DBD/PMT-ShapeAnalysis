@@ -20,6 +20,6 @@ plt.rcParams["font.family"] = "serif"
 marker_size = 3
 line_width = 0.5
 
-colors = cycler('color', ['#EE6666', '#3388BB', '#9988DD', '#EECC55', '#88BB44', '#FFBBBB'])
+colors = cycler('color', ['#EE6666', '#3388BB', '#9988DD', '#EECC55', '#88BB44', '#FFBBBB', '#653700', '#F97306'])
 plt.rc('axes', facecolor='white', edgecolor='black',
        axisbelow=True, grid=True, prop_cycle=colors)
