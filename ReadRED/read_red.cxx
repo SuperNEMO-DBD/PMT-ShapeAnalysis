@@ -429,13 +429,13 @@ int main (int argc, char *argv[])
                 int64_t r5 = (bottom_cathode_timestamp.get_ticks() == -9223372036854775808) ? -9999 : bottom_cathode_timestamp.get_ticks();
                 int64_t r6 = (top_cathode_timestamp.get_ticks() == -9223372036854775808)    ? -9999 : top_cathode_timestamp.get_ticks();
 
-                std::cout << "r0 " << r0 << std::endl;
-                std::cout << "r1 " << r1 << std::endl;
-                std::cout << "r2 " << r2 << std::endl;
-                std::cout << "r3 " << r3 << std::endl;
-                std::cout << "r4 " << r4<< std::endl;
-                std::cout << "r5 " << r5 << std::endl;
-                std::cout << "r6 " << r6 << std::endl;
+                //std::cout << "r0 " << r0 << std::endl;
+                //std::cout << "r1 " << r1 << std::endl;
+                //std::cout << "r2 " << r2 << std::endl;
+                //std::cout << "r3 " << r3 << std::endl;
+                //std::cout << "r4 " << r4<< std::endl;
+                //std::cout << "r5 " << r5 << std::endl;
+                //std::cout << "r6 " << r6 << std::endl;
 
                 tracker_event.timestamp_r0.push_back(r0);
                 tracker_event.timestamp_r1.push_back(r1);
@@ -483,7 +483,7 @@ int main (int argc, char *argv[])
                                                  top_cathode_timestamp.get_ticks()};
                     for (int j = 0; j < temp.size(); ++j) {
                         // std::cout << temp[j] << std::endl;
-                        if (temp[j] != 9223372036854775808) {
+                        if (temp[j] != -9223372036854775808) {
                             std::cout << types[j] << " ";
                         }
                     }
