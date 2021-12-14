@@ -419,13 +419,13 @@ int main (int argc, char *argv[])
 	            const snfee::data::timestamp bottom_cathode_timestamp = gg_timestamps.get_bottom_cathode_time();
 	            const snfee::data::timestamp top_cathode_timestamp = gg_timestamps.get_top_cathode_time();
 
-                unsigned long long int r0 = (anode_timestamp_r0.get_ticks() == 0)       ? -9999 : anode_timestamp_r0.get_ticks();
-                unsigned long long int r1 = (anode_timestamp_r1.get_ticks() == 0)       ? -9999 : anode_timestamp_r1.get_ticks();
-                unsigned long long int r2 = (anode_timestamp_r2.get_ticks() == 0)       ? -9999 : anode_timestamp_r2.get_ticks();
-                unsigned long long int r3 = (anode_timestamp_r3.get_ticks() == 0)       ? -9999 : anode_timestamp_r3.get_ticks();
-                unsigned long long int r4 = (anode_timestamp_r4.get_ticks() == 0)       ? -9999 : anode_timestamp_r4.get_ticks();
-                unsigned long long int r5 = (bottom_cathode_timestamp.get_ticks() == 0) ? -9999 : bottom_cathode_timestamp.get_ticks();
-                unsigned long long int r6 = (top_cathode_timestamp.get_ticks() == 0)    ? -9999 : top_cathode_timestamp.get_ticks();
+                unsigned long long int r0 = (anode_timestamp_r0.get_ticks() == 9223372036854775808)       ? -9999 : anode_timestamp_r0.get_ticks();
+                unsigned long long int r1 = (anode_timestamp_r1.get_ticks() == 9223372036854775808)       ? -9999 : anode_timestamp_r1.get_ticks();
+                unsigned long long int r2 = (anode_timestamp_r2.get_ticks() == 9223372036854775808)       ? -9999 : anode_timestamp_r2.get_ticks();
+                unsigned long long int r3 = (anode_timestamp_r3.get_ticks() == 9223372036854775808)       ? -9999 : anode_timestamp_r3.get_ticks();
+                unsigned long long int r4 = (anode_timestamp_r4.get_ticks() == 9223372036854775808)       ? -9999 : anode_timestamp_r4.get_ticks();
+                unsigned long long int r5 = (bottom_cathode_timestamp.get_ticks() == 9223372036854775808) ? -9999 : bottom_cathode_timestamp.get_ticks();
+                unsigned long long int r6 = (top_cathode_timestamp.get_ticks() == 9223372036854775808)    ? -9999 : top_cathode_timestamp.get_ticks();
 
                 tracker_event.timestamp_r0.push_back(r0);
                 tracker_event.timestamp_r1.push_back(r1);
@@ -460,7 +460,7 @@ int main (int argc, char *argv[])
 	        }else{
                 std::cout << "Event Num: " << eventn.event_num << " Cell: " << tracker_cell_num << " size: " << gg_timestamps_v.size() << std::endl;
                 for (int i = 0; i < gg_timestamps_v.size(); ++i) {
-                    std::cout << i << std::endl;
+                    // std::cout << i << std::endl;
                     const snfee::data::tracker_digitized_hit::gg_times & gg_timestamps = gg_timestamps_v[i];
                     // ANODE timestamps
                     const snfee::data::timestamp anode_timestamp_r0 = gg_timestamps.get_anode_time(0);
@@ -472,10 +472,10 @@ int main (int argc, char *argv[])
                                                                 bottom_cathode_timestamp.get_ticks(),
                                                                 top_cathode_timestamp.get_ticks()};
                     for (int j = 0; j < temp.size(); ++j) {
-                        std::cout << temp[j] << std::endl;
-                        //if (temp[j] == 0){
-                        //    std::cout << temp[j] << std::endl;
-                        //}
+                        // std::cout << temp[j] << std::endl;
+                        if (temp[j] != 9223372036854775808){
+                            std::cout << j << std::endl;
+                        }
                     }
                 }
                 std::cout << std::endl;
