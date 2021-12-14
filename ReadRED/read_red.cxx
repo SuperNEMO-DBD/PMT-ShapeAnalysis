@@ -462,7 +462,7 @@ int main (int argc, char *argv[])
 	        }else{
                 std::cout << "Event Num: " << eventn.event_num << " Cell: " << tracker_cell_num << " size: " << gg_timestamps_v.size() << std::endl;
                 for (int i = 0; i < gg_timestamps_v.size(); ++i) {
-                    std::cout << i << ": " << std::endl;
+                    std::cout << std::endl << i << ": " << std::endl;
                     const snfee::data::tracker_digitized_hit::gg_times & gg_timestamps = gg_timestamps_v[i];
                     // ANODE timestamps
                     const snfee::data::timestamp anode_timestamp_r0 = gg_timestamps.get_anode_time(0);
