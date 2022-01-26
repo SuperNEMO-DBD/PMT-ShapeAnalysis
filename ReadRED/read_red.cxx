@@ -437,7 +437,7 @@ int main (int argc, char *argv[])
                 tracker_event.timestamp_r5.push_back(r5);
                 tracker_event.timestamp_r6.push_back(r6);
 
-                double t0, t1, t3, t4, t5, t6;
+                double t0, t1, t2, t3, t4, t5, t6;
                 if (r0 == -9999){t0 = -9999.;}else{t0 = (double)r0*tracker_tdc2sec;}
                 if (r1 == -9999){t1 = -9999.;}else{t1 = (double)r1*tracker_tdc2sec;}
                 if (r2 == -9999){t2 = -9999.;}else{t2 = (double)r2*tracker_tdc2sec;}
