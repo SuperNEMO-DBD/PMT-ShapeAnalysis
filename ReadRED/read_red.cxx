@@ -55,6 +55,10 @@ typedef struct {
     std::vector<double> time_bottom_cathode;
     std::vector<double> time_anode_first_lt, time_anode_first_ht, time_anode_second_lt, time_anode_second_ht;
 
+    std::vector<double> drift_time_top_cathode;
+    std::vector<double> drift_time_bottom_cathode;
+
+
 } TRACKER ;
 
 typedef struct {
@@ -157,26 +161,28 @@ int main (int argc, char *argv[])
     event_tree->Branch("calo_low_t",            &calo_event.low_t);
 
     // Tracker
-    event_tree->Branch("tracker_cell_side",             &tracker_event.cell_side);
-    event_tree->Branch("tracker_cell_row",              &tracker_event.cell_row);
-    event_tree->Branch("tracker_cell_layer",            &tracker_event.cell_layer);
-    event_tree->Branch("tracker_cell_num",              &tracker_event.cell_num);
-    event_tree->Branch("tracker_is_fr",                 &tracker_event.tr_is_fr);
-    event_tree->Branch("tracker_is_it",                 &tracker_event.tr_is_it);
-    event_tree->Branch("tracker_timestamp_r0",          &tracker_event.timestamp_r0);
-    event_tree->Branch("tracker_timestamp_r1",          &tracker_event.timestamp_r1);
-    event_tree->Branch("tracker_timestamp_r2",          &tracker_event.timestamp_r2);
-    event_tree->Branch("tracker_timestamp_r3",          &tracker_event.timestamp_r3);
-    event_tree->Branch("tracker_timestamp_r4",          &tracker_event.timestamp_r4);
-    event_tree->Branch("tracker_timestamp_r5",          &tracker_event.timestamp_r5);
-    event_tree->Branch("tracker_timestamp_r6",          &tracker_event.timestamp_r6);
-    event_tree->Branch("tracker_time_anode",            &tracker_event.time_anode);
-    event_tree->Branch("tracker_time_top_cathode",      &tracker_event.time_top_cathode);
-    event_tree->Branch("tracker_time_bottom_cathode",   &tracker_event.time_bottom_cathode);
-    event_tree->Branch("tracker_time_anode_first_ht",   &tracker_event.time_anode_first_ht);
-    event_tree->Branch("tracker_time_anode_first_lt",   &tracker_event.time_anode_first_lt);
-    event_tree->Branch("tracker_time_anode_second_ht",  &tracker_event.time_anode_second_ht);
-    event_tree->Branch("tracker_time_anode_second_lt",  &tracker_event.time_anode_second_lt);
+    event_tree->Branch("tracker_cell_side",                 &tracker_event.cell_side);
+    event_tree->Branch("tracker_cell_row",                  &tracker_event.cell_row);
+    event_tree->Branch("tracker_cell_layer",                &tracker_event.cell_layer);
+    event_tree->Branch("tracker_cell_num",                  &tracker_event.cell_num);
+    event_tree->Branch("tracker_is_fr",                     &tracker_event.tr_is_fr);
+    event_tree->Branch("tracker_is_it",                     &tracker_event.tr_is_it);
+    event_tree->Branch("tracker_timestamp_r0",              &tracker_event.timestamp_r0);
+    event_tree->Branch("tracker_timestamp_r1",              &tracker_event.timestamp_r1);
+    event_tree->Branch("tracker_timestamp_r2",              &tracker_event.timestamp_r2);
+    event_tree->Branch("tracker_timestamp_r3",              &tracker_event.timestamp_r3);
+    event_tree->Branch("tracker_timestamp_r4",              &tracker_event.timestamp_r4);
+    event_tree->Branch("tracker_timestamp_r5",              &tracker_event.timestamp_r5);
+    event_tree->Branch("tracker_timestamp_r6",              &tracker_event.timestamp_r6);
+    event_tree->Branch("tracker_time_anode",                &tracker_event.time_anode);
+    event_tree->Branch("tracker_time_top_cathode",          &tracker_event.time_top_cathode);
+    event_tree->Branch("tracker_time_bottom_cathode",       &tracker_event.time_bottom_cathode);
+    event_tree->Branch("tracker_drift_time_top_cathode",    &tracker_event.drift_time_top_cathode);
+    event_tree->Branch("tracker_drift_time_bottom_cathode", &tracker_event.drift_time_bottom_cathode);
+    event_tree->Branch("tracker_time_anode_first_ht",       &tracker_event.time_anode_first_ht);
+    event_tree->Branch("tracker_time_anode_first_lt",       &tracker_event.time_anode_first_lt);
+    event_tree->Branch("tracker_time_anode_second_ht",      &tracker_event.time_anode_second_ht);
+    event_tree->Branch("tracker_time_anode_second_lt",      &tracker_event.time_anode_second_lt);
 
     snfee::initialize();
 
@@ -453,6 +459,8 @@ int main (int argc, char *argv[])
                 tracker_event.time_anode_second_ht.push_back(t4);
                 tracker_event.time_bottom_cathode.push_back(t5);
                 tracker_event.time_top_cathode.push_back(t6);
+                tracker_event.drift_time_bottom_cathode.push_back(t5-t0);
+                tracker_event.drift_time_top_cathode.push_back(t6-t0);
 
                 tracker_event.cell_side.push_back(tracker_side_num);
                 tracker_event.cell_row.push_back(tracker_row_num);
