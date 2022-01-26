@@ -429,14 +429,6 @@ int main (int argc, char *argv[])
                 int64_t r5 = (bottom_cathode_timestamp.get_ticks() == -9223372036854775808) ? -9999 : bottom_cathode_timestamp.get_ticks();
                 int64_t r6 = (top_cathode_timestamp.get_ticks() == -9223372036854775808)    ? -9999 : top_cathode_timestamp.get_ticks();
 
-                //std::cout << "r0 " << r0 << std::endl;
-                //std::cout << "r1 " << r1 << std::endl;
-                //std::cout << "r2 " << r2 << std::endl;
-                //std::cout << "r3 " << r3 << std::endl;
-                //std::cout << "r4 " << r4<< std::endl;
-                //std::cout << "r5 " << r5 << std::endl;
-                //std::cout << "r6 " << r6 << std::endl;
-
                 tracker_event.timestamp_r0.push_back(r0);
                 tracker_event.timestamp_r1.push_back(r1);
                 tracker_event.timestamp_r2.push_back(r2);
@@ -445,18 +437,19 @@ int main (int argc, char *argv[])
                 tracker_event.timestamp_r5.push_back(r5);
                 tracker_event.timestamp_r6.push_back(r6);
 
-                double t0 = (r0 == -9999) ? -9999.9 : (double)r0*tracker_tdc2sec;
-                double t1 = (r1 == -9999) ? -9999.9 : (double)r1*tracker_tdc2sec;
-                double t2 = (r2 == -9999) ? -9999.9 : (double)r2*tracker_tdc2sec;
-                double t3 = (r3 == -9999) ? -9999.9 : (double)r3*tracker_tdc2sec;
-                double t4 = (r4 == -9999) ? -9999.9 : (double)r4*tracker_tdc2sec;
-                double t5 = (r5 == -9999) ? -9999.9 : (double)r5*tracker_tdc2sec;
-                double t6 = (r6 == -9999) ? -9999.9 : (double)r6*tracker_tdc2sec;
+                double t0, t1, t3, t4, t5, t6;
+                if (r0 == -9999){t0 = -9999.;}else{t0 = (double)r0*tracker_tdc2sec;}
+                if (r1 == -9999){t1 = -9999.;}else{t1 = (double)r1*tracker_tdc2sec;}
+                if (r2 == -9999){t2 = -9999.;}else{t2 = (double)r2*tracker_tdc2sec;}
+                if (r3 == -9999){t3 = -9999.;}else{t3 = (double)r3*tracker_tdc2sec;}
+                if (r4 == -9999){t4 = -9999.;}else{t4 = (double)r4*tracker_tdc2sec;}
+                if (r5 == -9999){t5 = -9999.;}else{t5 = (double)r5*tracker_tdc2sec;}
+                if (r6 == -9999){t6 = -9999.;}else{t6 = (double)r6*tracker_tdc2sec;}
 
                 tracker_event.time_anode.push_back(t0);
                 tracker_event.time_anode_first_lt.push_back(t1);
-                tracker_event.time_anode_first_ht.push_back(t2);
-                tracker_event.time_anode_second_lt.push_back(t3);
+                tracker_event.time_anode_first_ht.push_back(t3);
+                tracker_event.time_anode_second_lt.push_back(t2);
                 tracker_event.time_anode_second_ht.push_back(t4);
                 tracker_event.time_bottom_cathode.push_back(t5);
                 tracker_event.time_top_cathode.push_back(t6);
