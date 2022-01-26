@@ -459,8 +459,12 @@ int main (int argc, char *argv[])
                 tracker_event.time_anode_second_ht.push_back(t4);
                 tracker_event.time_bottom_cathode.push_back(t5);
                 tracker_event.time_top_cathode.push_back(t6);
-                tracker_event.drift_time_bottom_cathode.push_back(t5-t0);
-                tracker_event.drift_time_top_cathode.push_back(t6-t0);
+
+                double t05, t06;
+                if (t0 == -9999. || t5 == -9999.){t05 = -9999.;}else{t05 = t5 - t0;}
+                if (t0 == -9999. || t6 == -9999.){t06 = -9999.;}else{t06 = t6 - t0;}
+                tracker_event.drift_time_bottom_cathode.push_back(t05);
+                tracker_event.drift_time_top_cathode.push_back(t06);
 
                 tracker_event.cell_side.push_back(tracker_side_num);
                 tracker_event.cell_row.push_back(tracker_row_num);
