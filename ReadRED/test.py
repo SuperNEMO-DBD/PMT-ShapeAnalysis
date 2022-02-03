@@ -23,7 +23,7 @@ def plot_event_map(name: str, hits: list, output_directory):
 
 
 def main(cut: bool):
-    root_file = ROOT.TFile("/Users/williamquinn/Desktop/read_red/red_608_output.root", "READ")
+    root_file = ROOT.TFile("/path/to/file.root", "READ")
     event_tree = root_file.event_tree
 
     top_cathode_events = [0 for i in range(2034)]
