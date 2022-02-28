@@ -213,7 +213,165 @@ def process_date(date_array: np.array):
     output_list = []
     for index, date in enumerate(date_array):
         temp_date = 0
-        if date == 191008:
+        output_date = 0
+        if 190000 < date < 200000:
+            temp_date = date - 190000
+            if 100 < temp_date < 200:
+                temp_date = temp_date - 100
+            elif 200 < temp_date < 300:
+                output_date += 31
+                temp_date = temp_date - 200
+            elif 300 < temp_date < 400:
+                output_date += 28 + 31
+                temp_date = temp_date - 300
+            elif 400 < temp_date < 500:
+                output_date += 31 + 28 + 31
+                temp_date = temp_date - 400
+            elif 500 < temp_date < 600:
+                output_date += 31 + 28 + 31 + 30
+                temp_date = temp_date - 500
+            elif 600 < temp_date < 700:
+                output_date += 31 + 28 + 31 + 30 + 31
+                temp_date = temp_date - 600
+            elif 700 < temp_date < 800:
+                output_date += 31 + 28 + 31 + 30 + 31 + 30
+                temp_date = temp_date - 700
+            elif 800 < temp_date < 900:
+                output_date += 31 + 28 + 31 + 30 + 31 + 30 + 31
+                temp_date = temp_date - 800
+            elif 900 < temp_date < 1000:
+                output_date += 31 + 28 + 31 + 30 + 31 + 30 + 31 + 31
+                temp_date = temp_date - 900
+            elif 1000 < temp_date < 1100:
+                output_date += 31 + 28 + 31 + 30 + 31 + 30 + 31 + 31 + 30
+                temp_date = temp_date - 1000
+            elif 1100 < temp_date < 1200:
+                output_date += 31 + 28 + 31 + 30 + 31 + 30 + 31 + 31 + 30 + 31
+                temp_date = temp_date - 1100
+            elif 1200 < temp_date < 1300:
+                output_date += 31 + 28 + 31 + 30 + 31 + 30 + 31 + 31 + 30 + 31 + 30
+                temp_date = temp_date - 1200
+            output_date += temp_date
+        elif 200000 < date < 210000:
+            temp_date = date - 200000
+            output_date += 365
+            if 100 < temp_date < 200:
+                temp_date = temp_date - 100
+            elif 200 < temp_date < 300:
+                output_date += 31
+                temp_date = temp_date - 200
+            elif 300 < temp_date < 400:
+                output_date += 29 + 31
+                temp_date = temp_date - 300
+            elif 400 < temp_date < 500:
+                output_date += 31 + 29 + 31
+                temp_date = temp_date - 400
+            elif 500 < temp_date < 600:
+                output_date += 31 + 29 + 31 + 30
+                temp_date = temp_date - 500
+            elif 600 < temp_date < 700:
+                output_date += 31 + 29 + 31 + 30 + 31
+                temp_date = temp_date - 600
+            elif 700 < temp_date < 800:
+                output_date += 31 + 29 + 31 + 30 + 31 + 30
+                temp_date = temp_date - 700
+            elif 800 < temp_date < 900:
+                output_date += 31 + 29 + 31 + 30 + 31 + 30 + 31
+                temp_date = temp_date - 800
+            elif 900 < temp_date < 1000:
+                output_date += 31 + 29 + 31 + 30 + 31 + 30 + 31 + 31
+                temp_date = temp_date - 900
+            elif 1000 < temp_date < 1100:
+                output_date += 31 + 29 + 31 + 30 + 31 + 30 + 31 + 31 + 30
+                temp_date = temp_date - 1000
+            elif 1100 < temp_date < 1200:
+                output_date += 31 + 29 + 31 + 30 + 31 + 30 + 31 + 31 + 30 + 31
+                temp_date = temp_date - 1100
+            elif 1200 < temp_date < 1300:
+                output_date += 31 + 29 + 31 + 30 + 31 + 30 + 31 + 31 + 30 + 31 + 30
+                temp_date = temp_date - 1200
+            output_date += temp_date
+        elif 210000 < date < 220000:
+            temp_date = date - 210000
+            output_date += 365*2 + 1
+            if 100 < temp_date < 200:
+                temp_date = temp_date - 100
+            elif 200 < temp_date < 300:
+                output_date += 31
+                temp_date = temp_date - 200
+            elif 300 < temp_date < 400:
+                output_date += 28 + 31
+                temp_date = temp_date - 300
+            elif 400 < temp_date < 500:
+                output_date += 31 + 28 + 31
+                temp_date = temp_date - 400
+            elif 500 < temp_date < 600:
+                output_date += 31 + 28 + 31 + 30
+                temp_date = temp_date - 500
+            elif 600 < temp_date < 700:
+                output_date += 31 + 28 + 31 + 30 + 31
+                temp_date = temp_date - 600
+            elif 700 < temp_date < 800:
+                output_date += 31 + 28 + 31 + 30 + 31 + 30
+                temp_date = temp_date - 700
+            elif 800 < temp_date < 900:
+                output_date += 31 + 28 + 31 + 30 + 31 + 30 + 31
+                temp_date = temp_date - 800
+            elif 900 < temp_date < 1000:
+                output_date += 31 + 28 + 31 + 30 + 31 + 30 + 31 + 31
+                temp_date = temp_date - 900
+            elif 1000 < temp_date < 1100:
+                output_date += 31 + 28 + 31 + 30 + 31 + 30 + 31 + 31 + 30
+                temp_date = temp_date - 1000
+            elif 1100 < temp_date < 1200:
+                output_date += 31 + 28 + 31 + 30 + 31 + 30 + 31 + 31 + 30 + 31
+                temp_date = temp_date - 1100
+            elif 1200 < temp_date < 1300:
+                output_date += 31 + 28 + 31 + 30 + 31 + 30 + 31 + 31 + 30 + 31 + 30
+                temp_date = temp_date - 1200
+            output_date += temp_date
+        elif 220000 < date < 230000:
+            temp_date = date - 220000
+            output_date += 365*3 + 1
+            if 100 < temp_date < 200:
+                temp_date = temp_date - 100
+            elif 200 < temp_date < 300:
+                output_date += 31
+                temp_date = temp_date - 200
+            elif 300 < temp_date < 400:
+                output_date += 28 + 31
+                temp_date = temp_date - 300
+            elif 400 < temp_date < 500:
+                output_date += 31 + 28 + 31
+                temp_date = temp_date - 400
+            elif 500 < temp_date < 600:
+                output_date += 31 + 28 + 31 + 30
+                temp_date = temp_date - 500
+            elif 600 < temp_date < 700:
+                output_date += 31 + 28 + 31 + 30 + 31
+                temp_date = temp_date - 600
+            elif 700 < temp_date < 800:
+                output_date += 31 + 28 + 31 + 30 + 31 + 30
+                temp_date = temp_date - 700
+            elif 800 < temp_date < 900:
+                output_date += 31 + 28 + 31 + 30 + 31 + 30 + 31
+                temp_date = temp_date - 800
+            elif 900 < temp_date < 1000:
+                output_date += 31 + 28 + 31 + 30 + 31 + 30 + 31 + 31
+                temp_date = temp_date - 900
+            elif 1000 < temp_date < 1100:
+                output_date += 31 + 28 + 31 + 30 + 31 + 30 + 31 + 31 + 30
+                temp_date = temp_date - 1000
+            elif 1100 < temp_date < 1200:
+                output_date += 31 + 28 + 31 + 30 + 31 + 30 + 31 + 31 + 30 + 31
+                temp_date = temp_date - 1100
+            elif 1200 < temp_date < 1300:
+                output_date += 31 + 28 + 31 + 30 + 31 + 30 + 31 + 31 + 30 + 31 + 30
+                temp_date = temp_date - 1200
+            output_date += temp_date
+        output_date -= 310
+        output_list.append(output_date)
+        '''if date == 191008:
             temp_date = -29
         if date == 191009:
             temp_date = -28
@@ -485,330 +643,328 @@ def process_date(date_array: np.array):
             temp_date = 105
         if date == 200220:
             temp_date = 106
-        if date == 200220:
-            temp_date = 107
         if date == 200221:
-            temp_date = 108
+            temp_date = 107
         if date == 200222:
-            temp_date = 109
+            temp_date = 108
         if date == 200223:
-            temp_date = 110
+            temp_date = 109
         if date == 200224:
-            temp_date = 111
+            temp_date = 110
         if date == 200225:
-            temp_date = 112
+            temp_date = 111
         if date == 200226:
-            temp_date = 113
+            temp_date = 112
         if date == 200227:
-            temp_date = 114
+            temp_date = 113
         if date == 200228:
-            temp_date = 115
+            temp_date = 114
         if date == 200229:
-            temp_date = 116
+            temp_date = 115
         if date == 200301:
-            temp_date = 117
+            temp_date = 116
         if date == 200302:
-            temp_date = 118
+            temp_date = 117
         if date == 200303:
-            temp_date = 119
+            temp_date = 118
         if date == 200304:
-            temp_date = 120
+            temp_date = 119
         if date == 200305:
-            temp_date = 121
+            temp_date = 120
         if date == 200306:
-            temp_date = 122
+            temp_date = 121
         if date == 200307:
-            temp_date = 123
+            temp_date = 122
         if date == 200308:
-            temp_date = 124
+            temp_date = 123
         if date == 200309:
-            temp_date = 125
+            temp_date = 124
         if date == 200310:
-            temp_date = 126
+            temp_date = 125
         if date == 200311:
-            temp_date = 127
+            temp_date = 126
         if date == 200312:
-            temp_date = 128
+            temp_date = 127
         if date == 200313:
-            temp_date = 129
+            temp_date = 128
         if date == 200314:
-            temp_date = 130
+            temp_date = 129
         if date == 200315:
-            temp_date = 131
+            temp_date = 130
         if date == 200316:
-            temp_date = 132
+            temp_date = 131
         if date == 200317:
-            temp_date = 133
+            temp_date = 132
         if date == 200318:
-            temp_date = 134
+            temp_date = 133
         if date == 200319:
-            temp_date = 135
+            temp_date = 134
         if date == 200320:
-            temp_date = 136
+            temp_date = 135
         if date == 200321:
-            temp_date = 137
+            temp_date = 136
         if date == 200322:
-            temp_date = 138
+            temp_date = 137
         if date == 200323:
-            temp_date = 139
+            temp_date = 138
         if date == 200324:
-            temp_date = 140
+            temp_date = 139
         if date == 200325:
-            temp_date = 141
+            temp_date = 140
         if date == 200326:
-            temp_date = 142
+            temp_date = 141
         if date == 200327:
-            temp_date = 143
+            temp_date = 142
         if date == 200328:
-            temp_date = 144
+            temp_date = 143
         if date == 200329:
-            temp_date = 145
+            temp_date = 144
         if date == 200330:
-            temp_date = 146
+            temp_date = 145
         if date == 200331:
-            temp_date = 147
+            temp_date = 146
         if date == 200401:
-            temp_date = 148
+            temp_date = 147
         if date == 200402:
-            temp_date = 149
+            temp_date = 148
         if date == 200403:
-            temp_date = 150
+            temp_date = 149
         if date == 200404:
-            temp_date = 151
+            temp_date = 150
         if date == 200405:
-            temp_date = 152
+            temp_date = 151
         if date == 200406:
-            temp_date = 153
+            temp_date = 152
         if date == 200407:
-            temp_date = 154
+            temp_date = 153
         if date == 200408:
-            temp_date = 155
+            temp_date = 154
         if date == 200409:
-            temp_date = 156
+            temp_date = 155
         if date == 200410:
-            temp_date = 157
+            temp_date = 156
         if date == 200411:
-            temp_date = 158
+            temp_date = 157
         if date == 200412:
-            temp_date = 159
+            temp_date = 158
         if date == 200413:
-            temp_date = 160
+            temp_date = 159
         if date == 200414:
-            temp_date = 161
+            temp_date = 160
         if date == 200415:
-            temp_date = 162
+            temp_date = 161
         if date == 200416:
-            temp_date = 163
+            temp_date = 162
         if date == 200417:
-            temp_date = 164
+            temp_date = 163
         if date == 200418:
-            temp_date = 165
+            temp_date = 164
         if date == 200419:
-            temp_date = 166
+            temp_date = 165
         if date == 200420:
-            temp_date = 167
+            temp_date = 166
         if date == 200421:
-            temp_date = 168
+            temp_date = 167
         if date == 200422:
-            temp_date = 169
+            temp_date = 168
         if date == 200423:
-            temp_date = 170
+            temp_date = 169
         if date == 200424:
-            temp_date = 171
+            temp_date = 170
         if date == 200425:
-            temp_date = 172
+            temp_date = 171
         if date == 200426:
-            temp_date = 173
+            temp_date = 172
         if date == 200427:
-            temp_date = 174
+            temp_date = 173
         if date == 200428:
-            temp_date = 175
+            temp_date = 174
         if date == 200429:
-            temp_date = 176
+            temp_date = 175
         if date == 200430:
-            temp_date = 177
+            temp_date = 176
         if date == 200501:
-            temp_date = 178
+            temp_date = 177
         if date == 200502:
-            temp_date = 179
+            temp_date = 178
         if date == 200503:
-            temp_date = 180
+            temp_date = 179
         if date == 200504:
-            temp_date = 181
+            temp_date = 180
         if date == 200505:
-            temp_date = 182
+            temp_date = 181
         if date == 200506:
-            temp_date = 183
+            temp_date = 182
         if date == 200507:
-            temp_date = 184
+            temp_date = 183
         if date == 200508:
-            temp_date = 185
+            temp_date = 184
         if date == 200509:
-            temp_date = 186
+            temp_date = 185
         if date == 200510:
-            temp_date = 187
+            temp_date = 186
         if date == 200511:
-            temp_date = 188
+            temp_date = 187
         if date == 200512:
-            temp_date = 189
+            temp_date = 188
         if date == 200513:
-            temp_date = 190
+            temp_date = 189
         if date == 200514:
-            temp_date = 191
+            temp_date = 190
         if date == 200515:
-            temp_date = 192
+            temp_date = 191
         if date == 200516:
-            temp_date = 193
+            temp_date = 192
         if date == 200517:
-            temp_date = 194
+            temp_date = 193
         if date == 200518:
-            temp_date = 195
+            temp_date = 194
         if date == 200519:
-            temp_date = 196
+            temp_date = 195
         if date == 200520:
-            temp_date = 197
+            temp_date = 196
         if date == 200521:
-            temp_date = 198
+            temp_date = 197
         if date == 200522:
-            temp_date = 199
+            temp_date = 198
         if date == 200523:
-            temp_date = 200
+            temp_date = 199
         if date == 200524:
-            temp_date = 201
+            temp_date = 200
         if date == 200525:
-            temp_date = 202
+            temp_date = 201
         if date == 200526:
-            temp_date = 203
+            temp_date = 202
         if date == 200527:
-            temp_date = 204
+            temp_date = 203
         if date == 200528:
-            temp_date = 205
+            temp_date = 204
         if date == 200529:
-            temp_date = 206
+            temp_date = 205
         if date == 200530:
-            temp_date = 207
+            temp_date = 206
         if date == 200531:
-            temp_date = 208
+            temp_date = 207
         if date == 200601:
-            temp_date = 209
+            temp_date = 208
         if date == 200602:
-            temp_date = 210
+            temp_date = 209
         if date == 200603:
-            temp_date = 211
+            temp_date = 210
         if date == 200604:
-            temp_date = 212
+            temp_date = 211
         if date == 200605:
-            temp_date = 213
+            temp_date = 212
         if date == 200606:
-            temp_date = 214
+            temp_date = 213
         if date == 200607:
-            temp_date = 215
+            temp_date = 214
         if date == 200608:
-            temp_date = 216
+            temp_date = 215
         if date == 200609:
-            temp_date = 217
+            temp_date = 216
         if date == 200610:
-            temp_date = 218
+            temp_date = 217
         if date == 200611:
-            temp_date = 219
+            temp_date = 218
         if date == 200612:
-            temp_date = 220
+            temp_date = 219
         if date == 200613:
-            temp_date = 221
+            temp_date = 220
         if date == 200614:
-            temp_date = 222
+            temp_date = 221
         if date == 200615:
-            temp_date = 223
+            temp_date = 222
         if date == 200616:
-            temp_date = 224
+            temp_date = 223
         if date == 200617:
-            temp_date = 225
+            temp_date = 224
         if date == 200618:
-            temp_date = 226
+            temp_date = 225
         if date == 200619:
-            temp_date = 227
+            temp_date = 226
         if date == 200620:
-            temp_date = 228
+            temp_date = 227
         if date == 200621:
-            temp_date = 229
+            temp_date = 228
         if date == 200622:
-            temp_date = 230
+            temp_date = 229
         if date == 200623:
-            temp_date = 231
+            temp_date = 230
         if date == 200624:
-            temp_date = 232
+            temp_date = 231
         if date == 200625:
-            temp_date = 233
+            temp_date = 232
         if date == 200626:
-            temp_date = 234
+            temp_date = 233
         if date == 200627:
-            temp_date = 235
+            temp_date = 234
         if date == 200628:
-            temp_date = 236
+            temp_date = 235
         if date == 200629:
-            temp_date = 237
+            temp_date = 236
         if date == 200630:
-            temp_date = 238
+            temp_date = 237
         if date == 200701:
-            temp_date = 239
+            temp_date = 238
         if date == 200702:
-            temp_date = 240
+            temp_date = 239
         if date == 200703:
-            temp_date = 241
+            temp_date = 240
         if date == 200704:
-            temp_date = 242
+            temp_date = 241
         if date == 200705:
-            temp_date = 243
+            temp_date = 242
         if date == 200706:
-            temp_date = 244
+            temp_date = 243
         if date == 200707:
-            temp_date = 245
+            temp_date = 244
         if date == 200708:
-            temp_date = 246
+            temp_date = 245
         if date == 200709:
-            temp_date = 247
+            temp_date = 246
         if date == 200710:
-            temp_date = 248
+            temp_date = 247
         if date == 200711:
-            temp_date = 249
+            temp_date = 248
         if date == 200712:
-            temp_date = 250
+            temp_date = 249
         if date == 200713:
-            temp_date = 251
+            temp_date = 250
         if date == 200714:
-            temp_date = 252
+            temp_date = 251
         if date == 200715:
-            temp_date = 253
+            temp_date = 252
         if date == 200716:
-            temp_date = 254
+            temp_date = 253
         if date == 200717:
-            temp_date = 255
+            temp_date = 254
         if date == 200718:
-            temp_date = 256
+            temp_date = 255
         if date == 200719:
-            temp_date = 257
+            temp_date = 256
         if date == 200720:
-            temp_date = 258
+            temp_date = 257
         if date == 200721:
-            temp_date = 259
+            temp_date = 258
         if date == 200722:
-            temp_date = 260
+            temp_date = 259
         if date == 200723:
-            temp_date = 261
+            temp_date = 260
         if date == 200724:
-            temp_date = 262
+            temp_date = 261
         if date == 200725:
-            temp_date = 263
+            temp_date = 262
         if date == 200726:
-            temp_date = 264
+            temp_date = 263
         if date == 200727:
-            temp_date = 265
+            temp_date = 264
         if date == 200728:
-            temp_date = 266
+            temp_date = 265
         if date == 200729:
-            temp_date = 267
+            temp_date = 266
         if date == 200730:
-            temp_date = 268
+            temp_date = 267
         if date == 200731:
             temp_date = 268
         if date == 200801:
@@ -1117,7 +1273,69 @@ def process_date(date_array: np.array):
             temp_date = 420
         if date == 201231:
             temp_date = 421
-        output_list.append(temp_date)
+        if date == 210101:
+            temp_date = 391
+        if date == 210102:
+            temp_date = 392
+        if date == 210103:
+            temp_date = 393
+        if date == 210104:
+            temp_date = 394
+        if date == 210105:
+            temp_date = 395
+        if date == 210106:
+            temp_date = 396
+        if date == 210107:
+            temp_date = 397
+        if date == 210108:
+            temp_date = 398
+        if date == 210109:
+            temp_date = 399
+        if date == 210110:
+            temp_date = 400
+        if date == 210111:
+            temp_date = 401
+        if date == 210112:
+            temp_date = 402
+        if date == 210113:
+            temp_date = 403
+        if date == 210114:
+            temp_date = 404
+        if date == 210115:
+            temp_date = 405
+        if date == 210116:
+            temp_date = 406
+        if date == 210117:
+            temp_date = 407
+        if date == 210118:
+            temp_date = 408
+        if date == 210119:
+            temp_date = 409
+        if date == 210120:
+            temp_date = 410
+        if date == 210121:
+            temp_date = 411
+        if date == 210122:
+            temp_date = 412
+        if date == 210123:
+            temp_date = 413
+        if date == 210124:
+            temp_date = 414
+        if date == 210125:
+            temp_date = 415
+        if date == 210126:
+            temp_date = 416
+        if date == 210127:
+            temp_date = 417
+        if date == 210128:
+            temp_date = 418
+        if date == 210129:
+            temp_date = 419
+        if date == 210130:
+            temp_date = 420
+        if date == 210131:
+            temp_date = 421'''
+        # output_list.append(temp_date)
 
     output_array = np.array(output_list)
     assert output_array.size == len(date_array)

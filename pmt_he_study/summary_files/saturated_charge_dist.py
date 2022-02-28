@@ -338,14 +338,14 @@ def plot_charge_comp(charges, sat_charges):
     sat_bin_centres = sat_bin_edges[:-1] + sat_width / 2
 
     num = np.sum(ch_charges)
-    plt.bar(bin_centres, freq / num, width=width, alpha=0.3, color='C0')
-    plt.plot(bin_centres, freq / num, "C0o", markersize=2, label='Charge')
-    plt.bar(sat_bin_centres, sat_freq / num, width=width, alpha=0.3, color='C1')
-    plt.plot(sat_bin_centres, sat_freq / num, "C1s", markersize=2, label='Reconstruction')
+    plt.bar(bin_centres, freq / num * 1000, width=width, alpha=0.3, color='C0')
+    plt.plot(bin_centres, freq / num * 1000, "C0o", markersize=2, label='Charge')
+    plt.bar(sat_bin_centres, sat_freq / num * 1000, width=width, alpha=0.3, color='C1')
+    plt.plot(sat_bin_centres, sat_freq / num * 1000, "C1s", markersize=2, label='Reconstruction')
 
     plt.xlabel('Charge /pC')
-    plt.ylabel('Normalised Counts')
-    plt.title("1400V PMT Pulse Charge Reconstruction Comparison")
+    plt.ylabel('Relative Counts')
+    plt.title("1400V PMT Pulse Charge Reconstruction Comparison Example")
     plt.xlim(lower, upper)
     plt.legend(loc='best')
     plt.tight_layout()

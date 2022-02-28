@@ -51,8 +51,7 @@ def main():
     xsection = []
     xsection_err = []
 
-    with open(
-            '/Users/williamquinn/Documents/PhD/PMT-ShapeAnalysis/pmt_he_study/summary_files/electron_xsections.csv') as csv_file:
+    with open('/Users/williamquinn/Documents/PhD/PMT-ShapeAnalysis/pmt_he_study/summary_files/electron_xsections.csv') as csv_file:
         csv_reader = csv.reader(csv_file, delimiter=',')
         line_count = 0
         for row in csv_reader:
@@ -71,12 +70,11 @@ def main():
     xsection = np.array(xsection)
     xsection_err = np.array(xsection_err)
 
-    double_energy = []
+    '''double_energy = []
     double_xsection = []
     double_xsection_err = []
 
-    with open(
-            '/Users/williamquinn/Documents/PhD/PMT-ShapeAnalysis/pmt_he_study/summary_files/electron_double_xsections.csv') as csv_file:
+    with open('/Users/williamquinn/Documents/PhD/PMT-ShapeAnalysis/pmt_he_study/summary_files/electron_double_xsections.csv') as csv_file:
         csv_reader = csv.reader(csv_file, delimiter=',')
         line_count = 0
         for row in csv_reader:
@@ -93,13 +91,13 @@ def main():
 
     double_energy = np.array(double_energy)
     double_xsection = np.array(double_xsection)
-    double_xsection_err = np.array(double_xsection_err)
+    double_xsection_err = np.array(double_xsection_err)'''
 
     popt, pcov = curve_fit(f=func, xdata=energy, ydata=xsection, maxfev=10000)
     plt.figure(figsize=figsize, facecolor='white')
     plt.errorbar(energy, xsection, xsection_err, fmt='o', label="Single", markersize=marker_size, zorder=0)
-    plt.errorbar(double_energy, double_xsection, double_xsection_err, fmt='s', label="Double",
-                 markersize=marker_size, zorder=0)
+    '''plt.errorbar(double_energy, double_xsection, double_xsection_err, fmt='s', label="Double",
+                 markersize=marker_size, zorder=0)'''
     plt.plot(energy, func(energy, *popt), '-', label='Model', linewidth=1.5, zorder=10)
     plt.axvline(1400*0.42, ls='--', color='black', linewidth=1.5, label='1st Dynode', zorder=20)
     plt.xscale('log')

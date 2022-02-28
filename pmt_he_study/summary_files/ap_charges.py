@@ -41,6 +41,76 @@ class Model:
         return y
 
 
+class Model_var:
+    def __call__(self, x, pars, p):
+        p0 = pars[0]
+        p1 = pars[1]
+        L = pars[2]
+        t = x[0] * 3600 * 24
+
+        temp = 0
+        for n in range(1, 50):
+            temp += ((-1) ** n / n ** 2) * (1 - np.exp(-(n ** 2) * (np.pi ** 2) * t / (L * 6)))
+        f2 = (12 / np.pi ** 2) * L * temp
+        y = p0 * p * (t + f2) + p1
+        return y
+
+    def func(self, x, pars, p):
+        p0 = pars[0]
+        p1 = pars[1]
+        L = pars[2]
+        t = x * 3600 * 24
+
+        temp = 0
+        for n in range(1, 50):
+            temp += ((-1) ** n / n ** 2) * (1 - np.exp(-(n ** 2) * (np.pi ** 2) * t / (L * 6)))
+        f2 = (12 / np.pi ** 2) * L * temp
+        y = p0 * p * (t + f2) + p1
+        return y
+
+
+class Model_0:
+    def __call__(self, x, pars):
+        pe_0 = 101325 / 100
+        pe_1 = 101325 / 10
+        p0 = pars[0]
+        p1 = pars[1]
+        L = pars[2]
+
+        t_0 = (x[0] + 98) * 3600 * 24
+        t_1 = t_0 - (98 * 3600 * 24)
+        temp_0 = 0
+        temp_1 = 0
+        for n in range(1, 50):
+            temp_0 += ((-1) ** n / n ** 2) * (1 - np.exp(-(n ** 2) * (np.pi ** 2) * t_0 / (L * 6)))
+            temp_1 += ((-1) ** n / n ** 2) * (1 - np.exp(-(n ** 2) * (np.pi ** 2) * t_1 / (L * 6)))
+        f_0 = (12 / np.pi ** 2) * L * temp_0
+        f_1 = (12 / np.pi ** 2) * L * temp_1
+
+        y = p0 * (pe_0 * (t_0 + f_0) + pe_1 * (t_1 + f_1)) + p1
+        return y
+
+    def func(self, x, pars):
+        pe_0 = 101325 / 100
+        pe_1 = 101325 / 10
+        p0 = pars[0]
+        p1 = pars[1]
+        L = pars[2]
+
+        t_0 = (x + 98) * 3600 * 24
+        t_1 = t_0 - (98 * 3600 * 24)
+        temp_0 = 0
+        temp_1 = 0
+        for n in range(1, 50):
+            temp_0 += ((-1) ** n / n ** 2) * (1 - np.exp(-(n ** 2) * (np.pi ** 2) * t_0 / (L * 6)))
+            temp_1 += ((-1) ** n / n ** 2) * (1 - np.exp(-(n ** 2) * (np.pi ** 2) * t_1 / (L * 6)))
+        f_0 = (12 / np.pi ** 2) * L * temp_0
+        f_1 = (12 / np.pi ** 2) * L * temp_1
+
+        y = p0 * (pe_0 * (t_0 + f_0) + pe_1 * (t_1 + f_1)) + p1
+        return y
+
+
 def plot_ap_charge(dates, ap_charges, ap_charges_err, name):
     date_0 = process_date(dates[0])
     date_1 = process_date(dates[1])
@@ -102,6 +172,7 @@ def plot_ap_charge(dates, ap_charges, ap_charges_err, name):
 
 
 def plot_aapc_vs_charge(dates, ratios, ratios_err, name: str):
+    model = Model()
     date_0 = process_date(dates[0])
     date_1 = process_date(dates[1])
     try:
@@ -122,7 +193,7 @@ def plot_aapc_vs_charge(dates, ratios, ratios_err, name: str):
     pars, errs, chi = root_fit(x, y, yerr)
 
     fig1 = plt.figure(num=None, figsize=(5,5), dpi=80, facecolor='w', edgecolor='k')
-    frame1 = fig1.add_axes((.1, .3, .8, .6))
+    frame1 = fig1.add_axes((.15, .32, .8, .6))
     frame1.set_xticklabels([])
     plt.errorbar(date_0[:start + 1], ratio_0[:start + 1], zorder=0,
                  yerr=ratio_err_0[:start + 1], fmt="C0s", label="Atmospheric He", markersize=1)
@@ -132,7 +203,7 @@ def plot_aapc_vs_charge(dates, ratios, ratios_err, name: str):
                  yerr=ratio_err_0[mid + 1:], fmt="C2s", label="10% He", markersize=1)
     plt.errorbar(date_1, ratio_1, zorder=0,
                  yerr=ratio_err_1, fmt="C3o", label="Control", markersize=1)
-    plt.plot(date_0[mid + 1:], Model().func(x, pars), 'k-', label='Model', zorder=10)
+    plt.plot(date_0[mid + 1:], model.func(x, pars), 'k-', label='Model', zorder=10)
     # plt.axvline(date_0[start], 0, 100, ls='--', color='k')
     # plt.axvline(date_0[mid], 0, 100, ls='--', color='k')
 
@@ -144,22 +215,51 @@ def plot_aapc_vs_charge(dates, ratios, ratios_err, name: str):
     patch_3 = patches.Patch(color='white', label=r'$\chi^2_R =$ {:.2f}'.format(chi))
     handles.extend([patch, patch_1, patch_2, patch_3])
 
-    plt.ylabel("Charge Ratio Average")
+    plt.ylabel("Ratio Average")
     plt.title("After-pulse Region Charge vs Pulse Charge Ratio")
     plt.xlim(-30, 420)
     plt.legend(handles=handles, loc='upper left')
 
-    frame2 = fig1.add_axes((.1, .1, .8, .2))
-    plt.xlabel("Exposure Days Relative to 06/11/2019")
+    frame2 = fig1.add_axes((.15, .1, .8, .2))
+    plt.xlabel("Days from 10% He Onset")
     plt.axhline(0, ls='--', color='black')
     plt.ylabel("(model-data)/model")
     plt.xlim(-30, 420)
     plt.errorbar(date_0[mid + 1:],
-                 (Model().func(x, pars) - ratio_0[mid + 1:]) / Model().func(x, pars),
-                 yerr=ratio_err_0[mid + 1:] / Model().func(date_0[mid + 1:], pars), fmt="k.")
-
+                 (model.func(x, pars) - ratio_0[mid + 1:]) / model.func(x, pars),
+                 yerr=ratio_err_0[mid + 1:] / model.func(date_0[mid + 1:], pars), fmt="k.")
     plt.savefig("/Users/williamquinn/Desktop/PMT_Project/ratio_vs_time_" + name + ".pdf")
     plt.close()
+
+    tr = 0
+    tx = 0
+    x = []
+    y = []
+    while tr <= 1:
+        tr = model.func(np.array([tx]), pars)
+        x.append(tx)
+        y.append(tr)
+        tx += 1
+
+    plt.figure(figsize=figsize)
+    plt.plot(x, y)
+    plt.xlim(0, x[-1])
+    plt.title("Charge Ratio Model Projection")
+    plt.xlabel("Days from 10% He Onset")
+    plt.ylabel("Ratio")
+    plt.tight_layout()
+    plt.savefig("/Users/williamquinn/Desktop/PMT_Project/ratio_model_projection_" + name + ".pdf")
+    plt.close()
+
+    print(name)
+    for pi in [101325/1000, 101325/100, 101325/10, 101325/2, 101325]:
+        x_i = 0
+        y_i = 0
+        while y_i <= 1:
+            y_i = Model_var().func(np.array([x_i]), pars, p=pi)[0]
+            x_i += 1
+        print(pi, x_i)
+    print()
 
 
 def root_fit(x, y, yerr):
@@ -193,7 +293,7 @@ def main():
     pmt_array.set_pmt_id("GAO607", 0)
     pmt_array.set_pmt_id("GAO612", 1)
 
-    filenames_txt = "/Users/williamquinn/Desktop/set_5/S95_A25/filenames.txt"
+    filenames_txt = "/Users/williamquinn/Desktop/data/1400V/filenames.txt"
     try:
         print(">>> Reading data from file: {}".format(filenames_txt))
         date_file = open(filenames_txt, 'r')
@@ -217,13 +317,12 @@ def main():
     he_ap_charge_err = [[], []]
     he_ap_ratio_err = [[], []]
 
-
     for i_file in tqdm.tqdm(range(filenames.size)):
         filename = filenames[i_file][0].decode("utf-8")
         date = filename.split("_")[0]
         voltage = int(filename.split("_")[1].split("A")[1])
 
-        file = ROOT.TFile("/Users/williamquinn/Desktop/set_5/S95_A25/" + filename, "READ")
+        file = ROOT.TFile("/Users/williamquinn/Desktop/data/1400V/" + filename, "READ")
         file.cd()
 
         for i_om in range(2):
@@ -261,8 +360,8 @@ def main():
             del ap_charge_charge_hist
             del he_ap_charge_charge_hist
 
-    plot_ap_charge(dates, ap_charge, ap_charge_err, "")
-    plot_ap_charge(dates, he_ap_charge, he_ap_charge_err, "he")
+    #plot_ap_charge(dates, ap_charge, ap_charge_err, "")
+    #plot_ap_charge(dates, he_ap_charge, he_ap_charge_err, "he")
 
     plot_aapc_vs_charge(dates, ap_ratio, ap_ratio_err, "")
     plot_aapc_vs_charge(dates, he_ap_ratio, he_ap_ratio_err, "he")

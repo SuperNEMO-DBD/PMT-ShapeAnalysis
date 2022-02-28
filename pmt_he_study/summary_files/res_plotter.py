@@ -168,8 +168,8 @@ def main():
 
     topology = [2, 1]
     pmt_array = PMT_Array(topology, "summary")
-    pmt_array.set_pmt_id("GAO607", 0)
-    pmt_array.set_pmt_id("GAO612", 1)
+    pmt_array.set_pmt_id("GAO612", 0)
+    pmt_array.set_pmt_id("GAO607", 1)
 
     '''# Set the cuts you wish to apply
     # If you don't do this the defaults are used
