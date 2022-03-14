@@ -208,8 +208,8 @@ def plot_aapc_vs_charge(dates, ratios, ratios_err, name: str):
     # plt.axvline(date_0[mid], 0, 100, ls='--', color='k')
 
     handles, labels = plt.gca().get_legend_handles_labels()
-    patch = patches.Patch(color='white', label=r'$P_0 =$ {:.4e} ± {:.0e}'.format(pars[0], errs[0]))
-    patch_1 = patches.Patch(color='white', label=r'$P_1 =$ {:.4f} ± {:.4f}'.format(pars[1], errs[1]))
+    patch = patches.Patch(color='white', label=r'$P_2 =$ {:.4e} ± {:.0e}'.format(pars[0], errs[0]))
+    patch_1 = patches.Patch(color='white', label=r'$P_3 =$ {:.4f} ± {:.4f}'.format(pars[1], errs[1]))
     patch_2 = patches.Patch(color='white',
                             label=r'$L =$ {:.0f} ± {:.0f}'.format(pars[2] / (3600 * 24), errs[2] / (3600 * 24)))
     patch_3 = patches.Patch(color='white', label=r'$\chi^2_R =$ {:.2f}'.format(chi))

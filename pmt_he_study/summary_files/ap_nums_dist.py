@@ -12,12 +12,14 @@ import numpy as np
 
 
 def main():
-    filenames = ["/Users/williamquinn/Desktop/set_4/S95_A25/200306_A1400_B1400_t2134_output.root",
-                 "/Users/williamquinn/Desktop/set_4/S95_A25/200506_A1400_B1400_t2247_output.root",
-                 "/Users/williamquinn/Desktop/set_4/S95_A25/200706_A1400_B1400_t0012_output.root",
-                 "/Users/williamquinn/Desktop/set_4/S95_A25/200906_A1400_B1400_t2242_output.root",
-                 "/Users/williamquinn/Desktop/set_4/S95_A25/201106_A1400_B1400_t1200_output.root"]
-    exposures = process_exposure(np.array([int(filenames[i].split("/")[-1].split("_")[0]) for i in range(len(filenames))]))
+    filenames = ["/Users/williamquinn/Desktop/data/1400V/200306_A1400_B1400_t2134_output.root",
+                 "/Users/williamquinn/Desktop/data/1400V/200506_A1400_B1400_t2247_output.root",
+                 "/Users/williamquinn/Desktop/data/1400V/200706_A1400_B1400_t0012_output.root",
+                 "/Users/williamquinn/Desktop/data/1400V/200906_A1400_B1400_t2242_output.root",
+                 "/Users/williamquinn/Desktop/data/1400V/201106_A1400_B1400_t1200_output.root",
+                 "/Users/williamquinn/Desktop/data/1400V/211209_A1400_B1400_t1101_output.root"]
+    # exposures = process_exposure(np.array([int(filenames[i].split("/")[-1].split("_")[0]) for i in range(len(filenames))]))
+    exposures = [3.47, 9.57, 15.67, 21.77, 27.87, 67.58]
 
     fig = plt.figure(figsize=figsize, facecolor='white')
 
@@ -42,8 +44,8 @@ def main():
         bin_centres = bin_edges[:-1] + width / 2
 
         plt.bar(bin_centres, freq/num, width=width, alpha=0.5, color='C{}'.format(index))
-        plt.plot(bin_centres, freq/num, "C{}.".format(index), markersize=marker_size,
-                 label='{:.2f}'.format(exposures[index]))
+        plt.errorbar(bin_centres, freq/num, yerr=np.sqrt(freq)/num, fmt="C{}.".format(index), markersize=marker_size,
+                     label='{:.2f}'.format(exposures[index]))
 
     plt.xlim(lower, upper)
     plt.yscale('log')

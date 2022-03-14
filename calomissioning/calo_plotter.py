@@ -379,6 +379,10 @@ def draw_PAR(apulse_nums: list, run_num: str):
         sncalo.save("plots")
 
 
+def draw_AAN_():
+    pass
+
+
 def draw_ATD(apulse_times: list, run_num: str):
     for i in range(len(apulse_times)):
         canvas = ROOT.TCanvas()

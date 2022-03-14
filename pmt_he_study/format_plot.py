@@ -17,8 +17,10 @@ plt.rc('legend', fontsize=SMALL_SIZE)  # legend fontsize
 plt.rc('figure', titlesize=BIGGER_SIZE)  # fontsize of the figure title
 plt.rcParams["font.family"] = "serif"
 
-marker_size = 3
+marker_size = 2
 line_width = 0.5
+cap_size = 0.5
+cap_thick = 0.5
 
 colors = cycler('color', ['#EE6666', '#3388BB', '#9988DD', '#EECC55', '#88BB44', '#FFBBBB', '#653700', '#F97306'])
 plt.rc('axes', facecolor='white', edgecolor='black',

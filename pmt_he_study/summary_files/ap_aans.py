@@ -155,8 +155,8 @@ def adjust_pars():
     return t_popt, t_pcov
 
 
-def plot_aan(dates, aans, aans_err, name):
-    model = Model()
+def plot_aan(dates, aans, aans_err, name, model):
+    # model = Model()
     t_popt, t_pcov = adjust_pars()
 
     date_0 = process_date(dates[0])
@@ -185,7 +185,7 @@ def plot_aan(dates, aans, aans_err, name):
     pars, errs, chi = root_fit(x, y, yerr, model)
 
     fig1 = plt.figure(num=None, figsize=(5, 5), dpi=80, facecolor='w', edgecolor='k')
-    frame1 = fig1.add_axes((.1, .3, .8, .6))
+    frame1 = fig1.add_axes((.12, .32, .8, .6))
     frame1.set_xticklabels([])
     plt.errorbar(date_0[:start + 1], aan_0[:start + 1], zorder=0,
                  yerr=aan_err_0[:start + 1], fmt="C0s", label="Atmospheric He", markersize=1)
@@ -196,12 +196,10 @@ def plot_aan(dates, aans, aans_err, name):
     plt.errorbar(date_1, aan_1, zorder=0,
                  yerr=aan_err_1, fmt="C3o", label="Control", markersize=1)
     plt.plot(date_0[mid + 1:], model.func(x, pars), 'k-', label='Model', zorder=10)
-    # plt.axvline(date_0[start], 0, 100, ls='--', color='k')
-    # plt.axvline(date_0[mid], 0, 100, ls='--', color='k')
 
     handles, labels = plt.gca().get_legend_handles_labels()
-    patch = patches.Patch(color='white', label=r'$P_0 =$ {:.4e} ± {:.0e}'.format(pars[0], errs[0]))
-    patch_1 = patches.Patch(color='white', label=r'$P_1 =$ {:.3f} ± {:.3f}'.format(pars[1], errs[1]))
+    patch = patches.Patch(color='white', label=r'$P_0 =$ {:.3e} ± {:.0e}'.format(pars[0], errs[0]))
+    patch_1 = patches.Patch(color='white', label=r'$P_1 =$ {:.3e} ± {:.0e}'.format(pars[1], errs[1]))
     patch_2 = patches.Patch(color='white', label=r'$L =$ {:.0f} ± {:.0f}'.format(pars[2] / (3600 * 24), errs[2] / (3600 * 24)))
     patch_3 = patches.Patch(color='white', label=r'$\chi^2_R =$ {:.2f}'.format(chi))
     handles.extend([patch, patch_1, patch_2, patch_3])
@@ -211,8 +209,8 @@ def plot_aan(dates, aans, aans_err, name):
     plt.xlim(-30, 420)
     plt.legend(handles=handles, loc='upper left')
 
-    frame2 = fig1.add_axes((.1, .1, .8, .2))
-    plt.xlabel("Exposure Days Relative to 06/11/2019")
+    frame2 = fig1.add_axes((.12, .1, .8, .2))
+    plt.xlabel("Days from 1% He Onset")
     plt.axhline(0, ls='--', color='black')
     plt.ylabel("(model-data)/model")
     plt.xlim(-30, 420)
@@ -220,7 +218,7 @@ def plot_aan(dates, aans, aans_err, name):
                  (model.func(x, pars) - aan_0[mid + 1:]) / model.func(x, pars),
                  yerr=aan_err_0[mid + 1:]/model.func(date_0[mid + 1:], pars), fmt="k.")
     plt.tight_layout()
-    plt.savefig("/Users/williamquinn/Desktop/PMT_Project/aan_vs_time_" + name + ".pdf")
+    plt.savefig("/Users/williamquinn/Desktop/aan_vs_time_" + name + ".pdf")
     plt.close()
 
 
@@ -230,7 +228,7 @@ def main():
     pmt_array.set_pmt_id("GAO607", 0)
     pmt_array.set_pmt_id("GAO612", 1)
 
-    filenames_txt = "/Users/williamquinn/Desktop/set_5/S95_A25/filenames.txt"
+    filenames_txt = "/Users/williamquinn/Desktop/data/1400V/filenames.txt"
     try:
         print(">>> Reading data from file: {}".format(filenames_txt))
         date_file = open(filenames_txt, 'r')
@@ -253,7 +251,7 @@ def main():
         date = filename.split("_")[0]
         voltage = int(filename.split("_")[1].split("A")[1])
 
-        file = ROOT.TFile("/Users/williamquinn/Desktop/set_5/S95_A25/" + filename, "READ")
+        file = ROOT.TFile("/Users/williamquinn/Desktop/data/1400V/" + filename, "READ")
         file.cd()
 
         for i_om in range(2):
@@ -279,8 +277,9 @@ def main():
             del num_hist
             del he_num_hist
 
-    plot_aan(dates, nums, nums_err, "")
-    plot_aan(dates, he_nums, he_nums_err, "he")
+    model = Model_0()
+    plot_aan(dates, nums, nums_err, "", model)
+    plot_aan(dates, he_nums, he_nums_err, "he", model)
 
 
 if __name__ == "__main__":
