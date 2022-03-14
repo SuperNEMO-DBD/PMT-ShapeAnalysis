@@ -6,13 +6,34 @@ sys.path.insert(1, '../..')
 from pmt_he_study.models import *
 
 
-def extrapolate(model, pars, limit, typ):
-    x_i = 0
-    y_i = 0
-    while y_i <= limit:
-        y_i = model.func(np.array([x_i]), pars)[0]
-        x_i += 1
-    print(">", model.name, typ, limit, '{} days'.format(x_i))
+def plot_corrected(data):
+    t_popt, t_pcov = adjust_pars()
+    nums = [data[0]["he_ap_nums"], data[1]["he_ap_nums"]]
+    nums_err = [data[0]["he_ap_nums"] * 0.01, data[1]["he_ap_nums"] * 0.01]
+
+    err_p0 = np.sqrt(t_pcov[0, 0]) / t_popt[0]
+    err_p1 = np.sqrt(t_pcov[1, 1]) / t_popt[1]
+    err_p2 = np.sqrt(t_pcov[2, 2])
+    A = [t_popt[0] * (data[i]["he_ap_nums"] ** 2) for i in range(2)]
+    err_A = [A[i] * np.sqrt((err_p0) ** 2 + 2 * (0.01) ** 2) for i in range(2)]
+    B = [t_popt[1] * data[i]["he_ap_nums"] for i in range(2)]
+    err_B = [B[i] * np.sqrt((err_p1) ** 2 + 2 * (0.01) ** 2) for i in range(2)]
+    C = t_popt[2]
+    err_C = err_p2
+    he_nums_corr = [A[i] + B[i] + C for i in range(2)]
+    he_nums_corr_err = [np.sqrt((err_A[i]) ** 2 + (err_B[i]) ** 2 + (err_C) ** 2) for i in range(2)]
+
+    plt.figure(figsize=figsize)
+    plt.errorbar(data[0]["dates"], nums[0], yerr=nums_err[0], fmt="o", label='Raw Data', markersize=1,
+                 capsize=cap_size, linewidth=line_width, capthick=cap_thick)
+    plt.errorbar(data[0]["dates"], he_nums_corr[0], yerr=he_nums_corr_err[0], fmt="^", label='Corrected',
+                 markersize=1, capsize=cap_size, linewidth=line_width, capthick=cap_thick)
+    plt.xlabel("Days from onset of 1% Helium")
+    plt.ylabel("Number")
+    plt.title("Average After-Pulse Number Correction")
+    plt.legend(loc='best')
+    plt.tight_layout()
+    plt.savefig("/Users/williamquinn/Desktop/PMT_Project/data_correction.pdf")
 
 
 def read_gain_file(filename: str):
@@ -172,33 +193,42 @@ def read_file(pmt_array: PMT_Array, input_filename: str):
     return data
 
 
-def plot_av_charge_gain(data: dict, voltage: int):
-
-    fig, (ax1, ax2) = plt.subplots(2, sharex=True, figsize=(4.5, 3))
-    fig.suptitle('')
-    ax1.errorbar(data["week"] * 7 + 3, data["av_charges"][0], yerr=data["av_charges_err"][0],
-                 fmt="o", label='Exposed', markersize=marker_size, capsize=cap_size, linewidth=line_width,
-                 capthick=cap_thick)
-    ax1.errorbar(data["week"] * 7 + 3, data["av_charges"][0], yerr=data["av_charges_err"][0],
-                 fmt="^", label='Control', markersize=marker_size, capsize=cap_size, linewidth=line_width,
-                 capthick=cap_thick)
-    ax1.legend(loc='best')
-    ax1.set_ylabel("Charge /pC")
+def plot_av_charge_gain(gain_data: dict, voltage: int):
+    fig1 = plt.figure(figsize=(4.5, 4), facecolor='w')
+    frame1 = fig1.add_axes((.15, .54, .8, .39))
+    frame1.set_xticklabels([])
+    val = 1
     if voltage == 1400:
-        ax1.set_ylim(100, 150)
+        plt.ylim(100, 150)
+        val = 1e6
 
-    ax2.errorbar(data["week"] * 7 + 3, data["gains"][0], yerr=data["gains_err"][0],
-                 fmt="o", label='Exposed', markersize=marker_size, capsize=cap_size, linewidth=line_width,
+    plt.errorbar(gain_data[voltage][0]["week"] * 7 + 3, gain_data[voltage][0]["av_charge"],
+                 yerr=gain_data[voltage][0]["av_charge_err"],
+                 fmt="o", label='Exposed', markersize=1, capsize=cap_size, linewidth=line_width,
                  capthick=cap_thick)
-    ax2.errorbar(data["week"] * 7 + 3, data["gains"][1], yerr=data["gains_err"][1],
+    plt.errorbar(gain_data[voltage][1]["week"] * 7 + 3, gain_data[voltage][1]["av_charge"],
+                 yerr=gain_data[voltage][1]["av_charge_err"],
+                 fmt="^", label='Control', markersize=1, capsize=cap_size, linewidth=line_width,
+                 capthick=cap_thick)
+    plt.legend(loc='best')
+    plt.ylabel("Charge /pC")
+
+    frame2 = fig1.add_axes((.15, .12, .8, 0.39))
+
+    plt.errorbar(gain_data[voltage][0]["week"] * 7 + 3, gain_data[voltage][0]["gain"]/val,
+                 yerr=gain_data[voltage][0]["gain_err"]/val,
+                 fmt="o", label='Exposed', markersize=1, capsize=cap_size, linewidth=line_width,
+                 capthick=cap_thick)
+    plt.errorbar(gain_data[voltage][1]["week"] * 7 + 3, gain_data[voltage][1]["gain"]/val,
+                 yerr=gain_data[voltage][1]["gain_err"]/val,
                  fmt="^", label='Control', markersize=marker_size, capsize=cap_size, linewidth=line_width,
                  capthick=cap_thick)
-    ax2.set_xlabel("Days from onset of 1% Helium")
-    ax2.set_ylabel("Gain")
+    plt.xlabel("Days from onset of 1% Helium")
+    plt.ylabel(r"Gain /$10^6$")
     # ax2.set_ylim(1, 4)
 
     plt.tight_layout()
-    plt.savefig("/Users/williamquinn/Desktop/av_charge_gain_{}V.pdf".format(voltage))
+    plt.savefig("/Users/williamquinn/Desktop/PMT_Project/av_charge_gain_{}V.pdf".format(voltage))
 
 
 def plot_aan(data: dict):
@@ -436,11 +466,13 @@ def main():
 
     data = read_file(pmt_array, "/Users/williamquinn/Desktop/data/1400V/filenames.txt")
     # plot_aan(data)
+    # plot_corrected(data)
+    plot_av_charge_gain(gain_data, 1400)
 
-    model = Model()
+    '''model = Model()
     plot_pp(model, data, gain_data)
     model = Model_0()
-    plot_pp(model, data, gain_data)
+    plot_pp(model, data, gain_data)'''
 
 
 if __name__ == "__main__":

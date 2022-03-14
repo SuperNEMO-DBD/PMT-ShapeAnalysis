@@ -1361,3 +1361,12 @@ def root_fit(x, y, yerr, model):
         pars.append(fit.GetParameter(i))
         errs.append(fit.GetParError(i))
     return pars, errs, chi
+
+
+def extrapolate(model, pars, limit, typ):
+    x_i = 0
+    y_i = 0
+    while y_i <= limit:
+        y_i = model.func(np.array([x_i]), pars)[0]
+        x_i += 1
+    print(">", model.name, typ, limit, '{} days'.format(x_i))
