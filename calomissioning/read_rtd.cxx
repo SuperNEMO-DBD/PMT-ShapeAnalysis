@@ -184,8 +184,8 @@ int main(int argc, char **argv)
 
         // Read the config file and store the variables in the CONF object
         CONF config_object = read_config( "/sps/nemo/scratch/wquinn/PMT-ShapeAnalysis/config_files/snemo_calo.conf" );
-        // const double tdc2ns = snfee::model::feb_constants::SAMLONG_DEFAULT_TDC_LSB_NS;
-        // const double adc2mv = snfee::model::feb_constants::SAMLONG_ADC_VOLTAGE_LSB_MV;
+        const double tdc2ns = snfee::model::feb_constants::SAMLONG_DEFAULT_TDC_LSB_NS;
+        const double adc2mv = snfee::model::feb_constants::SAMLONG_ADC_VOLTAGE_LSB_MV;
 
         std::cout<<"Settings:"          <<std::endl;
         std::cout<<"tdc2ns: "           <<tdc2ns<<std::endl;
