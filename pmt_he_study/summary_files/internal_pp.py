@@ -1,7 +1,5 @@
 import sys
 
-import numpy as np
-
 sys.path.insert(1, '../..')
 from pmt_he_study.models import *
 
@@ -344,8 +342,8 @@ def plot_pp(model, data: dict, gain_data: dict):
     x_3, y_3, y_err_3 = data[1]["dates"],                    pp[1],                     pp_err[1]
 
     k = pars[1]
-    #extrapolate(model, pars, 3.13, "")
-    #extrapolate(model, pars, 0.13, "")
+    extrapolate(model, pars, 3.13, "")
+    extrapolate(model, pars, 0.13, "")
 
     fig1 = plt.figure(figsize=(5, 5), facecolor='w')
     frame1 = fig1.add_axes((.15, .32, .8, .6))
@@ -407,8 +405,8 @@ def plot_pp(model, data: dict, gain_data: dict):
     x_3, y_3, y_err_3 = data[1]["dates"], he_pp[1], he_pp_err[1]
 
     k = pars[1]
-    #extrapolate(model, pars, 3.13, "he")
-    #extrapolate(model, pars, 0.13, "he")
+    extrapolate(model, pars, 3.13, "he")
+    extrapolate(model, pars, 0.13, "he")
 
     fig1 = plt.figure(figsize=(5, 5), facecolor='w')
     frame1 = fig1.add_axes((.15, .32, .8, .6))
@@ -467,12 +465,12 @@ def main():
     data = read_file(pmt_array, "/Users/williamquinn/Desktop/data/1400V/filenames.txt")
     # plot_aan(data)
     # plot_corrected(data)
-    plot_av_charge_gain(gain_data, 1400)
+    # plot_av_charge_gain(gain_data, 1400)
 
-    '''model = Model()
+    model = Model()
     plot_pp(model, data, gain_data)
     model = Model_0()
-    plot_pp(model, data, gain_data)'''
+    plot_pp(model, data, gain_data)
 
 
 if __name__ == "__main__":
