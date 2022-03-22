@@ -116,6 +116,7 @@ int main(int argc, char **argv)
 
     std::string input_file_name, output_file_name;
     bool do_template = false;
+    bool do_sweep = false;
     //int chosen_OM = 1000;
     //bool do_waveforms = false;
 
@@ -147,6 +148,15 @@ int main(int argc, char **argv)
                         do_template = true;
                     }else{
                         do_template = false;
+                    }
+                }
+                else if ( s == "-s" )
+                {
+                    if ( std::string(argv[i+1]) == "true" )
+                    {
+                        do_sweep = true;
+                    }else{
+                        do_sweep = false;
                     }
                 }
 	        }
@@ -414,7 +424,10 @@ int main(int argc, char **argv)
 	                        if ( my_amplitude < 0 )
 				            {
 				                om_counter[my_class][eventn.side] ++;
-				                matchfilter = sweep(waveform, config_object, my_baseline, template_vectors[eventn.OM_ID]);
+                                if (do_sweep) {
+                                    matchfilter = sweep(waveform, config_object, my_baseline,
+                                                        template_vectors[eventn.OM_ID]);
+                                }
 				                // if (matchfilter.apulse_num > 0){tree.Fill();}
 						        tree.Fill();
 	                        }
