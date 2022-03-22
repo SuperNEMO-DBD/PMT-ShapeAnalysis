@@ -35,7 +35,8 @@
 #include <sncabling/calo_signal_cabling.h>
 
 typedef struct {
-    Int_t OM_ID, side, wall, col, row, rise_cell, fall_cell, peak_cell;
+    Int_t OM_ID, side, wall, col, row;
+    int32_t rise_cell, fall_cell, peak_cell;
     Double_t charge, baseline, amplitude, raw_charge, raw_amplitude, raw_baseline, rise_time, fall_time, peak_time;
     bool is_main, is_xwall, is_gveto, is_fr, is_it;
 } EVENTN;
@@ -331,7 +332,11 @@ int main(int argc, char **argv)
 	            // 2 channels per SAMLONG
 	            for (int ichannel = 0; ichannel < snfee::model::feb_constants::SAMLONG_NUMBER_OF_CHANNELS; ichannel++)
 	            {
+                    // reset waveform container
                     waveform.clear();
+                    // reset event container
+                    eventn = {};
+
 	                const snfee::data::calo_hit_record::channel_data_record & ch_data = calo_hit.get_channel_data(ichannel);
 	                bool    ch_lt           {ch_data.is_lt()};            // Low threshold flag
 	                bool    ch_ht           {ch_data.is_ht()};            // High threshold flag
@@ -351,6 +356,14 @@ int main(int argc, char **argv)
 	                Double_t rising_actual    = (ch_rising_cell_*6.25)/256.0;
 	                Double_t falling_actual   = (ch_falling_cell_*6.25)/256.0;
 	                Double_t peak_actual      = ch_peak_cell_*6.25/8.0;
+
+                    eventn.fall_cell = ch_falling_cell;
+                    eventn.rise_cell = ch_rising_cell;
+                    eventn.peak_cell = ch_peak_cell;
+
+                    eventn.fall_time = falling_actual;
+                    eventn.rise_time = rising_actual;
+                    eventn.peak_time = peak_actual;
 	                //
 
 	                sncabling::calo_signal_id readout_id(sncabling::CALOSIGNAL_CHANNEL,
