@@ -35,8 +35,8 @@
 #include <sncabling/calo_signal_cabling.h>
 
 typedef struct {
-    Int_t OM_ID, side, wall, col, row;
-    Double_t charge, baseline, amplitude, raw_charge, raw_amplitude, raw_baseline;
+    Int_t OM_ID, side, wall, col, row, rise_cell, fall_cell, peak_cell;
+    Double_t charge, baseline, amplitude, raw_charge, raw_amplitude, raw_baseline, rise_time, fall_time, peak_time;
     bool is_main, is_xwall, is_gveto, is_fr, is_it;
 } EVENTN;
 
@@ -269,6 +269,12 @@ int main(int argc, char **argv)
         tree.Branch("is_xwall",&eventn.is_xwall);
         tree.Branch("is_fr",&eventn.is_fr);
         tree.Branch("is_it",&eventn.is_it);
+        tree.Branch("rise_cell",&eventn.rise_cell);
+        tree.Branch("fall_cell",&eventn.fall_cell);
+        tree.Branch("peak_cell",&eventn.peak_cell);
+        tree.Branch("rise_time",&eventn.rise_time);
+        tree.Branch("fall_time",&eventn.fall_time);
+        tree.Branch("peak_time",&eventn.peak_time);
         tree.Branch("apulse_num",&matchfilter.apulse_num);
         tree.Branch("apulse_times",&matchfilter.apulse_times);
         tree.Branch("apulse_amplitudes",&matchfilter.apulse_amplitudes);
@@ -338,13 +344,13 @@ int main(int argc, char **argv)
 
 	                // The following is commented out but kept here for
 	                // how to calculate true variables from the ones stored in data
-	                /*Double_t ch_rising_cell_  = Double_t(ch_rising_cell);
+	                Double_t ch_rising_cell_  = Double_t(ch_rising_cell);
 	                Double_t ch_falling_cell_ = Double_t(ch_falling_cell);
 	                Double_t ch_peak_cell_    = Double_t(ch_peak_cell);
 
 	                Double_t rising_actual    = (ch_rising_cell_*6.25)/256.0;
 	                Double_t falling_actual   = (ch_falling_cell_*6.25)/256.0;
-	                Double_t peak_actual      = ch_peak_cell_*6.25/8.0;*/
+	                Double_t peak_actual      = ch_peak_cell_*6.25/8.0;
 	                //
 
 	                sncabling::calo_signal_id readout_id(sncabling::CALOSIGNAL_CHANNEL,
