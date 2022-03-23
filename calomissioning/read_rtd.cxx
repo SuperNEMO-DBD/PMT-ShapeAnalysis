@@ -186,7 +186,7 @@ int main(int argc, char **argv)
 
         // Define how many events per category (my_class) you wish,
         // Categories: MWALL = 0, XWALL = 1, GVETO = 2
-        int n_stop = 10000000;
+        int n_stop = 100000;
         int my_class;
 
         // Defien how many waveforms you want to use in the template averaging
