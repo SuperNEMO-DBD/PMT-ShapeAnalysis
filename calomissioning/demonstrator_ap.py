@@ -1,8 +1,5 @@
 import sys
 
-import matplotlib.pyplot as plt
-import numpy as np
-
 sys.path.insert(1, '../')
 from pmt_he_study.models import *
 from ReadRED import sndisplay as sn

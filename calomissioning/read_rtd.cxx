@@ -305,6 +305,7 @@ int main(int argc, char **argv)
         while ( rtd_source.has_record_tag() )
         {
             rtd_counter++;
+            event_num ++;
       
             // Load the next RTD object:
             rtd_source.load(rtd);
@@ -454,7 +455,7 @@ int main(int argc, char **argv)
 	                }
 	            } //end of channels
             }//end of calohit
-            event_num ++;
+
             if ( om_counter[0][0] >= n_stop && om_counter[0][1] >= n_stop && om_counter[1][0] >= n_stop &&
                 om_counter[1][1] >= n_stop && om_counter[2][0] >= n_stop && om_counter[2][1] >= n_stop){ break; }
         }   //end of file

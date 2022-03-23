@@ -538,7 +538,7 @@ class calorimeter:
                 if self.content[omnum] > content_max:
                     content_max = self.content[omnum]
         else:
-            self.range_min = 0
+            content_min = self.range_min
             content_max = self.range_max
 
         for omnum in range(self.nb_om):

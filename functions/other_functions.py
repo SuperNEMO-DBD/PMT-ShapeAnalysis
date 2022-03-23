@@ -1370,3 +1370,28 @@ def extrapolate(model, pars, limit, typ):
         y_i = model.func(np.array([x_i]), pars)[0]
         x_i += 1
     print(">", model.name, typ, limit, '{} days'.format(x_i))
+
+
+def get_baseline(waveform, pre_trigger):
+    baseline = 0
+    for i in range(pre_trigger):
+        baseline += waveform[i]
+    baseline = baseline/pre_trigger
+    return baseline
+
+
+def get_amplitude(waveform, baseline):
+    return np.amin(waveform) - baseline
+
+
+def get_peak(waveform):
+    return np.argmin(waveform)
+
+
+def mf_waveform(waveform, template):
+    norm_temp = np.sqrt(np.dot(template, template))
+    norm_wav = np.sqrt(np.dot(waveform, waveform))
+    amplitude = np.dot(template, waveform)/norm_temp
+    shape = amplitude/norm_wav
+
+    return shape, amplitude
