@@ -1381,11 +1381,21 @@ def get_baseline(waveform, pre_trigger):
 
 
 def get_amplitude(waveform, baseline):
-    return np.amin(waveform) - baseline
+    amp = 100000
+    for i in range(len(waveform)):
+        if waveform[i] < amp:
+            amp = waveform[i]
+    return amp - baseline
 
 
 def get_peak(waveform):
-    return np.argmin(waveform)
+    peak = 0
+    amp = 10000
+    for i in range(len(waveform)):
+        if waveform[i] < amp:
+            amp = waveform[i]
+            peak = i
+    return peak
 
 
 def mf_waveform(waveform, template):
@@ -1395,3 +1405,7 @@ def mf_waveform(waveform, template):
     shape = amplitude/norm_wav
 
     return shape, amplitude
+
+
+def lorentzian(x, amp1, cen1, wid1):
+    return amp1 * wid1 ** 2 / ((x - cen1) ** 2 + wid1 ** 2)

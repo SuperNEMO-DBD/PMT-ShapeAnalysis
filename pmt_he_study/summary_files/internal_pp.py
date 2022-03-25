@@ -386,7 +386,7 @@ def plot_pp(model, data: dict, gain_data: dict):
     plt.axhline(0, ls='--', color='black')
     plt.ylabel("(model-data)/model")
     plt.xlim(-30, 420)
-    plt.errorbar(x_model, (y_model - y_2) / y_model, yerr=y_err_2 / y, fmt="k.")
+    plt.errorbar(x_model, (y_model - y_2) / y_model, yerr=y_err_2 / y_model, fmt="k.")
     plt.tight_layout()
 
     plt.savefig("/Users/williamquinn/Desktop/PMT_Project/" + model.name + "_pi_vs_time.pdf")
@@ -448,7 +448,7 @@ def plot_pp(model, data: dict, gain_data: dict):
     plt.axhline(0, ls='--', color='black')
     plt.ylabel("(model-data)/model")
     plt.xlim(-30, 420)
-    plt.errorbar(x_model, (y_model - y_2) / y_model, yerr=y_err_2 / y, fmt="k.")
+    plt.errorbar(x_model, (y_model - y_2) / y_model, yerr=y_err_2 / y_model, fmt="k.")
     plt.tight_layout()
 
     plt.savefig("/Users/williamquinn/Desktop/PMT_Project/" + model.name + "_he_pi_vs_time.pdf")

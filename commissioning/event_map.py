@@ -4,6 +4,9 @@ sys.path.insert(1, '../')
 from pmt_he_study.models import *
 from ReadRED import sndisplay as sn
 
+tdc2ns = 0.390625
+adc2mv = 0.610352
+
 
 def main():
     file = ROOT.TFile("/Users/williamquinn/Desktop/commissioning/run_434.root", "READ")
@@ -13,9 +16,7 @@ def main():
         om = event.OM_ID
         amplitude = event.raw_amplitude
 
-        print(event.event_num)
-
-        if -1*amplitude > 10:
+        if (-1*amplitude) * adc2mv > 150:
             events[om] += 1
 
     sncalo = sn.calorimeter("event_map_434", with_palette=True)

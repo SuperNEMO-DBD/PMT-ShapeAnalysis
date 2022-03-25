@@ -37,6 +37,7 @@
 typedef struct {
     Int_t OM_ID, side, wall, col, row;
     int32_t rise_cell, fall_cell, peak_cell;
+    uint64_t tdc;
     Double_t charge, baseline, amplitude, raw_charge, raw_amplitude, raw_baseline, rise_time, fall_time, peak_time;
     bool is_main, is_xwall, is_gveto, is_fr, is_it;
 } EVENTN;
@@ -259,6 +260,7 @@ int main(int argc, char **argv)
         TTree tree("T","Tree containing simulated vertex data");
         tree.Branch("event_num",&event_num);
         tree.Branch("OM_ID",&eventn.OM_ID);
+        tree.Branch("tdc", &eventn.tdc)
         tree.Branch("charge",&eventn.charge);
         tree.Branch("raw_charge",&eventn.raw_charge);
         tree.Branch("baseline",&eventn.baseline);

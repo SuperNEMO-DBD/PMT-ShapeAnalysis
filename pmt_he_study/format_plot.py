@@ -1,5 +1,6 @@
 import matplotlib.pyplot as plt
 from matplotlib import cycler, patches
+from matplotlib.colors import LogNorm
 
 IPython_default = plt.rcParams.copy()
 SMALL_SIZE = 8

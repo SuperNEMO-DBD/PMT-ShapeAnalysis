@@ -1,20 +1,7 @@
 import sys
 
-import numpy as np
-
-sys.path.insert(1, '../..')
-
-import ROOT
-from matplotlib.colors import LogNorm
-from scipy.optimize import curve_fit
-from pmt_he_study.format_plot import *
-from functions.other_functions import *
-from src.PMT_Classes import *
-from mpl_toolkits.axes_grid1 import make_axes_locatable
-
-
-def lorentzian(x, amp1, cen1, wid1):
-    return amp1 * wid1 ** 2 / ((x - cen1) ** 2 + wid1 ** 2)
+sys.path.insert(1, '../')
+from pmt_he_study.models import *
 
 
 def main():
