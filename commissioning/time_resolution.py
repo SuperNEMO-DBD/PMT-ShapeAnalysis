@@ -199,20 +199,23 @@ def get_event_times(oms, file_name, templates):
         baseline = get_baseline(waveform, 100)
         amplitude = get_amplitude(waveform, baseline)
         peak = get_peak(waveform)
+        tdc = event.tdc * tdc2ns
 
         if -1 * amplitude < 150 or not (25 < peak < 500):
             continue
 
         if n_plot < 0:
             pars, errs, chi = get_pulse_time_mf((np.array(waveform) - baseline) / amplitude * -1, templates[om], peak, -1 * amplitude, True, n_plot)
-            pulse_time_0 = pars[2]
+            pulse_time_0 = tdc - 400 + pars[2]
             pulse_time_0_err = errs[2]
             n_plot += 1
         else:
             pars, errs, chi = get_pulse_time_mf((np.array(waveform) - baseline) / amplitude * -1, templates[om], peak, -1 * amplitude, False, n_plot)
-            pulse_time_0 = pars[2]
+            pulse_time_0 = tdc - 400 + pars[2]
             pulse_time_0_err = errs[2]
-        pulse_time_1 = event.fall_time
+
+        pulse_time_1 = (event.fall_cell *tdc2ns)/256.0 - 400 + tdc
+        print(event_num, om, tdc, pulse_time_0, pulse_time_1)
 
         events[event_num][om] = [pulse_time_0, pulse_time_0_err, pulse_time_1]
     return events

@@ -324,7 +324,7 @@ int main(int argc, char **argv)
 	            // Dereference the stored shared pointer oin the calo hit record:
 	            const snfee::data::calo_hit_record & calo_hit = *p_calo_hit;
 	            calo_counter++;
-	            uint64_t tdc             = calo_hit.get_tdc();        // TDC timestamp (48 bits)
+	            int64_t tdc             = calo_hit.get_tdc();        // TDC timestamp (48 bits)
 	            int32_t  crate_num       = calo_hit.get_crate_num();  // Crate number (0,1,2)
 	            int32_t  board_num       = calo_hit.get_board_num();  // Board number (0-19)
 	            //if (board_num >= 10){ board_num++; };                 // OLD convert board_num  from [10-19] to [11-20]
@@ -358,9 +358,9 @@ int main(int argc, char **argv)
 	                Double_t ch_falling_cell_ = Double_t(ch_falling_cell);
 	                Double_t ch_peak_cell_    = Double_t(ch_peak_cell);
 
-	                Double_t rising_actual    = (ch_rising_cell_*6.25)/256.0;
-	                Double_t falling_actual   = (ch_falling_cell_*6.25)/256.0;
-	                Double_t peak_actual      = ch_peak_cell_*6.25/8.0;
+	                Double_t rising_actual    = (ch_rising_cell_*tdc2ns)/256.0;
+	                Double_t falling_actual   = (ch_falling_cell_*tdc2ns)/256.0;
+	                Double_t peak_actual      = ch_peak_cell_*tdc2ns/8.0;
 
                     eventn.fall_cell = ch_falling_cell;
                     eventn.rise_cell = ch_rising_cell;
