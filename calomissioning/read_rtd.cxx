@@ -37,7 +37,7 @@
 typedef struct {
     Int_t OM_ID, side, wall, col, row;
     int32_t rise_cell, fall_cell, peak_cell;
-    unsigned long long int tdc;
+    uint64_t tdc;
     Double_t charge, baseline, amplitude, raw_charge, raw_amplitude, raw_baseline, rise_time, fall_time, peak_time;
     bool is_main, is_xwall, is_gveto, is_fr, is_it;
 } EVENTN;
@@ -324,7 +324,7 @@ int main(int argc, char **argv)
 	            // Dereference the stored shared pointer oin the calo hit record:
 	            const snfee::data::calo_hit_record & calo_hit = *p_calo_hit;
 	            calo_counter++;
-                unsigned long long int tdc              = calo_hit.get_tdc();        // TDC timestamp (48 bits)
+                uint64_t tdc              = calo_hit.get_tdc();        // TDC timestamp (48 bits)
 	            int32_t  crate_num       = calo_hit.get_crate_num();  // Crate number (0,1,2)
 	            int32_t  board_num       = calo_hit.get_board_num();  // Board number (0-19)
 	            //if (board_num >= 10){ board_num++; };                 // OLD convert board_num  from [10-19] to [11-20]

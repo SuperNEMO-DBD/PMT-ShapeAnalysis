@@ -215,7 +215,7 @@ def get_event_times(oms, file_name, templates):
             pulse_time_0_err = errs[2]
 
         pulse_time_1 = (event.fall_cell *tdc2ns)/256.0 - 400 + tdc
-        print(event_num, om, tdc, pulse_time_0, pulse_time_1)
+        print(event_num, om, tdc, pulse_time_0, pulse_time_1, pulse_time_1-pulse_time_0)
 
         events[event_num][om] = [pulse_time_0, pulse_time_0_err, pulse_time_1]
     return events
