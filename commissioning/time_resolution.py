@@ -234,7 +234,7 @@ def store_events(events):
 
 def read_events():
     events = {}
-    with open("/Users/williamquinn/Desktop/commissioning/events.csv", "w") as out_file:
+    with open("/Users/williamquinn/Desktop/commissioning/events.csv", "r") as out_file:
         fl = out_file.readlines()
         for index, line in enumerate(fl):
             line_list = line.split(",")
@@ -247,16 +247,27 @@ def read_events():
             if event_num in events.keys():
                 events[event_num][om] = [time1, time1_err, time2]
             else:
-                events[event_num] = {om: []}
-
+                events[event_num] = {om: [time1, time1_err, time2]}
+    return events
 
 
 def main():
-    #create_templates("/Users/williamquinn/Desktop/commissioning/run_434.root")
-    templates = read_templates()
-    filename = "/Users/williamquinn/Desktop/commissioning/run_434.root"
-    events = get_event_times(oms, filename, templates)
-    store_events(events)
+    # create_templates("/Users/williamquinn/Desktop/commissioning/run_434.root")
+    # templates = read_templates()
+    # filename = "/Users/williamquinn/Desktop/commissioning/run_434.root"
+    # events = get_event_times(oms, filename, templates)
+    # store_events(events)
+    events = read_events()
+    counter = [0, 0, 0]
+    for event in events.keys():
+        if len(events[event].keys()) > 1:
+            if om_num_0 in events[event].keys() and om_num_1 in events[event].keys():
+                counter[0] += 1
+            elif om_num_0 in events[event].keys() and om_num_2 in events[event].keys():
+                counter[1] += 1
+            elif om_num_1 in events[event].keys() and om_num_2 in events[event].keys():
+                counter[2] += 1
+    print(counter)
 
 
 if __name__ == "__main__":
