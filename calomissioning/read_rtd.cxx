@@ -260,7 +260,7 @@ int main(int argc, char **argv)
         TTree tree("T","Tree containing simulated vertex data");
         tree.Branch("event_num",&event_num);
         tree.Branch("OM_ID",&eventn.OM_ID);
-        tree.Branch("tdc", &eventn.tdc)
+        tree.Branch("tdc", &eventn.tdc);
         tree.Branch("charge",&eventn.charge);
         tree.Branch("raw_charge",&eventn.raw_charge);
         tree.Branch("baseline",&eventn.baseline);
