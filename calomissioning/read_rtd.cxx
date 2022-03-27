@@ -37,7 +37,7 @@
 typedef struct {
     Int_t OM_ID, side, wall, col, row;
     int32_t rise_cell, fall_cell, peak_cell;
-    auto tdc;
+    uint64_t tdc;
     Double_t charge, baseline, amplitude, raw_charge, raw_amplitude, raw_baseline, rise_time, fall_time, peak_time;
     bool is_main, is_xwall, is_gveto, is_fr, is_it;
 } EVENTN;
