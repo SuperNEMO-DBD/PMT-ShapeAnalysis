@@ -8,9 +8,9 @@ from ReadRED import sndisplay as sn
 tdc2ns = 0.390625
 adc2mv = 0.610352
 
-om_num_0 = 492
-om_num_1 = 505
-om_num_2 = 503
+om_num_0 = 227
+om_num_1 = 214
+om_num_2 = 226
 oms = [om_num_0, om_num_1, om_num_2]
 
 
@@ -132,7 +132,7 @@ def create_templates(filename):
             print(i_e, "/", n_events, np.sum(counter))
         om = event.OM_ID
 
-        if np.sum(counter) == 500*260:
+        if np.sum(counter) == 500*250:
             break
 
         if counter[om] == n:
@@ -215,7 +215,7 @@ def get_event_times(oms, file_name, templates):
             pulse_time_0_err = errs[2]
 
         pulse_time_1 = (event.fall_cell *tdc2ns)/256.0 - 400 + tdc
-        print(event_num, om, tdc, pulse_time_0, pulse_time_1, pulse_time_1-pulse_time_0)
+        # print(event_num, om, tdc, pulse_time_0, pulse_time_1, pulse_time_1-pulse_time_0)
 
         events[event_num][om] = [pulse_time_0, pulse_time_0_err, pulse_time_1]
     return events
@@ -252,12 +252,12 @@ def read_events():
 
 
 def main():
-    # create_templates("/Users/williamquinn/Desktop/commissioning/run_434.root")
-    # templates = read_templates()
-    # filename = "/Users/williamquinn/Desktop/commissioning/run_434.root"
-    # events = get_event_times(oms, filename, templates)
-    # store_events(events)
-    events = read_events()
+    # create_templates("/Users/williamquinn/Desktop/commissioning/run_430.root")
+    templates = read_templates()
+    filename = "/Users/williamquinn/Desktop/commissioning/run_430.root"
+    events = get_event_times(oms, filename, templates)
+    store_events(events)
+    '''events = read_events()
     counter = [0, 0, 0]
     for event in events.keys():
         if len(events[event].keys()) > 1:
@@ -267,7 +267,7 @@ def main():
                 counter[1] += 1
             elif om_num_1 in events[event].keys() and om_num_2 in events[event].keys():
                 counter[2] += 1
-    print(counter)
+    print(counter)'''
 
 
 if __name__ == "__main__":
