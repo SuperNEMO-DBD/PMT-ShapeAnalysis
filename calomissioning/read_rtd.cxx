@@ -331,7 +331,7 @@ int main(int argc, char **argv)
 	            int32_t  chip_num        = calo_hit.get_chip_num();   // Chip number (0-7)
 	            auto     hit_num         = calo_hit.get_hit_num();
 
-                eventn.tdc = (ULong64_t*)tdc;
+                eventn.tdc = tdc;
 
 	            // Extract SAMLONG channels' data:
 	            // 2 channels per SAMLONG
