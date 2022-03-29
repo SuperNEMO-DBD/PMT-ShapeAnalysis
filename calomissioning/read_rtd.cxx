@@ -477,6 +477,7 @@ int main(int argc, char **argv)
                                                         template_vectors[eventn.OM_ID]);
                                 }
 				                // if (matchfilter.apulse_num > 0){tree.Fill();}
+                                std::cout << eventn.rel_time << std::endl;
 						        tree.Fill();
 	                        }
 			            }
