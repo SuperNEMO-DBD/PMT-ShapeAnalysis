@@ -252,12 +252,12 @@ def read_events():
 
 
 def main():
-    # create_templates("/Users/williamquinn/Desktop/commissioning/run_430.root")
+    '''# create_templates("/Users/williamquinn/Desktop/commissioning/run_430.root")
     templates = read_templates()
     filename = "/Users/williamquinn/Desktop/commissioning/run_430.root"
     events = get_event_times(oms, filename, templates)
-    store_events(events)
-    '''events = read_events()
+    store_events(events)'''
+    events = read_events()
     counter = [0, 0, 0]
     for event in events.keys():
         if len(events[event].keys()) > 1:
@@ -267,7 +267,7 @@ def main():
                 counter[1] += 1
             elif om_num_1 in events[event].keys() and om_num_2 in events[event].keys():
                 counter[2] += 1
-    print(counter)'''
+    print(counter)
 
 
 if __name__ == "__main__":
