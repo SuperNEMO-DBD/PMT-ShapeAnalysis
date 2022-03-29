@@ -339,7 +339,7 @@ int main(int argc, char **argv)
                 }
                 if (!first_calo){
                     first_calo = true;
-                    first_calo = tdc - the_first_tdc;
+                    first_calo_time = tdc - the_first_tdc;
                 }
 	            int32_t  crate_num       = calo_hit.get_crate_num();  // Crate number (0,1,2)
 	            int32_t  board_num       = calo_hit.get_board_num();  // Board number (0-19)
