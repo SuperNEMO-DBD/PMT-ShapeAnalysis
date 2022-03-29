@@ -367,7 +367,7 @@ int main(int argc, char **argv)
 
 	                Double_t rising_actual    = (ch_rising_cell_*tdc2ns)/256.0;
 	                Double_t falling_actual   = (ch_falling_cell_*tdc2ns)/256.0;
-	                Double_t peak_actual      = (ch_peak_cell_*tdc2ns/8.0;
+	                Double_t peak_actual      = (ch_peak_cell_*tdc2ns)/8.0;
 
                     eventn.fall_cell = ch_falling_cell;
                     eventn.rise_cell = ch_rising_cell;
