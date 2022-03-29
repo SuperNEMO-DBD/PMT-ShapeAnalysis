@@ -348,14 +348,14 @@ int main(int argc, char **argv)
 	            int32_t  chip_num        = calo_hit.get_chip_num();   // Chip number (0-7)
 	            auto     hit_num         = calo_hit.get_hit_num();
 
-                eventn.rel_time = (uint32_t)(tdc - the_first_tdc - first_calo_time);
+                /*eventn.rel_time = (uint32_t)(tdc - the_first_tdc - first_calo_time);
                 std::cout << "Event: " << event_num << std::endl;
                 std::cout << "tdc: " << tdc << std::endl;
                 std::cout << "first tdc: " << the_first_tdc << std::endl;
                 std::cout << "first calo time: " << first_calo_time << std::endl;
                 std::cout << "time: " << (Double_t)(tdc - the_first_tdc - first_calo_time) * tdc2ns << std::endl;
                 std::cout << "time stored: " << eventn.rel_time << std::endl;
-                std::cout << std::endl;
+                std::cout << std::endl;*/
 
 	            // Extract SAMLONG channels' data:
 	            // 2 channels per SAMLONG
@@ -365,6 +365,7 @@ int main(int argc, char **argv)
                     waveform.clear();
                     // reset event container
                     eventn = {};
+                    eventn.rel_time = (uint32_t)(tdc - the_first_tdc - first_calo_time);
 
 	                const snfee::data::calo_hit_record::channel_data_record & ch_data = calo_hit.get_channel_data(ichannel);
 	                bool    ch_lt           {ch_data.is_lt()};            // Low threshold flag
@@ -477,7 +478,6 @@ int main(int argc, char **argv)
                                                         template_vectors[eventn.OM_ID]);
                                 }
 				                // if (matchfilter.apulse_num > 0){tree.Fill();}
-                                std::cout << eventn.rel_time << std::endl;
 						        tree.Fill();
 	                        }
 			            }
