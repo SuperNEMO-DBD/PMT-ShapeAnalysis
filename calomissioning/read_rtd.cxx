@@ -37,8 +37,8 @@
 typedef struct {
     Int_t OM_ID, side, wall, col, row;
     int32_t rise_cell, fall_cell, peak_cell;
-    ULong64_t tdc;
-    Double_t charge, baseline, amplitude, raw_charge, raw_amplitude, raw_baseline, rise_time, fall_time, peak_time;
+    //ULong64_t tdc;
+    Double_t charge, baseline, amplitude, raw_charge, raw_amplitude, raw_baseline, rise_time, fall_time, peak_time, rel_time;
     bool is_main, is_xwall, is_gveto, is_fr, is_it;
 } EVENTN;
 
@@ -263,7 +263,7 @@ int main(int argc, char **argv)
         TTree tree("T","Tree containing simulated vertex data");
         tree.Branch("event_num",&event_num);
         tree.Branch("OM_ID",&eventn.OM_ID);
-        tree.Branch("tdc", &eventn.tdc);
+        tree.Branch("calo_time", &eventn.rel_time);
         tree.Branch("charge",&eventn.charge);
         tree.Branch("raw_charge",&eventn.raw_charge);
         tree.Branch("baseline",&eventn.baseline);
@@ -317,6 +317,9 @@ int main(int argc, char **argv)
             // General informations:
             int32_t trigger_id = rtd.get_trigger_id();
             int32_t run_id     = rtd.get_run_id();
+
+            bool first_calo = false;
+            uint64_t first_calo_time = 0.0;
       
             if(rtd_counter %10000 == 0 )std::cout<<"In Run : "<<run_id<<" Trigger # "<<trigger_id <<std::endl;
 
@@ -334,13 +337,17 @@ int main(int argc, char **argv)
                     first_tdc = true;
                     the_first_tdc = tdc;
                 }
+                if (!first_calo){
+                    first_calo = true;
+                    first_calo = tdc - first_tdc;
+                }
 	            int32_t  crate_num       = calo_hit.get_crate_num();  // Crate number (0,1,2)
 	            int32_t  board_num       = calo_hit.get_board_num();  // Board number (0-19)
 	            //if (board_num >= 10){ board_num++; };               // OLD convert board_num  from [10-19] to [11-20]
 	            int32_t  chip_num        = calo_hit.get_chip_num();   // Chip number (0-7)
 	            auto     hit_num         = calo_hit.get_hit_num();
 
-                eventn.tdc = (ULong64_t)(tdc - first_tdc);
+                eventn.rel_time = (Double_t)(tdc - first_tdc - first_calo_time) * tdc2ns;
 
 	            // Extract SAMLONG channels' data:
 	            // 2 channels per SAMLONG
