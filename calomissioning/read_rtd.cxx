@@ -36,7 +36,8 @@
 
 typedef struct {
     Int_t OM_ID, side, wall, col, row;
-    int32_t rise_cell, fall_cell, peak_cell, rel_time;
+    int32_t rise_cell, fall_cell, peak_cell;
+    uint32_t rel_time;
     //ULong64_t tdc;
     Double_t charge, baseline, amplitude, raw_charge, raw_amplitude, raw_baseline, rise_time, fall_time, peak_time;
     bool is_main, is_xwall, is_gveto, is_fr, is_it;
@@ -347,7 +348,7 @@ int main(int argc, char **argv)
 	            int32_t  chip_num        = calo_hit.get_chip_num();   // Chip number (0-7)
 	            auto     hit_num         = calo_hit.get_hit_num();
 
-                eventn.rel_time = tdc - the_first_tdc - first_calo_time;
+                eventn.rel_time = (uint32_t)(tdc - the_first_tdc - first_calo_time);
                 std::cout << "Event: " << event_num << std::endl;
                 std::cout << "tdc: " << tdc << std::endl;
                 std::cout << "first tdc: " << the_first_tdc << std::endl;
