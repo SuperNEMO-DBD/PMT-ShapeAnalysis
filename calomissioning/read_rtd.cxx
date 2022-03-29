@@ -348,6 +348,13 @@ int main(int argc, char **argv)
 	            auto     hit_num         = calo_hit.get_hit_num();
 
                 eventn.rel_time = (Double_t)(tdc - first_tdc - first_calo_time) * tdc2ns;
+                std::cout << "Event: " << event_num << std::endl
+                std::cout << "tdc: " << tdc << std::endl
+                std::cout << "first tdc: " << first_tdc << std::endl
+                std::cout << "first calo time: " << first_calo_time << std::endl
+                std::cout << "time: " << (Double_t)(tdc - first_tdc - first_calo_time) * tdc2ns << std::endl
+                std::cout << "time stored: " << eventn.rel_time << std::endl
+                std::cout << std::endl
 
 	            // Extract SAMLONG channels' data:
 	            // 2 channels per SAMLONG
