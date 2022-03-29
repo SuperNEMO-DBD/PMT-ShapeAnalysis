@@ -188,7 +188,7 @@ int main(int argc, char **argv)
 
         // Define how many events per category (my_class) you wish,
         // Categories: MWALL = 0, XWALL = 1, GVETO = 2
-        int n_stop = 1000;
+        int n_stop = 1000000000;
         int my_class;
 
         // Defien how many waveforms you want to use in the template averaging
@@ -324,7 +324,7 @@ int main(int argc, char **argv)
       
             if(rtd_counter %10000 == 0 )std::cout<<"In Run : "<<run_id<<" Trigger # "<<trigger_id <<std::endl;
 
-            if(rtd_counter == 10000){break;}
+            if(event_num == 2000000){break;}
       
             std::size_t calo_counter = 0;
             // Loop on calo hit records in the RTD data object:
