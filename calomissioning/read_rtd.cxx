@@ -187,7 +187,7 @@ int main(int argc, char **argv)
 
         // Define how many events per category (my_class) you wish,
         // Categories: MWALL = 0, XWALL = 1, GVETO = 2
-        int n_stop = 100000000;
+        int n_stop = 1000;
         int my_class;
 
         // Defien how many waveforms you want to use in the template averaging
@@ -338,7 +338,7 @@ int main(int argc, char **argv)
 	            int32_t  chip_num        = calo_hit.get_chip_num();   // Chip number (0-7)
 	            auto     hit_num         = calo_hit.get_hit_num();
 
-                eventn.tdc = tdc - first_tdc;
+                eventn.tdc = (ULong64_t)(tdc - first_tdc);
 
 	            // Extract SAMLONG channels' data:
 	            // 2 channels per SAMLONG
@@ -367,7 +367,7 @@ int main(int argc, char **argv)
 
 	                Double_t rising_actual    = (ch_rising_cell_*tdc2ns)/256.0;
 	                Double_t falling_actual   = (ch_falling_cell_*tdc2ns)/256.0;
-	                Double_t peak_actual      = ch_peak_cell_*tdc2ns/8.0;
+	                Double_t peak_actual      = (ch_peak_cell_*tdc2ns/8.0;
 
                     eventn.fall_cell = ch_falling_cell;
                     eventn.rise_cell = ch_rising_cell;
