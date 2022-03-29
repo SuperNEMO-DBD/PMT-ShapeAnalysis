@@ -333,7 +333,7 @@ int main(int argc, char **argv)
 	            auto     hit_num         = calo_hit.get_hit_num();
 
                 eventn.tdc = tdc * tdc2ns;
-                std::cout << eventn.tdc << std::endl
+                std::cout << eventn.tdc << std::endl;
 
 	            // Extract SAMLONG channels' data:
 	            // 2 channels per SAMLONG
