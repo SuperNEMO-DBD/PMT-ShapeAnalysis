@@ -78,6 +78,7 @@ Int_t get_peak_cell_d( std::vector<Double_t> &vec );
 uint16_t get_amplitude( std::vector<uint16_t> &vec );
 void write_templates( std::vector<std::vector<Double_t>> &template_vectors );
 Double_t get_baseline( std::vector<uint16_t> &vec , CONF &conf_object);
+Double_t get_baseline_b( std::vector<Double_t> &vec , CONF &conf_object);
 Int_t get_max_value( std::vector<Double_t> &vec );
 Double_t get_pulse_time_mf(std::vector<Double_t> &vec);
 std::vector<Double_t> read_energy_coef( std::string filename );
@@ -658,6 +659,15 @@ void write_templates( std::vector<std::vector<Double_t>> &template_vectors )
     std::cout << "Templates written" << std::endl;
 }
 Double_t get_baseline( std::vector<uint16_t> &vec , CONF &conf_object)
+{
+    Double_t baseline = 0;
+    for ( Int_t i = 0 ; i < conf_object.pre_trigger ; i++ )
+    {
+        baseline += vec[i];
+    }
+    return (Double_t)baseline/(Double_t)conf_object.pre_trigger;
+}
+Double_t get_baseline_d( std::vector<Double> &vec , CONF &conf_object)
 {
     Double_t baseline = 0;
     for ( Int_t i = 0 ; i < conf_object.pre_trigger ; i++ )
