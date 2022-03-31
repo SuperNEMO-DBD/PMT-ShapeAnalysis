@@ -430,10 +430,9 @@ int main(int argc, char **argv)
 	                    }else{
 	                        if ( my_amplitude > 100.0)
 				            {
-				                om_counter[my_class][eventn.side] ++;
+				                om_counter[my_class][side] ++;
                                 if (do_sweep) {
-                                    matchfilter = sweep(waveform, config_object, my_baseline,
-                                                        template_vectors[eventn.OM_ID]);
+                                    matchfilter = sweep(waveform, config_object, my_baseline, template_vectors[OM_ID]);
                                 }
 
                                 // For the slected OMs fill eventn struct
