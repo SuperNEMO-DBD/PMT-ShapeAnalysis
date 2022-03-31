@@ -78,7 +78,7 @@ Int_t get_peak_cell_d( std::vector<Double_t> &vec );
 uint16_t get_amplitude( std::vector<uint16_t> &vec );
 void write_templates( std::vector<std::vector<Double_t>> &template_vectors );
 Double_t get_baseline( std::vector<uint16_t> &vec , CONF &conf_object);
-Double_t get_baseline_b( std::vector<Double_t> &vec , CONF &conf_object);
+Double_t get_baseline_d( std::vector<Double_t> &vec , CONF &conf_object);
 Int_t get_max_value( std::vector<Double_t> &vec );
 Double_t get_pulse_time_mf(std::vector<Double_t> &vec);
 std::vector<Double_t> read_energy_coef( std::string filename );
@@ -565,7 +565,7 @@ void update_temp_vector( std::vector<std::vector<Double_t>> &template_vectors, s
 {
     Int_t peak_cell = get_peak_cell_d( new_vector );
 
-    Double_t my_baseline = get_baseline( new_vector , config_object );
+    Double_t my_baseline = get_baseline_d( new_vector , config_object );
 
     Int_t j = 0;
     //std::cout << "OM_ID: " << OM_ID << " Update vector" << std::endl;
