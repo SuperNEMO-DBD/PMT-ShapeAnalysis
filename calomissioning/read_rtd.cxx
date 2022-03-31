@@ -71,8 +71,8 @@ typedef struct {
 
 Double_t get_inner_product( std::vector<Double_t> &vec1, std::vector<Double_t> &vec2 );
 std::vector<std::vector<Double_t>> get_template_pulses( std::string template_file , Int_t n_temp , TEMP_INFO tmp_info);
-void update_temp_vector( std::vector<std::vector<Double_t>> &template_vectors, std::vector<Double_t> new_vector,
-        TEMP_INFO tempInfo, Int_t OM_ID, CONF &config_object );
+void update_temp_vector( std::vector<std::vector<Double_t>> &template_vectors, std::vector<uint16_t> new_vector,
+                         TEMP_INFO tempInfo, Int_t OM_ID, CONF &config_object );
 Int_t get_peak_cell( std::vector<Double_t> &vec );
 uint16_t get_amplitude( std::vector<uint16_t> &vec );
 void write_templates( std::vector<std::vector<Double_t>> &template_vectors );
@@ -558,7 +558,7 @@ Double_t get_inner_product( std::vector<Double_t> &vec1, std::vector<Double_t> &
     }
     return inner_product;
 }
-void update_temp_vector( std::vector<std::vector<Double_t>> &template_vectors, std::vector<Double_t> new_vector,
+void update_temp_vector( std::vector<std::vector<Double_t>> &template_vectors, std::vector<uint16_t> new_vector,
         TEMP_INFO tempInfo, Int_t OM_ID, CONF &config_object )
 {
     Int_t peak_cell = get_peak_cell( new_vector );
@@ -569,7 +569,7 @@ void update_temp_vector( std::vector<std::vector<Double_t>> &template_vectors, s
     //std::cout << "OM_ID: " << OM_ID << " Update vector" << std::endl;
     for (Int_t i = peak_cell - tempInfo.low_edge; i < peak_cell + tempInfo.high_edge; ++i)
     {
-        template_vectors[OM_ID][j] += new_vector[i] - my_baseline;
+        template_vectors[OM_ID][j] += (Double_t)new_vector[i] - my_baseline;
         j++;
         //std::cout << "(" << j << "," << template_vectors[OM_ID][j] << ")" << std::endl;
 
