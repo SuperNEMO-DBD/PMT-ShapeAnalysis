@@ -73,7 +73,7 @@ Double_t get_inner_product( std::vector<Double_t> &vec1, std::vector<Double_t> &
 std::vector<std::vector<Double_t>> get_template_pulses( std::string template_file , Int_t n_temp , TEMP_INFO tmp_info);
 void update_temp_vector( std::vector<std::vector<Double_t>> &template_vectors, std::vector<uint16_t> new_vector,
                          TEMP_INFO tempInfo, Int_t OM_ID, CONF &config_object );
-Int_t get_peak_cell( std::vector<Double_t> &vec );
+Int_t get_peak_cell( std::vector<uint16_t> &vec );
 uint16_t get_amplitude( std::vector<uint16_t> &vec );
 void write_templates( std::vector<std::vector<Double_t>> &template_vectors );
 Double_t get_baseline( std::vector<uint16_t> &vec , CONF &conf_object);
@@ -579,10 +579,10 @@ void update_temp_vector( std::vector<std::vector<Double_t>> &template_vectors, s
         }
     }
 }
-Int_t get_peak_cell( std::vector<Double_t> &vec )
+Int_t get_peak_cell( std::vector<uint16_t> &vec )
 {
     Int_t peak_cell = 0;
-    Double_t temp = vec[0];
+    uint16_t temp = vec[0];
     for ( Int_t i = 0 ; i < (Int_t)vec.size() ; i++ )
     {
         if ( vec[i] < temp )
