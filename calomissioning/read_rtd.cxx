@@ -667,7 +667,7 @@ Double_t get_baseline( std::vector<uint16_t> &vec , CONF &conf_object)
     }
     return (Double_t)baseline/(Double_t)conf_object.pre_trigger;
 }
-Double_t get_baseline_d( std::vector<Double> &vec , CONF &conf_object)
+Double_t get_baseline_d( std::vector<Double_t> &vec , CONF &conf_object)
 {
     Double_t baseline = 0;
     for ( Int_t i = 0 ; i < conf_object.pre_trigger ; i++ )
