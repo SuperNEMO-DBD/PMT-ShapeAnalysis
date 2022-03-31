@@ -78,19 +78,13 @@ uint16_t get_amplitude( std::vector<uint16_t> &vec );
 void write_templates( std::vector<std::vector<Double_t>> &template_vectors );
 Double_t get_baseline( std::vector<uint16_t> &vec , CONF &conf_object);
 Int_t get_max_value( std::vector<Double_t> &vec );
-void draw_waveform( std::vector<Double_t> &vec, Int_t n_samples, Double_t baseline, EVENTN &eventn,
-        std::string output_directory);
-void draw_pulse( std::vector<Double_t> &temp, std::vector<Double_t> &test, Int_t i, Double_t convo,
-        Double_t sample_time, EVENTN &eventn);
-void save_hist( std::vector<Double_t> &vec, std::string x_label, std::string y_label, std::string title,
-        std::string file_name, Int_t n_bins, Double_t min_bin, Double_t max_bin, TFile* root_file);
 Double_t get_pulse_time_mf(std::vector<Double_t> &vec);
 std::vector<Double_t> read_energy_coef( std::string filename );
 std::vector<std::string> split( const std::string& s, char delimiter );
 CONF read_config( std::string filename );
 MATCHFILTER sweep( std::vector<uint16_t> &vec, CONF &config, Double_t baseline, std::vector<Double_t>& temp );
 Int_t get_main_pulse( CONF &config, std::vector<Double_t> &vec );
-Double_t get_my_charge( CONF &config, std::vector<Double_t> &vec, Double_t baseline );
+Double_t get_my_charge( CONF &config, std::vector<uint16_t> &vec, Double_t baseline );
 
 bool debug = true;
 
@@ -671,150 +665,6 @@ Int_t get_max_value( std::vector<Double_t> &vec )
     }
     return pos;
 }
-void draw_waveform( std::vector<Double_t> &vec, Int_t n_samples,
-        Double_t baseline, EVENTN &eventn, std::string output_directory)
-{
-    TCanvas* waveform_canvas = new TCanvas();
-    waveform_canvas->cd();
-    gStyle->SetOptStat(0);
-    TH1D* waveform_hist = new TH1D("waveform", "waveform", n_samples, 0, n_samples/2.56);
-
-    for (uint16_t i_sample = 0; i_sample < n_samples; i_sample++)
-    {
-        Double_t volts = vec[i_sample] - baseline;
-        waveform_hist->SetBinContent(i_sample+1, volts/2.048);
-    }
-
-    waveform_hist->SetXTitle("Time stamp /ns");
-    waveform_hist->SetYTitle("Voltage /mV");
-    std::string w_title = std::to_string(eventn.wall) + ":" + std::to_string(eventn.col) +
-                          ":" + std::to_string(eventn.row) + " Waveform";
-    waveform_hist->SetTitle(w_title.c_str());
-    std::string can_name = output_directory + "_" + std::to_string(eventn.OM_ID) + "_" +
-                           std::to_string(eventn.wall) + "_" + std::to_string(eventn.col) +
-                           "_" + std::to_string(eventn.row) + "_waveform.png";
-
-    waveform_hist->Draw();
-    waveform_canvas->SetGrid(true);
-    waveform_canvas->Update();
-    waveform_canvas->SaveAs(can_name.c_str());
-
-    delete waveform_hist;
-    delete waveform_canvas;
-}
-void draw_pulse( std::vector<Double_t> &temp, std::vector<Double_t> &test, Int_t i,
-        Double_t convo, Double_t sample_time, EVENTN &eventn)
-{
-    TCanvas* my_canvas = new TCanvas();
-    my_canvas->cd();
-
-    gStyle->SetOptStat(0);
-    std::string test_name = "test_hist_" + std::to_string(i);
-    std::string temp_name = "temp_hist_" + std::to_string(eventn.OM_ID);
-
-    TH1D* test_hist = new TH1D(test_name.c_str(), test_name.c_str(), (Int_t)test.size(), 0, (Double_t)test.size()/2.56);
-    TH1D* temp_hist = new TH1D(temp_name.c_str(), temp_name.c_str(), (Int_t)test.size(), 0, (Double_t)test.size()/2.56);
-    test_hist->SetMaximum(10);
-    test_hist->SetMinimum(test_hist->GetMinimum() - 50);
-
-    TLegend* legend = new TLegend(0.7, 0.1, 0.9, 0.2);
-    //gStyle->SetLegendBorderSize(0);
-    for (int j = 1; j <= (Int_t)test.size(); ++j)
-    {
-        test_hist->SetBinContent(j, test[j-1]/2.048);
-    }
-    for (int k = 1; k <= (Int_t)temp.size(); ++k)
-    {
-        temp_hist->SetBinContent(k, temp[k-1]);
-    }
-
-    temp_hist->Scale(test_hist->Integral()/temp_hist->Integral());
-    //temp_hist->Sumw2();
-
-    temp_hist->SetLineColor(2);
-    test_hist->SetLineColor(1);
-
-    test_hist->SetXTitle("Relative time /ns");
-    test_hist->SetYTitle("Voltage /mV");
-    std::string title = std::to_string(eventn.wall) + ":" + std::to_string(eventn.col) + ":" + std::to_string(eventn.row)
-            + " MF: " + std::to_string(convo) + " FBT:" + std::to_string(sample_time) + " ns";
-    test_hist->SetTitle(title.c_str());
-
-    std::string can_name = "mf_output_" + std::to_string(eventn.wall) + "_" + std::to_string(eventn.col) + "_" +
-            std::to_string(eventn.row) + "_N" + std::to_string(i) + ".png";
-    test_hist->Draw("HIST");
-    temp_hist->Draw("HIST SAME C");
-    legend->AddEntry(test_hist, "test");
-    legend->AddEntry(temp_hist, "template");
-    legend->Draw();
-    my_canvas->SetGrid(true);
-    my_canvas->Update();
-    my_canvas->SaveAs(can_name.c_str());
-
-    delete test_hist;
-    delete temp_hist;
-    delete my_canvas;
-    delete legend;
-}
-void save_hist( std::vector<Double_t> &vec, std::string x_label, std::string y_label, std::string title,
-        std::string file_name, Int_t n_bins, Double_t min_bin, Double_t max_bin, TFile* root_file)
-{
-    TCanvas* new_canvas = new TCanvas();
-    new_canvas->cd();
-    new_canvas->SetGrid(true);
-
-    TH1D* new_hist = new TH1D(title.c_str(), title.c_str(), n_bins, min_bin, max_bin);
-
-    for (int k = 0; k < vec.size(); ++k) {
-        new_hist->SetBinContent(k+1, vec[k]);
-    }
-
-    new_hist->SetXTitle(x_label.c_str());
-    new_hist->SetYTitle(y_label.c_str());
-    new_hist->SetTitle(title.c_str());
-
-    gStyle->SetOptStat(0);
-    new_hist->Draw("HIST");
-    new_hist->Write();
-    new_canvas->SaveAs(file_name.c_str());
-
-    delete new_canvas;
-}
-Double_t get_pulse_time_mf(std::vector<Double_t> &vec)
-{
-    Int_t guess_mean = get_max_value(vec);
-    Int_t lower_bound = guess_mean-5;
-    Int_t upper_bound = guess_mean+5;
-    TH1D* hist = new TH1D("h","h",upper_bound-lower_bound, lower_bound, upper_bound);
-
-    for (int i = 0; i < hist->GetNbinsX(); ++i)
-    {
-        hist->SetBinContent(i+1, vec[lower_bound + i]);
-    }
-    /* std::cout << "low: " << lower_bound << std::endl;
-    std::cout << "hig: " << upper_bound << std::endl;
-    std::cout << "NBins: " << hist->GetNbinsX() << std::endl; */
-
-    TF1 fit("fit","[0]*TMath::Gaus(x,[1],[2])",lower_bound,upper_bound);
-    fit.SetParNames("A","mu","sigma");
-
-    fit.SetParLimits(0,0,10);
-    fit.SetParLimits(1,guess_mean-1,guess_mean+1);
-    fit.SetParLimits(2,0,10);
-    fit.SetParameters(1,guess_mean,1);
-
-    hist->Fit("fit","Q");
-
-    Double_t chi2       = fit.GetChisquare()/fit.GetNDF();
-    Double_t mu         = fit.GetParameter(1);
-    Double_t mu_err     = fit.GetParError(1);
-    Double_t sigma      = fit.GetParameter(2);
-    Double_t sigma_err  = fit.GetParError(2);
-
-    delete hist;
-
-    return mu;
-}
 std::vector<Double_t> read_energy_coef( std::string filename )
 {
     std::ifstream file(filename);
@@ -1010,12 +860,12 @@ Int_t get_main_pulse( CONF &config, std::vector<Double_t> &vec )
         }
     return pulse_start;
 }
-Double_t get_my_charge( CONF &config, std::vector<Double_t> &vec, Double_t baseline )
+Double_t get_my_charge( CONF &config, std::vector<uint16_t> &vec, Double_t baseline )
 {
     Double_t charge = 0.0;
     for (int i = config.pre_trigger; i < config.sweep_start; ++i)
     {
-        charge += vec[i] - baseline;
+        charge += (Double_t)vec[i] - baseline;
     }
     return charge/config.resistance;
 }
