@@ -475,7 +475,7 @@ int main(int argc, char **argv)
 	                }
 	            } //end of channels
             }//end of calohit
-            if (eventn.OM_ID.size() == 0){continue;}else{
+            if (eventn.OM_ID.size() != 2){continue;}else{
                 tree.Fill();
                 sel_events ++;
             }
