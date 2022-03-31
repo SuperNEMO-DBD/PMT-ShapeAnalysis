@@ -1,6 +1,8 @@
 import sys
 import time
 
+import numpy as np
+
 sys.path.insert(1, '../')
 from pmt_he_study.models import *
 from ReadRED import sndisplay as sn
@@ -96,6 +98,23 @@ def get_pulse_time_mf(waveform, template, peak, amplitude, plot, n):
     return pars, errs, chi
 
 
+def read_corrected_times():
+    times_corrected = {}
+
+    with open("/Users/williamquinn/Desktop/commissioning/corrected_times_MW_it.txt") as t_file:
+        fl = t_file.readlines()
+        for index, line in enumerate(fl):
+            line_list = line.split(" ")
+            side = int(line_list[0])
+            col = int(line_list[1])
+            row = int(line_list[2])
+            time = float(line_list[3].strip())
+
+            om = row + col * 13 + side * 260
+            times_corrected[om] = time
+    return times_corrected
+
+
 def get_pulse_time_og():
     t = 0
     return t
@@ -166,68 +185,104 @@ def create_templates(filename):
     file.Close()
 
 
-def get_event_times(oms, file_name, templates):
+def get_event_times(oms, file_name, templates, corrected_times):
     file = ROOT.TFile(file_name, "READ")
     tree = file.T
 
-    events = {
-        0: {}
-    }
-
+    events = {}
     n_events = tree.GetEntries()
     i_e = 0
+    last_event = -1
+    last_om = 0
+    for event in tree:
+        i_e += 1
+        if i_e % 100000 == 0:
+            print(i_e, "/", n_events)
+        event_num = event.event_num
+        om = event.OM_ID
+        if event_num not in events.keys():
+            events[event_num] = {}
+        events[event_num][om] = []
+    print("Number of events Total:", len(events.keys()))
+
+    p_n = 0
+    for event in events.keys():
+        if len(events[event].keys()) != 2:
+            events[event] = None
+            print(len(events[event].keys()))
+            continue
+        if om_num_0 in events[event].keys() and om_num_1 in events[event].keys():
+            p_n += 1
+        elif om_num_0 in events[event].keys() and om_num_2 in events[event].keys():
+            p_n += 1
+        elif om_num_1 in events[event].keys() and om_num_2 in events[event].keys():
+            p_n += 1
+        else:
+            events[event] = None
+
+    print("Number of events to process:", p_n)
+
+    i_e = 0
+    p_n = 0
     n_plot = 0
     init_time = time.time()
     for event in tree:
         i_e += 1
         if i_e % 10000 == 0:
             temp_time = time.time()
-            print(i_e, "/", n_events, temp_time - init_time)
+            print(i_e, "/", n_events, temp_time - init_time, p_n)
             init_time = temp_time
 
-        om = event.OM_ID
-        if templates[om] is None:
-            continue
-        if om not in oms:
-            continue
         event_num = event.event_num
-        if event_num in events.keys():
-            pass
-        else:
-            events[event_num] = {}
-        waveform = list(event.waveform)
-        baseline = get_baseline(waveform, 100)
-        amplitude = get_amplitude(waveform, baseline)
-        peak = get_peak(waveform)
-        tdc = event.tdc * tdc2ns
-
-        if -1 * amplitude < 150 or not (25 < peak < 500):
+        if events[event_num] is None:
             continue
-
-        if n_plot < 0:
-            pars, errs, chi = get_pulse_time_mf((np.array(waveform) - baseline) / amplitude * -1, templates[om], peak, -1 * amplitude, True, n_plot)
-            pulse_time_0 = tdc - 400 + pars[2]
-            pulse_time_0_err = errs[2]
-            n_plot += 1
         else:
-            pars, errs, chi = get_pulse_time_mf((np.array(waveform) - baseline) / amplitude * -1, templates[om], peak, -1 * amplitude, False, n_plot)
-            pulse_time_0 = tdc - 400 + pars[2]
-            pulse_time_0_err = errs[2]
+            om = event.OM_ID
+            if om not in oms:
+                continue
+            p_n += 1
+            waveform = list(event.waveform)
+            baseline = get_baseline(waveform, 100)
+            amplitude = get_amplitude(waveform, baseline) * adc2mv
+            peak = get_peak(waveform)
+            tdc = event.tdc * tdc2ns
 
-        pulse_time_1 = (event.fall_cell *tdc2ns)/256.0 - 400 + tdc
-        # print(event_num, om, tdc, pulse_time_0, pulse_time_1, pulse_time_1-pulse_time_0)
+            if -1 * amplitude < 100 or not (25 < peak < 500):
+                continue
 
-        events[event_num][om] = [pulse_time_0, pulse_time_0_err, pulse_time_1]
+            if n_plot < 0:
+                pars, errs, chi = get_pulse_time_mf((np.array(waveform) - baseline) / amplitude * -1, templates[om], peak, -1 * amplitude, True, n_plot)
+                pulse_time_0 = tdc - 400 + pars[2] - corrected_times[om]
+                # pulse_time_0 = tdc - 400 + pars[2]
+                pulse_time_0_err = errs[2]
+                n_plot += 1
+            else:
+                pars, errs, chi = get_pulse_time_mf((np.array(waveform) - baseline) / amplitude * -1, templates[om], peak, -1 * amplitude, False, n_plot)
+                pulse_time_0 = tdc - 400 + pars[2] - corrected_times[om]
+                # pulse_time_0 = tdc - 400 + pars[2]
+                pulse_time_0_err = errs[2]
+
+            pulse_time_1 = (event.fall_cell *tdc2ns)/256.0 - 400 + tdc - corrected_times[om]
+            # pulse_time_1 = (event.fall_cell * tdc2ns) / 256.0 - 400 + tdc
+            # print(event_num, om, tdc, pulse_time_0, pulse_time_1, pulse_time_1-pulse_time_0)
+
+            events[event_num][om] = [pulse_time_0, pulse_time_1, pars, errs, chi]
     return events
 
 
 def store_events(events):
-    with open("/Users/williamquinn/Desktop/commissioning/events.csv", "w") as out_file:
+    with open("/Users/williamquinn/Desktop/commissioning/events_1.csv", "w") as out_file:
         for event in events.keys():
+            if events[event] is None:
+                continue
             for om in events[event].keys():
                 string = '{},{}'.format(event, om)
                 for i in range(len(events[event][om])):
-                    string += ',' + str(events[event][om][i])
+                    if i in [0, 1, 4]:
+                        string += ',' + str(events[event][om][i])
+                    else:
+                        for j in range(len(events[event][om][i])):
+                            string += ',' + str(events[event][om][i][j])
                 string += '\n'
                 out_file.write(string)
 
@@ -238,36 +293,93 @@ def read_events():
         fl = out_file.readlines()
         for index, line in enumerate(fl):
             line_list = line.split(",")
+            if len(line_list) < 3:
+                continue
             event_num = int(line_list[0].strip())
             om = int(line_list[1].strip())
             time1 = float(line_list[2].strip())
-            time1_err = float(line_list[3].strip())
-            time2 = float(line_list[4].strip())
+            time2 = float(line_list[3].strip())
 
             if event_num in events.keys():
-                events[event_num][om] = [time1, time1_err, time2]
+                events[event_num][om] = [time1, time2]
             else:
-                events[event_num] = {om: [time1, time1_err, time2]}
+                events[event_num] = {om: [time1, time2]}
     return events
 
 
 def main():
-    '''# create_templates("/Users/williamquinn/Desktop/commissioning/run_430.root")
+    corrected_times = read_corrected_times()
+    # create_templates("/Users/williamquinn/Desktop/commissioning/run_430.root")
     templates = read_templates()
     filename = "/Users/williamquinn/Desktop/commissioning/run_430.root"
-    events = get_event_times(oms, filename, templates)
-    store_events(events)'''
-    events = read_events()
+    events = get_event_times(oms, filename, templates, corrected_times)
+    store_events(events)
+    '''events = read_events()
     counter = [0, 0, 0]
+    selected_events = {0: {0: [], 1: []}, 1: {0: [], 1: []}, 2: {0: [], 1: []}}
     for event in events.keys():
         if len(events[event].keys()) > 1:
             if om_num_0 in events[event].keys() and om_num_1 in events[event].keys():
+                diff_0 = events[event][om_num_0][0] - events[event][om_num_1][0]
+                diff_1 = events[event][om_num_0][1] - events[event][om_num_1][1]
+                selected_events[0][0].append(diff_0)
+                selected_events[0][1].append(diff_1)
                 counter[0] += 1
             elif om_num_0 in events[event].keys() and om_num_2 in events[event].keys():
+                diff_0 = events[event][om_num_0][0] - events[event][om_num_2][0]
+                diff_1 = events[event][om_num_0][1] - events[event][om_num_2][1]
+                selected_events[1][0].append(diff_0)
+                selected_events[1][1].append(diff_1)
                 counter[1] += 1
             elif om_num_1 in events[event].keys() and om_num_2 in events[event].keys():
+                diff_0 = events[event][om_num_1][0] - events[event][om_num_2][0]
+                diff_1 = events[event][om_num_1][1] - events[event][om_num_2][1]
+                selected_events[2][0].append(diff_0)
+                selected_events[2][1].append(diff_1)
                 counter[2] += 1
     print(counter)
+
+    plt.figure(figsize=figsize)
+    freq, bin_edges = np.histogram(selected_events[0][0], range=(-10, 10), bins=20)
+    width = bin_edges[-1] - bin_edges[-2]
+    bin_centres = bin_edges[:-1] + width/2
+    plt.bar(bin_centres, freq, width=width)
+    plt.savefig('/Users/williamquinn/Desktop/mf_case_0.pdf')
+
+    plt.figure(figsize=figsize)
+    freq, bin_edges = np.histogram(selected_events[0][1], range=(-10, 10), bins=20)
+    width = bin_edges[-1] - bin_edges[-2]
+    bin_centres = bin_edges[:-1] + width / 2
+    plt.bar(bin_centres, freq, width=width)
+    plt.savefig('/Users/williamquinn/Desktop/og_case_0.pdf')
+
+    plt.figure(figsize=figsize)
+    freq, bin_edges = np.histogram(selected_events[1][0], range=(-10, 10), bins=20)
+    width = bin_edges[-1] - bin_edges[-2]
+    bin_centres = bin_edges[:-1] + width / 2
+    plt.bar(bin_centres, freq, width=width)
+    plt.savefig('/Users/williamquinn/Desktop/mf_case_1.pdf')
+
+    plt.figure(figsize=figsize)
+    freq, bin_edges = np.histogram(selected_events[1][1], range=(-10, 10), bins=20)
+    width = bin_edges[-1] - bin_edges[-2]
+    bin_centres = bin_edges[:-1] + width / 2
+    plt.bar(bin_centres, freq, width=width)
+    plt.savefig('/Users/williamquinn/Desktop/og_case_1.pdf')
+
+    plt.figure(figsize=figsize)
+    freq, bin_edges = np.histogram(selected_events[2][0], range=(-10, 10), bins=20)
+    width = bin_edges[-1] - bin_edges[-2]
+    bin_centres = bin_edges[:-1] + width / 2
+    plt.bar(bin_centres, freq, width=width)
+    plt.savefig('/Users/williamquinn/Desktop/mf_case_2.pdf')
+
+    plt.figure(figsize=figsize)
+    freq, bin_edges = np.histogram(selected_events[2][1], range=(-10, 10), bins=20)
+    width = bin_edges[-1] - bin_edges[-2]
+    bin_centres = bin_edges[:-1] + width / 2
+    plt.bar(bin_centres, freq, width=width)
+    plt.savefig('/Users/williamquinn/Desktop/og_case_2.pdf')'''
 
 
 if __name__ == "__main__":

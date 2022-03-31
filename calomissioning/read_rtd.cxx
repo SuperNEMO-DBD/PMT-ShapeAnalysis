@@ -35,12 +35,14 @@
 #include <sncabling/calo_signal_cabling.h>
 
 typedef struct {
-    Int_t OM_ID, side, wall, col, row;
-    int32_t rise_cell, fall_cell, peak_cell;
+    int event_num;
+    std::vector<Int_t> OM_ID, side, wall, col, row;
+    std::vector<int32_t> rise_cell, fall_cell, peak_cell;
     // uint32_t rel_time;
-    ULong64_t tdc;
-    Double_t charge, baseline, amplitude, raw_charge, raw_amplitude, raw_baseline, rise_time, fall_time, peak_time;
-    bool is_main, is_xwall, is_gveto, is_fr, is_it;
+    std::vector<ULong64_t> tdc;
+    std::vector<Double_t> charge, baseline, amplitude, raw_charge, raw_amplitude, raw_baseline, rise_time, fall_time, peak_time;
+    std::vector<bool> is_main, is_xwall, is_gveto, is_fr, is_it;
+    std::vector<std::vector<uint16_t>> waveform;
 } EVENTN;
 
 typedef struct {
@@ -72,9 +74,9 @@ std::vector<std::vector<Double_t>> get_template_pulses( std::string template_fil
 void update_temp_vector( std::vector<std::vector<Double_t>> &template_vectors, std::vector<Double_t> new_vector,
         TEMP_INFO tempInfo, Int_t OM_ID, CONF &config_object );
 Int_t get_peak_cell( std::vector<Double_t> &vec );
-Double_t get_amplitude( std::vector<Double_t> &vec );
+uint16_t get_amplitude( std::vector<uint16_t> &vec );
 void write_templates( std::vector<std::vector<Double_t>> &template_vectors );
-Double_t get_baseline( std::vector<Double_t> &vec , CONF &conf_object);
+Double_t get_baseline( std::vector<uint16_t> &vec , CONF &conf_object);
 Int_t get_max_value( std::vector<Double_t> &vec );
 void draw_waveform( std::vector<Double_t> &vec, Int_t n_samples, Double_t baseline, EVENTN &eventn,
         std::string output_directory);
@@ -171,6 +173,8 @@ int main(int argc, char **argv)
 	        return 0;
         }
 
+        int om_num_0, om_num_1, om_num_2 = 227, 214, 226;
+
         std::cout<<"Input file name : "<<input_file_name<<std::endl;
 
         // std::vector<Double_t> energy_coefs = read_energy_coef("/sps/nemo/scratch/wquinn/PMT-ShapeAnalysis/calomissioning/energy_coefs.csv");
@@ -251,18 +255,13 @@ int main(int argc, char **argv)
         TFile* output_file = new TFile(output_file_name.c_str(), "RECREATE");
 
         // Contains event info
-        EVENTN eventn;
-    
-        Int_t event_num;
-        std::vector<Double_t> waveform;
-
-        bool first_tdc = false;
-        uint64_t the_first_tdc = 0.0;
-
+        EVENTN eventn = {};
+        Int_t event_num = 0;
+        int sel_events = 0;
         MATCHFILTER matchfilter;
 
         TTree tree("T","Tree containing simulated vertex data");
-        tree.Branch("event_num",&event_num);
+        tree.Branch("event_num",&eventn.event_num);
         tree.Branch("OM_ID",&eventn.OM_ID);
         tree.Branch("tdc", &eventn.tdc);
         tree.Branch("charge",&eventn.charge);
@@ -282,17 +281,17 @@ int main(int argc, char **argv)
         tree.Branch("rise_time",&eventn.rise_time);
         tree.Branch("fall_time",&eventn.fall_time);
         tree.Branch("peak_time",&eventn.peak_time);
-        tree.Branch("apulse_num",&matchfilter.apulse_num);
-        tree.Branch("apulse_times",&matchfilter.apulse_times);
-        tree.Branch("apulse_amplitudes",&matchfilter.apulse_amplitudes);
-        tree.Branch("apulse_shapes",&matchfilter.apulse_shapes);
-        tree.Branch("main_pulse_time",&matchfilter.main_pulse_time);
+        // tree.Branch("apulse_num",&matchfilter.apulse_num);
+        // tree.Branch("apulse_times",&matchfilter.apulse_times);
+        // tree.Branch("apulse_amplitudes",&matchfilter.apulse_amplitudes);
+        // tree.Branch("apulse_shapes",&matchfilter.apulse_shapes);
+        // tree.Branch("main_pulse_time",&matchfilter.main_pulse_time);
 
         // These next three branches should be uncommented if you wish to store the waveform and
         // MF outputs - WARNING takes up a lot of storage space. I recommend only for testing and plots
         // tree.Branch("mf_amplitudes",&matchfilter.mf_amps);
         // tree.Branch("mf_shapes",&matchfilter.mf_shapes);
-        tree.Branch("waveform",&waveform);
+        tree.Branch("waveform",&eventn.waveform);
 
         // Configuration for raw data reader
         snfee::io::multifile_data_reader::config_type reader_cfg;
@@ -305,68 +304,38 @@ int main(int argc, char **argv)
         // 1 record per trigger composed by few CaloHit
         snfee::data::raw_trigger_data rtd;
 
-        event_num = 0;
-
         std::size_t rtd_counter = 0;
         while ( rtd_source.has_record_tag() )
         {
+            eventn = {};
+
             rtd_counter++;
-            event_num ++;
       
             // Load the next RTD object:
             rtd_source.load(rtd);
             // General informations:
             int32_t trigger_id = rtd.get_trigger_id();
             int32_t run_id     = rtd.get_run_id();
-
-            bool first_calo = false;
-            uint64_t first_calo_time = 0.0;
       
-            if(rtd_counter %10000 == 0 )std::cout<<"In Run : "<<run_id<<" Trigger # "<<trigger_id <<std::endl;
+            if(rtd_counter %10000 == 0 )std::cout<<"In Run : "<<run_id<<" Trigger # "<<trigger_id << " events: " << sel_events << std::endl;
 
-            if(event_num == 2000000){break;}
-      
-            std::size_t calo_counter = 0;
+            if(sel_events == 50000){break;}
+
             // Loop on calo hit records in the RTD data object:
             for (const auto & p_calo_hit : rtd.get_calo_hits())
             {
 	            // Dereference the stored shared pointer oin the calo hit record:
 	            const snfee::data::calo_hit_record & calo_hit = *p_calo_hit;
-	            calo_counter++;
-                uint64_t tdc              = calo_hit.get_tdc();       // TDC timestamp (48 bits)
-                if (!first_tdc){
-                    first_tdc = true;
-                    the_first_tdc = tdc;
-                }
-                if (!first_calo){
-                    first_calo = true;
-                    first_calo_time = tdc - the_first_tdc;
-                }
+                uint64_t tdc             = calo_hit.get_tdc();       // TDC timestamp (48 bits)
 	            int32_t  crate_num       = calo_hit.get_crate_num();  // Crate number (0,1,2)
 	            int32_t  board_num       = calo_hit.get_board_num();  // Board number (0-19)
-	            //if (board_num >= 10){ board_num++; };               // OLD convert board_num  from [10-19] to [11-20]
 	            int32_t  chip_num        = calo_hit.get_chip_num();   // Chip number (0-7)
 	            auto     hit_num         = calo_hit.get_hit_num();
-
-                /*eventn.rel_time = (uint32_t)(tdc - the_first_tdc - first_calo_time);
-                std::cout << "Event: " << event_num << std::endl;
-                std::cout << "tdc: " << tdc << std::endl;
-                std::cout << "first tdc: " << the_first_tdc << std::endl;
-                std::cout << "first calo time: " << first_calo_time << std::endl;
-                std::cout << "time: " << (Double_t)(tdc - the_first_tdc - first_calo_time) * tdc2ns << std::endl;
-                std::cout << "time stored: " << eventn.rel_time << std::endl;
-                std::cout << std::endl;*/
 
 	            // Extract SAMLONG channels' data:
 	            // 2 channels per SAMLONG
 	            for (int ichannel = 0; ichannel < snfee::model::feb_constants::SAMLONG_NUMBER_OF_CHANNELS; ichannel++)
-	            {
-                    // reset waveform container
-                    waveform.clear();
-                    // reset event container
-                    eventn = {};
-                    eventn.tdc = (ULong64_t)tdc;
-
+                {
 	                const snfee::data::calo_hit_record::channel_data_record & ch_data = calo_hit.get_channel_data(ichannel);
 	                bool    ch_lt           {ch_data.is_lt()};            // Low threshold flag
 	                bool    ch_ht           {ch_data.is_ht()};            // High threshold flag
@@ -387,15 +356,6 @@ int main(int argc, char **argv)
 	                Double_t falling_actual   = (ch_falling_cell_*tdc2ns)/256.0;
 	                Double_t peak_actual      = (ch_peak_cell_*tdc2ns)/8.0;
 
-                    eventn.fall_cell = ch_falling_cell;
-                    eventn.rise_cell = ch_rising_cell;
-                    eventn.peak_cell = ch_peak_cell;
-
-                    eventn.fall_time = falling_actual;
-                    eventn.rise_time = rising_actual;
-                    eventn.peak_time = peak_actual;
-	                //
-
 	                sncabling::calo_signal_id readout_id(sncabling::CALOSIGNAL_CHANNEL,
 	                        crate_num, board_num,
 	                        snfee::model::feb_constants::SAMLONG_NUMBER_OF_CHANNELS * chip_num + ichannel);
@@ -404,58 +364,47 @@ int main(int argc, char **argv)
 	                {
 	                    const sncabling::om_id & calo_id = caloSignalCabling.get_om(readout_id);
 
-	                    eventn.is_main = false;
-	                    eventn.is_gveto = false;
-	                    eventn.is_xwall = false;
-	                    eventn.is_fr = false;
-	                    eventn.is_it = false;
+                        bool is_main, is_gveto, is_xwall, is_fr, is_it = false;
+                        Int_t side, col, row, wall OM_ID = -1;
+                        std::vector<uint16_t> waveform;
 
                         if (calo_id.is_main()) {
-                            eventn.side = calo_id.get_side();
-                            eventn.col = calo_id.get_column();
-                            eventn.row = calo_id.get_row();
-                            eventn.OM_ID = eventn.row + eventn.col*13 + eventn.side*260;
-                            eventn.is_main = true;
+                            side = calo_id.get_side();
+                            col = calo_id.get_column();
+                            row = calo_id.get_row();
+                            OM_ID = row + col*13 + side*260;
+                            is_main = true;
                             my_class = 0;
                         }
                         else if (calo_id.is_xwall()) {
-                            eventn.side = calo_id.get_side();
-                            eventn.wall = calo_id.get_wall();
-                            eventn.col = calo_id.get_column();
-                            eventn.row = calo_id.get_row();
-                            eventn.OM_ID = 520 + eventn.side*64 + eventn.wall*32  + eventn.col*16 + eventn.row;
-                            eventn.is_xwall = true;
+                            side = calo_id.get_side();
+                            wall = calo_id.get_wall();
+                            col = calo_id.get_column();
+                            row = calo_id.get_row();
+                            OM_ID = 520 + side*64 + wall*32  + col*16 + row;
+                            is_xwall = true;
                             my_class = 1;
                         }
                         else if (calo_id.is_gveto()) {
-                            eventn.side = calo_id.get_side();
-                            eventn.wall = calo_id.get_wall();
-                            eventn.col = calo_id.get_column();
-                            eventn.OM_ID = 520 + 128 + eventn.side*32 + eventn.wall*16 + eventn.col;
-                            eventn.is_gveto = true;
+                            side = calo_id.get_side();
+                            wall = calo_id.get_wall();
+                            col = calo_id.get_column();
+                            OM_ID = 520 + 128 + side*32 + wall*16 + col;
+                            is_gveto = true;
                             my_class = 2;
                         }
-                        if (om_counter[my_class][eventn.side] >= n_stop){ continue; }
 
-                        if ( eventn.side == 1 ){ eventn.is_fr = true; }
-                        else{ eventn.is_it = true; }
+                        if ( side == 1 ){ is_fr = true; }
+                        else{ is_it = true; }
 
 	                    uint16_t waveform_number_of_samples = calo_hit.get_waveform_number_of_samples();
-	                    // std::vector<Double_t> waveform_adc;
 	                    for (uint16_t isample = 0; isample < waveform_number_of_samples; isample++)
 	                    {
 	                        uint16_t adc = calo_hit.get_waveforms().get_adc(isample,ichannel);
-	                        waveform.push_back((Double_t)adc);
+	                        waveform.push_back(adc);
 	                    }
 	                    Double_t my_baseline    = get_baseline( waveform , config_object);
-	                    Double_t my_amplitude   = get_amplitude( waveform ) - my_baseline;
-
-	                    eventn.raw_amplitude   = my_amplitude;
-	                    eventn.amplitude       = (Double_t)ch_peak * adc2mv / 8.0;
-	                    eventn.baseline        = (Double_t)ch_baseline * adc2mv / 16.0;
-	                    eventn.raw_baseline    = my_baseline;
-	                    eventn.raw_charge      = get_my_charge( config_object, waveform, my_baseline );
-	                    eventn.charge          = 0.001 * (Double_t)ch_charge * adc2mv * tdc2ns;
+	                    Double_t my_amplitude   = ((Double_t)get_amplitude( waveform ) - my_baseline) * adc2mv * -1;
 
 	                    if ( do_template )
 	                    {
@@ -470,23 +419,56 @@ int main(int argc, char **argv)
 	                                config_object );
 	                        average_counter[eventn.OM_ID]++;
 	                    }else{
-	                        if ( my_amplitude < 0 )
+	                        if ( my_amplitude > 100.0)
 				            {
 				                om_counter[my_class][eventn.side] ++;
                                 if (do_sweep) {
                                     matchfilter = sweep(waveform, config_object, my_baseline,
                                                         template_vectors[eventn.OM_ID]);
                                 }
-				                // if (matchfilter.apulse_num > 0){tree.Fill();}
-						        tree.Fill();
+
+                                // For the slected OMs fill eventn struct
+                                if (OM_ID == om_num_0 || OM_ID == om_num_1 || OM_ID == om_num_2)
+                                {
+                                    eventn.tdc.push_back((ULong64_t)tdc);
+
+                                    eventn.fall_cell.push_back(ch_falling_cell);
+                                    eventn.fall_time.push_back(falling_actual);
+
+                                    eventn.rise_cell.push_back(ch_rising_cell);
+                                    eventn.rise_time.push_back(rising_actual);
+
+                                    eventn.peak_cell.push_back(ch_peak_cell);
+                                    eventn.peak_time.push_back(peak_actual);
+
+                                    eventn.raw_amplitude.push_back(my_amplitude);
+                                    eventn.amplitude.push_back((Double_t)ch_peak * adc2mv / 8.0);
+
+                                    eventn.baseline.push_back((Double_t)ch_baseline * adc2mv / 16.0);
+                                    eventn.raw_baseline.push_back(my_baseline);
+
+                                    eventn.raw_charge.push_back(get_my_charge( config_object, waveform, my_baseline ));
+                                    eventn.charge.push_back(0.001 * (Double_t)ch_charge * adc2mv * tdc2ns);
+
+                                    eventn.side.push_back(side);
+                                    eventn.wall.push_back(wall);
+                                    eventn.col.push_back(col);
+                                    eventn.row.push_back(row);
+                                    eventn.OM_ID.push_back(OM_ID);
+                                    eventn.is_it.push_back(is_it);
+                                    eventn.is_fr.push_back(is_fr);
+
+                                    eventn.waveform.push_back(waveform);
+
+                                    eventn.event_num = event_num;
+                                }
 	                        }
 			            }
 	                }
 	            } //end of channels
             }//end of calohit
-
-            if ( om_counter[0][0] >= n_stop && om_counter[0][1] >= n_stop && om_counter[1][0] >= n_stop &&
-                om_counter[1][1] >= n_stop && om_counter[2][0] >= n_stop && om_counter[2][1] >= n_stop){ break; }
+            if (eventn.OM_ID.size() == 0){continue;}else{tree.Fill();}
+            event_num ++;
         }   //end of file
     
         std::cout<<"Events processed : " << rtd_counter<< " entries" << std::endl;
@@ -609,9 +591,9 @@ Int_t get_peak_cell( std::vector<Double_t> &vec )
     }
     return peak_cell;
 }
-Double_t get_amplitude( std::vector<Double_t> &vec )
+uint16_t get_amplitude( std::vector<uint16_t> &vec )
 {
-    Double_t amplitude = vec[0];
+    uint16_t amplitude = vec[0];
     for ( Int_t i = 0 ; i < (Int_t)vec.size() ; i++ )
     {
         if ( vec[i] < amplitude )
@@ -658,7 +640,7 @@ void write_templates( std::vector<std::vector<Double_t>> &template_vectors )
     template_root_file->Close();
     std::cout << "Templates written" << std::endl;
 }
-Double_t get_baseline( std::vector<Double_t> &vec , CONF &conf_object)
+Double_t get_baseline( std::vector<uint16_t> &vec , CONF &conf_object)
 {
     Double_t baseline = 0;
     for ( Int_t i = 0 ; i < conf_object.pre_trigger ; i++ )

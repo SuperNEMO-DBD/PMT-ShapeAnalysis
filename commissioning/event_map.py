@@ -21,7 +21,7 @@ def main():
         om = event.OM_ID
         amplitude = event.raw_amplitude
 
-        if (-1*amplitude) * adc2mv > 150:
+        if (-1*amplitude) * adc2mv > 100:
             events[om] += 1
 
     sncalo = sn.calorimeter("event_map_430", with_palette=True)
