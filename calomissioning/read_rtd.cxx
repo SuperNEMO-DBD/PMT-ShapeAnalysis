@@ -88,7 +88,7 @@ Double_t get_pulse_time_mf(std::vector<Double_t> &vec);
 std::vector<Double_t> read_energy_coef( std::string filename );
 std::vector<std::string> split( const std::string& s, char delimiter );
 CONF read_config( std::string filename );
-MATCHFILTER sweep( std::vector<Double_t> &vec, CONF &config, Double_t baseline, std::vector<Double_t>& temp );
+MATCHFILTER sweep( std::vector<uint16_t> &vec, CONF &config, Double_t baseline, std::vector<Double_t>& temp );
 Int_t get_main_pulse( CONF &config, std::vector<Double_t> &vec );
 Double_t get_my_charge( CONF &config, std::vector<Double_t> &vec, Double_t baseline );
 
@@ -419,15 +419,14 @@ int main(int argc, char **argv)
 	                    if ( do_template )
 	                    {
 	                        if ( my_amplitude > -100 ){ continue; }
-	                        if ( average_counter[eventn.OM_ID] > n_average ){ continue; }
+	                        if ( average_counter[OM_ID] > n_average ){ continue; }
 	                        std::vector<Double_t> temp_vector;
 	                        for (uint16_t isample = 0; isample < waveform_number_of_samples; isample++)
 	                        {
-	                            temp_vector.push_back( waveform[isample] - my_baseline );
+	                            temp_vector.push_back( (Double_t)waveform[isample] - my_baseline );
 	                        }
-	                        update_temp_vector( template_vectors, temp_vector, template_info, eventn.OM_ID,
-	                                config_object );
-	                        average_counter[eventn.OM_ID]++;
+	                        update_temp_vector( template_vectors, temp_vector, template_info, OM_ID, config_object );
+	                        average_counter[OM_ID]++;
 	                    }else{
 	                        if ( my_amplitude > 100.0)
 				            {
@@ -864,7 +863,7 @@ std::vector<std::string> split( const std::string& s, char delimiter )
     }
     return tokens;
 }
-MATCHFILTER sweep( std::vector<Double_t> &vec, CONF &config, Double_t baseline, std::vector<Double_t>& temp )
+MATCHFILTER sweep( std::vector<uint16_t> &vec, CONF &config, Double_t baseline, std::vector<Double_t>& temp )
 {
     MATCHFILTER temp_mf;
 
@@ -901,7 +900,7 @@ MATCHFILTER sweep( std::vector<Double_t> &vec, CONF &config, Double_t baseline, 
         std::vector<Double_t> test;
         for ( Int_t i_vec = 0; i_vec < (Int_t)temp.size(); i_vec++ )
         {
-            test.push_back( vec[i_vec + i_sweep] - baseline );
+            test.push_back( (Double_t)vec[i_vec + i_sweep] - baseline );
         }
 
         // Perform the convolution
