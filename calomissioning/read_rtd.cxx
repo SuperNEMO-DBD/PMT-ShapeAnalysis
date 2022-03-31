@@ -364,8 +364,16 @@ int main(int argc, char **argv)
 	                {
 	                    const sncabling::om_id & calo_id = caloSignalCabling.get_om(readout_id);
 
-                        bool is_main, is_gveto, is_xwall, is_fr, is_it = false;
-                        Int_t side, col, row, wall OM_ID = -1;
+                        bool is_main = false;
+                        bool is_gveto = false;
+                        bool is_xwall = false;
+                        bool is_fr = false;
+                        bool is_it = false;
+                        Int_t side = -1;
+                        Int_t col = -1;
+                        Int_t row = -1;
+                        Int_t wall = -1;
+                        Int_t OM_ID = -1;
                         std::vector<uint16_t> waveform;
 
                         if (calo_id.is_main()) {
