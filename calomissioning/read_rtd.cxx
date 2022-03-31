@@ -42,7 +42,7 @@ typedef struct {
     std::vector<ULong64_t> tdc;
     std::vector<Double_t> charge, baseline, amplitude, raw_charge, raw_amplitude, raw_baseline, rise_time, fall_time, peak_time;
     std::vector<bool> is_main, is_xwall, is_gveto, is_fr, is_it;
-    std::vector<std::vector<uint16_t>> waveform;
+    std::vector<std::vector<Int_t>> waveform;
 } EVENTN;
 
 typedef struct {
@@ -462,7 +462,11 @@ int main(int argc, char **argv)
                                     eventn.is_it.push_back(is_it);
                                     eventn.is_fr.push_back(is_fr);
 
-                                    eventn.waveform.push_back(waveform);
+                                    std::vector<int> new_waveform;
+                                    for (int i =0; i<waveform.size();i++){
+                                        new_waveform.push_back((int)waveform[i]);
+                                    }
+                                    eventn.waveform.push_back(new_waveform);
 
                                     eventn.event_num = event_num;
                                 }
@@ -471,7 +475,10 @@ int main(int argc, char **argv)
 	                }
 	            } //end of channels
             }//end of calohit
-            if (eventn.OM_ID.size() == 0){continue;}else{tree.Fill();}
+            if (eventn.OM_ID.size() == 0){continue;}else{
+                tree.Fill();
+                sel_events ++;
+            }
             event_num ++;
         }   //end of file
     
