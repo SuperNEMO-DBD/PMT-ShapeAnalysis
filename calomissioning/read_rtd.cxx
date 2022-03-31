@@ -317,7 +317,7 @@ int main(int argc, char **argv)
       
             if(rtd_counter %10000 == 0 )std::cout<<"In Run : "<<run_id<<" Trigger # "<<trigger_id << " events: " << sel_events << std::endl;
 
-            if(sel_events == 50000){break;}
+            if(sel_events == 500){break;}
 
             // Loop on calo hit records in the RTD data object:
             for (const auto & p_calo_hit : rtd.get_calo_hits())
