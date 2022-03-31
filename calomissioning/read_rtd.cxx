@@ -173,7 +173,9 @@ int main(int argc, char **argv)
 	        return 0;
         }
 
-        int om_num_0, om_num_1, om_num_2 = 227, 214, 226;
+        int om_num_0 = 227;
+        int om_num_1 = 214;
+        int om_num_2 = 226;
 
         std::cout<<"Input file name : "<<input_file_name<<std::endl;
 
