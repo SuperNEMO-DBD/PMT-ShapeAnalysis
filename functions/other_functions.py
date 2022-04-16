@@ -19,6 +19,25 @@ def get_normalisation_factor(vector: list):
     return np.sqrt(np.dot(vector, vector))
 
 
+def get_n_sfs(popt, perr):
+    ns = []
+    for p, err in zip(popt, perr):
+        p, err = abs(p), abs(err)
+        # this will not be in standard form
+        if 0.01 < p < 1000:
+            if err < 1:
+                n = abs(int(np.log10(err))) + 1
+            else:
+                n = abs(int(np.log10(err)))
+        else:
+            #if err < 1 and p < 1:
+            n = int(np.log10(p)) - int(np.log10(err))
+            '''else:
+                n = abs(int(np.log10(p))) - abs(int(np.log10(err)))'''
+        ns.append(n)
+    return ns
+
+
 def get_run_number(input_data_path: str):
     i = input_data_path.split("/")
     ii = i[-1]
@@ -1127,6 +1146,42 @@ def om_id_string(omnum: int):
     return string
 
 
+def om_id(omnum: int):
+    id_ = {"side": None, "wall": None, "col": None, 'row': None}
+    if 0 <= omnum < 260:
+        id_['side'] = 0
+        id_['col'] = omnum // 13
+        id_['row'] = omnum % 13
+    elif omnum < 520:
+        omnum = omnum - 260
+        id_['side'] = 1
+        id_['col'] = omnum // 13
+        id_['row'] = omnum % 13
+    elif omnum < 584:
+        omnum = omnum - 520
+        id_['side'] = 0
+        id_['wall'] = omnum // 32
+        id_['col'] = omnum % 32 // 16
+        id_['row'] = omnum % 32 % 16
+    elif omnum < 648:
+        omnum = omnum - 520 - 64
+        id_['side'] = 1
+        id_['wall'] = omnum // 32
+        id_['col'] = omnum % 32 // 16
+        id_['row'] = omnum % 32 % 16
+    elif omnum < 680:
+        omnum = omnum - 520 - 128
+        id_['side'] = 0
+        id_['wall'] = omnum % 16
+        id_['col'] = omnum // 16
+    elif omnum < 712:
+        omnum = omnum - 520 - 128 - 32
+        id_['side'] = 1
+        id_['wall'] = omnum % 16
+        id_['col'] = omnum // 16
+    return id_
+
+
 def get_pmt_type(omnum: id):
     pmt_type = 0
     if 0 <= omnum < 260:
@@ -1253,12 +1308,13 @@ def do_bi_1000(hist, mean):
     sig_err = fit.GetParError(2)
     A = fit.GetParameter(0)
     A_err = fit.GetParError(0)
-    if fit.GetNDF() == 0:
-        chi = 1000000
+    ndof = fit.GetNDF()
+    if ndof == 0:
+        chi = -1
     else:
         chi = fit.GetChisquare() / fit.GetNDF()
     del fit
-    return [[mu, mu_err], [sig, sig_err], [A, A_err], chi]
+    return [[mu, mu_err], [sig, sig_err], [A, A_err], [chi*ndof, ndof]]
 
 
 def get_sat_bi_mean(hist):
@@ -1352,15 +1408,29 @@ def root_fit(x, y, yerr, model):
         fit.SetParName(i, names[i])
         fit.SetParLimits(i, guess[i] - abs(guess[i]) / 2, guess[i] + abs(guess[i]) / 2)
 
-    graph.Fit("func", "0Q")
+    r = ROOT.TFitResultPtr(graph.Fit("func", "QS"))
+    r.Print()
     pars = []
     errs = []
     chi = fit.GetChisquare() / fit.GetNDF()
+    ndof = fit.GetNDF()
 
     for i in range(len(guess)):
         pars.append(fit.GetParameter(i))
         errs.append(fit.GetParError(i))
-    return pars, errs, chi
+
+    print(len(pars))
+    t_pcov = ROOT.TMatrixDSym(r.GetCovarianceMatrix()).GetMatrixArray()
+    fitter = ROOT.TVirtualFitter.GetFitter(ROOT.TVirtualFitter())
+    print(t_pcov.GetValue(0))
+    pcov = np.array([0 for i in range(int(len(pars)**2))]).reshape(len(pars), len(pars))
+    print(pcov)
+
+    for row in range(len(pars)):
+        for col in range(len(pars)):
+            pcov[row][col] = t_pcov[row][col]
+
+    return pars, errs, pcov, chi, ndof
 
 
 def extrapolate(model, pars, limit, typ):
@@ -1409,3 +1479,4 @@ def mf_waveform(waveform, template):
 
 def lorentzian(x, amp1, cen1, wid1):
     return amp1 * wid1 ** 2 / ((x - cen1) ** 2 + wid1 ** 2)
+

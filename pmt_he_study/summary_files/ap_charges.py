@@ -1,9 +1,103 @@
 import sys
 
 import numpy as np
+import tabulate
 
 sys.path.insert(1, '../..')
 from pmt_he_study.models import *
+
+
+def print_cov_matrix(M, name):
+    new_new_M = []
+    mc = ['P0', 'P1', 'L']
+    headers = [name, 'P0', 'P1', 'L']
+    new_M = np.insert(M, 0, np.array(['1', '0', '2']), axis=1)
+    for i in range(len(new_M)):
+        new_new_M.append([])
+        for j in range(len(new_M[i])):
+            if j == 0:
+                new_new_M[i].append(mc[i])
+            else:
+                new_new_M[i].append(str(new_M[i][j]))
+    print(tabulate.tabulate(new_new_M, headers=headers, tablefmt="fancy_grid", numalign="right"))
+    # print(tabulate.tabulate(new_new_M, headers=[name, 'm', 'c'], tablefmt="latex", numalign="right"))
+
+
+def plot(model, dates, ap_charges, ap_charges_err, av_charges, av_charges_err, name):
+    date_0 = process_date(dates[0])
+    date_1 = process_date(dates[1])
+    try:
+        start = np.where(date_0 == 0)[0][0]
+    except:
+        start = np.where(date_0 == 1)[0][0]
+    mid = np.where(date_0 == 98)[0][0]
+
+    ap_charge_0 = np.array(ap_charges[0])
+    ap_charge_1 = np.array(ap_charges[1])
+    ap_charge_err_0 = np.array(ap_charges_err[0])
+    ap_charge_err_1 = np.array(ap_charges_err[1])
+
+    av_charge_0 = np.array(av_charges[0])
+    av_charge_1 = np.array(av_charges[1])
+    av_charge_err_0 = np.array(av_charges_err[0])
+    av_charge_err_1 = np.array(av_charges_err[1])
+
+    l = 6
+    l_err = 1
+    y0 = (1 / 0.054) * ap_charge_0 / av_charge_0 * (1/5.91)
+    y0_err = y0 * np.sqrt((ap_charge_err_0 / ap_charge_0) ** 2 + (av_charge_err_0 / av_charge_0) ** 2 + (l_err/l)**2)
+
+    y1 = (1 / 0.054) * ap_charge_1 / av_charge_1 * (1/5.91)
+    y1_err = y1 * np.sqrt((ap_charge_err_1 / ap_charge_1) ** 2 + (av_charge_err_1 / av_charge_1) ** 2 + (l_err/l)**2)
+
+    x = np.array(date_0[mid + 1:]) - date_0[mid + 1:][0]
+    y = y0[mid + 1:]
+    yerr = y0_err[mid + 1:]
+    pars, errs, pcov, chi, ndof = root_fit(x, y, yerr, model)
+    d_inv = np.diag(1 / np.sqrt(np.diag(pcov)))
+    pcor = d_inv @ pcov @ d_inv
+    print_cov_matrix(pcor, model.name + name)
+
+    offset = pars[1]
+
+    fig1 = plt.figure(num=None, figsize=(5, 5), dpi=80, facecolor='w', edgecolor='k')
+    frame1 = fig1.add_axes((.15, .32, .8, .6))
+    plt.errorbar(date_0[:start + 1], y0[:start + 1] -offset, zorder=0, yerr=y0_err[:start + 1], fmt="C0s",
+                 label="Atmospheric He", markersize=1)
+    plt.errorbar(date_0[start + 1:mid + 1], y0[start + 1:mid + 1] -offset, zorder=0, yerr=y0_err[start + 1:mid + 1],
+                 fmt="C1s", label="1% He", markersize=1)
+    plt.errorbar(date_0[mid + 1:], y0[mid + 1:] -offset, zorder=0, yerr=y0_err[mid + 1:], fmt="C2s",
+                 label="10% He", markersize=1)
+    plt.errorbar(date_1, y1 -offset, zorder=0,
+                 yerr=y1_err, fmt="C3o", label="Control", markersize=1)
+    plt.plot(date_0[mid + 1:], model.func(x, pars) -offset, 'k-', label='Model', zorder=10)
+
+    handles, labels = plt.gca().get_legend_handles_labels()
+    n_sf = get_n_sfs(pars, errs)
+    strings = [r'$P_0 =$ {:.' + str(n_sf[0]) + 'e} ± {:.0e}', r'$P_1 =$ {:.' + str(n_sf[1]) + 'f} ± {:.' + str(n_sf[1]) + 'f}',
+               '$L =$ {:.0f} ± {:.0f} days']
+    patch = patches.Patch(color='white', label=strings[0].format(pars[0], errs[0]))
+    patch_1 = patches.Patch(color='white', label=strings[1].format(pars[1], errs[1]))
+    patch_2 = patches.Patch(color='white',
+                            label=strings[2].format(pars[2] / (3600 * 24), errs[2] / (3600 * 24)))
+    patch_3 = patches.Patch(color='white', label=r'$\chi^2/N_{DoF}}$ = ' + '{:.2f}/{}'.format(chi*ndof, ndof))
+    handles.extend([patch, patch_1, patch_2, patch_3])
+
+    plt.ylabel(r'$p_i$ /Pa')
+    plt.xlim(-30, 420)
+    plt.legend(handles=handles, loc='upper left')
+
+    frame2 = fig1.add_axes((.15, .1, .8, .2))
+    plt.xlabel("Days from 1% Helium Onset")
+    plt.axhline(0, ls='--', color='black')
+    plt.ylabel("(model-data)/model")
+    plt.xlim(-30, 420)
+    plt.errorbar(date_0[mid + 1:],
+                 (model.func(x, pars) - y0[mid + 1:]) / (model.func(x, pars) -offset),
+                 yerr=y0_err[mid + 1:] / model.func(date_0[mid + 1:], pars), fmt="k.")
+    plt.tight_layout()
+    plt.savefig("/Users/williamquinn/Desktop/PMT_Project/" + model.name + "pi_vs_time_charge_" + name + ".pdf")
+    plt.close()
 
 
 def plot_ap_charge(model, dates, ap_charges, ap_charges_err, name):
@@ -24,9 +118,9 @@ def plot_ap_charge(model, dates, ap_charges, ap_charges_err, name):
     x = np.array(date_0[mid + 1:]) - date_0[mid + 1:][0]
     y = np.array(ap_charge_0[mid + 1:])
     yerr = np.array(np.array(ap_charge_err_0[mid + 1:]))
-    pars, errs, chi = root_fit(x, y, yerr, model)
+    pars, errs, pcov, chi, ndof = root_fit(x, y, yerr, model)
 
-    fig1 = plt.figure(num=None, figsize=(5,5), dpi=80, facecolor='w', edgecolor='k')
+    fig1 = plt.figure(num=None, figsize=(5, 5), dpi=80, facecolor='w', edgecolor='k')
     frame1 = fig1.add_axes((.15, .32, .8, .6))
     frame1.set_xticklabels([])
     plt.errorbar(date_0[:start + 1], ap_charge_0[:start + 1], zorder=0,
@@ -95,7 +189,7 @@ def plot_aapc_vs_charge(model, dates, ratios, ratios_err, name: str):
     x = np.array(date_0[mid + 1:]) - date_0[mid + 1:][0]
     y = np.array(ratio_0[mid + 1:])
     yerr = np.array(ratio_err_0[mid + 1:])
-    pars, errs, chi = root_fit(x, y, yerr, model)
+    pars, errs, pcov, chi, ndof = root_fit(x, y, yerr, model)
 
     fig1 = plt.figure(num=None, figsize=(5,5), dpi=80, facecolor='w', edgecolor='k')
     frame1 = fig1.add_axes((.15, .32, .8, .6))
@@ -146,7 +240,7 @@ def plot_aapc_vs_charge(model, dates, ratios, ratios_err, name: str):
     plt.savefig("/Users/williamquinn/Desktop/PMT_Project/" + model.name + "_ratio_vs_time_" + name + ".pdf")
 
 
-    extrapolate(model, pars, 1, name)
+    # extrapolate(model, pars, 1, name)
 
     '''plt.figure(figsize=figsize)
     plt.plot(x, y)
@@ -166,7 +260,7 @@ def main():
     pmt_array.set_pmt_id("GAO607", 0)
     pmt_array.set_pmt_id("GAO612", 1)
 
-    filenames_txt = "/Users/williamquinn/Desktop/data/1400V/filenames.txt"
+    filenames_txt = "/Users/williamquinn/Desktop/PMT_Project/data/1400V/filenames.txt"
     try:
         print(">>> Reading data from file: {}".format(filenames_txt))
         date_file = open(filenames_txt, 'r')
@@ -185,6 +279,9 @@ def main():
     he_ap_charge = [[], []]
     he_ap_ratio = [[], []]
 
+    av_charge = [[], []]
+    av_charge_err = [[], []]
+
     ap_charge_err = [[], []]
     ap_ratio_err = [[], []]
     he_ap_charge_err = [[], []]
@@ -195,10 +292,12 @@ def main():
         date = filename.split("_")[0]
         voltage = int(filename.split("_")[1].split("A")[1])
 
-        file = ROOT.TFile("/Users/williamquinn/Desktop/data/1400V/" + filename, "READ")
+        file = ROOT.TFile("/Users/williamquinn/Desktop/PMT_Project/data/1400V/" + filename, "READ")
         file.cd()
 
         for i_om in range(2):
+            charge_hist = file.Get(date + "_" + pmt_array.get_pmt_object_number(i_om).get_pmt_id() +
+                                   "_charge_spectrum_" + str(voltage) + "V")
             ap_charge_hist = file.Get(date + "_" + pmt_array.get_pmt_object_number(i_om).get_pmt_id() +
                                       "_ap_charge_spectrum_" + str(voltage) + "V")
             he_ap_charge_hist = file.Get(date + "_" + pmt_array.get_pmt_object_number(i_om).get_pmt_id() +
@@ -209,11 +308,15 @@ def main():
                                                 "_he_ap_charge_charge_spectrum_" + str(voltage) + "V")
 
             try:
+                charge_hist.GetEntries()
                 ap_charge_hist.GetEntries()
                 he_ap_charge_hist.GetEntries()
                 ap_charge_charge_hist.GetEntries()
                 he_ap_charge_charge_hist.GetEntries()
             except:
+                continue
+
+            if charge_hist.GetMean() < 20:
                 continue
 
             dates[i_om].append(int(date))
@@ -222,6 +325,9 @@ def main():
             he_ap_charge[i_om].append(he_ap_charge_hist.GetMean())
             ap_ratio[i_om].append(ap_charge_charge_hist.GetMean())
             he_ap_ratio[i_om].append(he_ap_charge_charge_hist.GetMean())
+
+            av_charge[i_om].append(charge_hist.GetMean())
+            av_charge_err[i_om].append(charge_hist.GetMeanError())
 
             ap_charge_err[i_om].append(ap_charge_hist.GetMeanError())
             he_ap_charge_err[i_om].append(he_ap_charge_hist.GetMeanError())
@@ -236,13 +342,17 @@ def main():
     #plot_ap_charge(dates, ap_charge, ap_charge_err, "")
     #plot_ap_charge(dates, he_ap_charge, he_ap_charge_err, "he")
 
-    model = Model()
-    plot_aapc_vs_charge(model, dates, ap_ratio, ap_ratio_err, "")
-    plot_aapc_vs_charge(model, dates, he_ap_ratio, he_ap_ratio_err, "he")
+    #model = Model()
+    #plot_aapc_vs_charge(model, dates, ap_ratio, ap_ratio_err, "")
+    #plot_aapc_vs_charge(model, dates, he_ap_ratio, he_ap_ratio_err, "he")
+    #plot(model, dates, ap_charge, ap_charge_err, av_charge, av_charge_err, "")
+    #plot(model, dates, he_ap_charge, he_ap_charge_err, av_charge, av_charge_err, "he")
 
     model = Model_0()
-    plot_aapc_vs_charge(model, dates, ap_ratio, ap_ratio_err, "")
-    plot_aapc_vs_charge(model, dates, he_ap_ratio, he_ap_ratio_err, "he")
+    #plot_aapc_vs_charge(model, dates, ap_ratio, ap_ratio_err, "")
+    #plot_aapc_vs_charge(model, dates, he_ap_ratio, he_ap_ratio_err, "he")
+    #plot(model, dates, ap_charge, ap_charge_err, av_charge, av_charge_err, "")
+    plot(model, dates, he_ap_charge, he_ap_charge_err, av_charge, av_charge_err, "he")
 
 
 if __name__ == "__main__":

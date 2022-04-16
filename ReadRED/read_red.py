@@ -601,6 +601,8 @@ def plot_full_drift_times(directory: str, name: str, output_directory):
     sntracker.draw()
     sntracker.save(output_directory)
 
+    return means
+
 
 def plot_drift_time_vs_voltage(directory: str, output_directory):
     files = ["red_608_output.root", "red_617_output.root", "red_618_output.root", "red_619_output.root",
@@ -1018,20 +1020,101 @@ def plot_r56_vs_r12(directory, file, output_directory, run_time):
     plt.close()
 
 
+def plot_3d_event(filename, ppts):
+    root_file = ROOT.TFile(filename, "READ")
+    event_tree = root_file.event_tree
+    D = 2
+    n_event = 0
+    plot_event = False
+    for event in event_tree:
+        om_hit = [False for i in range(712)]
+        anode_times = [None for i in range(2034)]
+        top_cathode_times = [None for i in range(2034)]
+        bot_cathode_times = [None for i in range(2034)]
+        pos = [None for i in range(2034)]
+        if len(event.tracker_time_anode) > 50:
+            continue
+        calo_time = None
+        ht = False
+        if len(event.calo_time) != 0:
+            for j in range(len(event.calo_time)):
+                if bool(event.calo_high_t[j]):
+                    ht = True
+                    temp_calo_time = event.calo_time[j]
+                    if calo_time is not None and temp_calo_time < calo_time:
+                        calo_time = temp_calo_time
+                    elif calo_time is None:
+                        calo_time = temp_calo_time
+                    om_hit[event.calo_om_num[j]] = True
+                    # plot_event = True
+
+        for i in range(len(event.tracker_time_anode)):
+            if event.tracker_time_top_cathode[i] != is_none and event.tracker_time_bottom_cathode[i] != is_none and \
+                    event.tracker_time_anode[i] != is_none:
+                time = event.tracker_time_anode[i]
+                if calo_time is not None:
+                    anode_times.append((event.tracker_time_anode[i] - calo_time) * 1e6)
+                t5 = (event.tracker_time_bottom_cathode[i] - time) * 1e6
+                t6 = (event.tracker_time_top_cathode[i] - time) * 1e6
+                top_cathode_times[event.tracker_cell_num[i]] = t6
+                bot_cathode_times[event.tracker_cell_num[i]] = t5
+
+                if ppts[event.tracker_cell_num[i]] is None:
+                    continue
+                if t5 < t6:
+                    d = D * t5 / ppts[event.tracker_cell_num[i]]
+                else:
+                    d = D*(1 - t6 / ppts[event.tracker_cell_num[i]])
+                pos[event.tracker_cell_num[i]] = d
+
+        if plot_event:
+            sndemo = sn.demonstrator("event_" + str(n_event))
+            n_calo = 0
+            n_tracker = 0
+            for om in range(712):
+                if om_hit[om]:
+                    n_calo += 1
+                    sndemo.setomcontent(om, 1)
+            for cell in range(2034):
+                if pos[cell] is not None:
+                    n_tracker += 1
+                    sndemo.setggcontent(cell, 1)
+            if n_calo == 2 and n_tracker > 5:
+                try:
+                    sndemo.draw_top()
+                    sndemo.save("/Users/williamquinn/Desktop/read_red")
+                except ValueError:
+                    print("sndisplay problem")
+            del sndemo
+
+        if n_event == 88:
+            with open("/Users/williamquinn/Desktop/read_red/event_88.csv", "w") as outfile:
+                for om in range(712):
+                    if om_hit[om]:
+                        outfile.write("OM," + str(om) + "\n")
+                for cell in range(2034):
+                    if pos[cell] is not None:
+                        outfile.write("GG," + str(cell) + "," + str(pos[cell]) + "\n")
+
+        n_event += 1
+    root_file.Close()
+
+
 def main():
     args = parse_arguments()
     input_file = args.i
     output_directory = args.d
 
     # plot_full_event_map("/Users/williamquinn/Desktop/read_red", False, output_directory)
-    plot_full_event_map("/Users/williamquinn/Desktop/read_red", True, output_directory)
-    # plot_full_drift_times("/Users/williamquinn/Desktop/read_red", 'full_drift_times', output_directory)
+    # plot_full_event_map("/Users/williamquinn/Desktop/read_red", True, output_directory)
+    ppts = plot_full_drift_times("/Users/williamquinn/Desktop/read_red", 'full_drift_times', output_directory)
     # plot_drift_time_vs_voltage("/Users/williamquinn/Desktop/read_red", output_directory)
     # plot_ppt_vs_dt("/Users/williamquinn/Desktop/read_red", output_directory)
 
-    #plot_r56_vs_r12("/Users/williamquinn/Desktop/read_red", 'red_669_output.root', output_directory, 10)
-    #plot_r56_vs_r12("/Users/williamquinn/Desktop/read_red", 'red_618_output.root', output_directory, 10)
-    #plot_r56_vs_r12("/Users/williamquinn/Desktop/read_red", 'red_619_output.root', output_directory, 10)
+    # plot_r56_vs_r12("/Users/williamquinn/Desktop/read_red", 'red_669_output.root', output_directory, 10)
+    # plot_r56_vs_r12("/Users/williamquinn/Desktop/read_red", 'red_618_output.root', output_directory, 10)
+    # plot_r56_vs_r12("/Users/williamquinn/Desktop/read_red", 'red_619_output.root', output_directory, 10)
+    plot_3d_event("/Users/williamquinn/Desktop/read_red/red_619_output.root", ppts)
 
     '''file = open(input_file, "r")
     fl = file.readlines()

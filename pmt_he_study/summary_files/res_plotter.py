@@ -1,66 +1,106 @@
 import sys
 
+import matplotlib.pyplot as plt
+import pandas as pd
+from pandas.plotting import lag_plot, autocorrelation_plot
+from sklearn.metrics import mean_squared_error
+from statsmodels.tsa.ar_model import AutoReg
+from statsmodels.tsa.ar_model import AR
+from statsmodels.tsa.seasonal import seasonal_decompose
+from sklearn.metrics import r2_score
+
 sys.path.insert(1, '../..')
 
-# import ROOT and bash commands
-import ROOT
-import tqdm
-
-# import python plotting and numpy modules
-import matplotlib.pyplot as plt
-import numpy as np
-from scipy.signal import find_peaks
-
-# import stats module
-from scipy.optimize import curve_fit
+from pmt_he_study.models import *
+from tqdm import tqdm
 
 # import custom made classes
-from functions.other_functions import pmt_parse_arguments, fit, chi2, process_date, linear, gaus
+from functions.other_functions import do_bi_1000, chi2, process_date, linear, gaussian
 from src.PMT_Array import PMT_Array
+
 
 # bismuth_func_string_0 = "[0]*(7.08*TMath::Gaus(x,[1],[2]) + 1.84*TMath::Gaus(x,[1]*(1 + 72.144/975.651),[2]*1.036) + 0.44*TMath::Gaus(x,[1]*(1 + 84.154/975.651),[2]*1.042)) + 0.464*(exp(0.254*x)/(1 + exp((x - 28.43)/2.14)))"
 # bismuth_func_string_1 = "[0]*(7.08*TMath::Gaus(x,[1],[2]) + 1.84*TMath::Gaus(x,[1]*(1 + 72.144/975.651),[2]*1.036) + 0.44*TMath::Gaus(x,[1]*(1 + 84.154/975.651),[2]*1.042)) + 0.515*(exp(0.2199*x)/(1 + exp((x - 31.68)/2.48)))"
 
-bismuth_func_string_0 = "[0]*(7.08*TMath::Gaus(x,[1],[2]) + 1.84*TMath::Gaus(x,[1]*(1 + 72.144/975.651),[2]*1.036) + 0.44*TMath::Gaus(x,[1]*(1 + 84.154/975.651),[2]*1.042)) + [3]*(exp([4]*x)/(1 + exp((x - [5])/2.14)))"
-bismuth_func_string_1 = "[0]*(7.08*TMath::Gaus(x,[1],[2]) + 1.84*TMath::Gaus(x,[1]*(1 + 72.144/975.651),[2]*1.036) + 0.44*TMath::Gaus(x,[1]*(1 + 84.154/975.651),[2]*1.042)) + [3]*(exp([4]*x)/(1 + exp((x - [5])/2.48)))"
-bismuth_string = [bismuth_func_string_0, bismuth_func_string_1]
+
+def tot_bi(x: np.array, mu: float, sig: float, A: float):
+    a = np.array(gaussian_noh(x, mu, sig, A * 7.08))
+    b = np.array(gaussian_noh(x, mu * (1 + 72.144 / 975.651), sig * 1.036, A * 1.84))
+    c = np.array(gaussian_noh(x, mu * (1 + 84.154 / 975.651), sig * 1.042, A * 0.44))
+    return a + b + c
 
 
-def create_file(file_name: str):
-    file = open(file_name, 'w')
-    file.close()
+def plot_fit(charges: np.array, fit_pars, date, name):
+    max_charge = 60
+    min_charge = 0
+    n_bins = 240
+
+    popt = np.array([fit_pars[0][0], fit_pars[1][0], fit_pars[2][0]])
+    mu, sig, A = popt[0], popt[1], popt[2]
+    perr = [fit_pars[0][1], fit_pars[1][1], fit_pars[2][1]]
+    mu_err, sig_err, A_err = perr[0], perr[1], perr[2]
+    chi = fit_pars[-1][0]
+    ndof = fit_pars[-1][1]
+
+    lower = mu - 1
+    higher = mu + 6
+
+    freq, bin_centres, bin_width = charges[0], charges[1], charges[2]
+
+    low_bin = int(lower / bin_width)
+    high_bin = int(higher / bin_width)
+
+    x = bin_centres[low_bin:high_bin]
+    y = freq[low_bin:high_bin]
+
+    fig1 = plt.figure(figsize=(5, 3), facecolor='white')
+    frame1 = fig1.add_axes((.125, .3, .55, .6))
+
+    plt.bar(bin_centres, freq, width=bin_width, color='b', alpha=0.25)
+    plt.errorbar(x, y, yerr=np.sqrt(y), fmt='k.', label='Data', markersize=3, capsize=1, linewidth=1, capthick=1)
+    plt.plot(x, tot_bi(x, *popt), 'r-', label='Model')
+    plt.plot(x, gaussian_noh(x, mu, sig, A * 7.08), '--', label='CE K 976 keV')
+    plt.plot(x, gaussian_noh(x, mu * (1 + 72.144 / 975.651), sig * 1.036, A * 1.84), '--', label='CE L 1048 keV')
+    plt.plot(x, gaussian_noh(x, mu * (1 + 84.154 / 975.651), sig * 1.042, A * 0.44), '--', label='CE M 1060 keV')
+
+    mcs = [r'$\mu$', r'$\sigma$', r'$A$']
+    n_sf = get_n_sfs(popt, perr)
+    f_strs = ['' for i in range(len(perr))]
+    for j in range(len(n_sf)):
+        f_strs[j] += mcs[j] + "= {:." + str(n_sf[j]) + "f}±{:." + str(n_sf[j]) + "f} "
+
+    frame1.set_xticklabels([])
+    handles, labels = plt.gca().get_legend_handles_labels()
+    patch = patches.Patch(color='white', label=f_strs[0].format(mu, mu_err))
+    patch_1 = patches.Patch(color='white', label=f_strs[1].format(sig, sig_err))
+    patch_2 = patches.Patch(color='white', label=f_strs[2].format(A, A_err))
+    patch_3 = patches.Patch(color='white', label=r'$\chi/N_{DoF} =$' + ' {:.2f}/{}'.format(chi, ndof))
+    handles.extend([patch, patch_1, patch_2, patch_3])
+    plt.legend(handles=handles, bbox_to_anchor=(1.0, 1))
+
+    plt.ylabel('counts')
+    plt.xlim(bin_centres[low_bin - 5], bin_centres[high_bin + 5])
+    plt.title(date + ' Resolution @1MeV: {:.2f} %'.format(sig / mu * 100))
+
+    # Residual plot
+    frame2 = fig1.add_axes((.125, .15, .55, .125))
+    temp = (tot_bi(x, *popt) - y) / tot_bi(x, *popt)
+    temp_err = np.sqrt(y) / tot_bi(x, *popt)
+    plt.errorbar(x, temp, yerr=temp_err, fmt='k.', markersize=3, capsize=1, linewidth=1, capthick=1)
+    plt.xlim(bin_centres[low_bin - 5], bin_centres[high_bin + 5])
+    plt.xlabel('charge /pC')
+    plt.ylim(-1, 1)
+    plt.ylabel('model - data /model', fontsize=6)
+    plt.axhline(0, ls='--', color='black')
+    plt.savefig("/Users/williamquinn/Desktop/PMT_Project/res_plots/" + date + "_1kV_fit_bi_spec_" + name + ".pdf")
+    plt.close(fig1)
 
 
-def write_to_file(file_name: str, line):
-    file = open(file_name, 'a')
-
-    file.write(line + '\n')
-
-    file.close()
-
-
-def get_error_a_divide_b(da, a, db, b):
-    c = a / b
-    dc = c * np.sqrt((da / a) ** 2 + (db / b) ** 2)
-    return dc
-
-
-def get_resolution(mu: float, mu_err: float, sig: float, sig_err: float):
-    res = 0
-    res_err = 0
-    if mu == 0:
-        pass
-    else:
-        res = sig / mu
-        res_err = get_error_a_divide_b(sig_err, sig, mu_err, mu)
-    return res * 100, res_err * 100
-
-
-def read_file(date: str, voltage: int, root_file_name: str, pmt_array: PMT_Array, output_file_location: str):
+def read_file(date: str, voltage: int, root_file_name: str, pmt_array: PMT_Array):
     file = ROOT.TFile(root_file_name, "READ")
     file.cd()
 
-    fit_parameter = [[] for i in range(pmt_array.get_pmt_total_number())]
+    fit_parameter = [None for i in range(pmt_array.get_pmt_total_number())]
 
     for i_om in range(pmt_array.get_pmt_total_number()):
         charge_hist = file.Get(date + "_" + pmt_array.get_pmt_object_number(i_om).get_pmt_id() +
@@ -74,330 +114,345 @@ def read_file(date: str, voltage: int, root_file_name: str, pmt_array: PMT_Array
             charge_hist.GetEntries()
             amp_hist.GetEntries()
             baseline_hist.GetEntries()
-        except:
+        except AttributeError:
+            # print(root_file_name, ": No entries :", date + "_" + pmt_array.get_pmt_object_number(i_om).get_pmt_id() + "_charge_spectrum_" + str(voltage) + "V")
             continue
 
         mu_guess = charge_hist.GetMaximumBin() * charge_hist.GetBinWidth(0)
-        lower_range = mu_guess - 9
-        higher_range = mu_guess + 6
+        fit_vals = do_bi_1000(charge_hist, mu_guess)
 
-        bi_fit = ROOT.TF1("fit", "[0]*(7.08*TMath::Gaus(x,[1],[2])"
-                                 " + 1.84*TMath::Gaus(x,[1]*(1 + 72.144/975.651),[2]*1.036)"
-                                 " + 0.44*TMath::Gaus(x,[1]*(1 + 84.154/975.651),[2]*1.042))"
-                                 " + [3]*(exp([4]*x)/(1 + exp((x - [5])/[6])))",
-                          lower_range, higher_range)
-        bi_fit = ROOT.TF1("fit", bismuth_string[i_om], lower_range, higher_range)
-        bi_fit.SetParNames("A", "mu", "sig", "B", "e", "c_e", "s")
-        # bi_fit.SetParNames("A", "mu", "sig", "B", "ce_exp", "ce")
+        freq, bin_centres = [], []
+        for i_bin in range(0, charge_hist.GetNbinsX()):
+            freq.append(charge_hist.GetBinContent(i_bin + 1))
+            bin_centres.append(i_bin * charge_hist.GetBinWidth(i_bin + 1) + charge_hist.GetBinWidth(i_bin + 1))
+        freq, bin_centres, bin_width = np.array(freq), np.array(bin_centres), charge_hist.GetBinWidth(3)
+        plot_fit([freq, bin_centres, bin_width], fit_vals, date, str(i_om))
 
-        bi_fit.SetParLimits(0, 0, 600)
-        bi_fit.SetParLimits(1, mu_guess - 1, mu_guess + 1)
-        bi_fit.SetParLimits(2, 1, 1.2)
-        bi_fit.SetParLimits(3, 100, 500)
-        bi_fit.SetParLimits(4, 0.001, 0.1)
-        bi_fit.SetParLimits(5, mu_guess - 6, mu_guess)
-        bi_fit.SetParLimits(6, 1, 3)
-        bi_fit.SetParameters(100, mu_guess, 1, 400, 0.05, mu_guess - 2, 2)
-
-        name = output_file_location + "/plots/" + date + "_" + pmt_array.get_pmt_object_number(
-            i_om).get_pmt_id() + "_charge_spectrum_fit.pdf"
-
-        charge_hist.Fit(bi_fit, "0Q", "", lower_range, higher_range)
-        charge_hist.SetXTitle("Charge /pC")
-        charge_hist.SetYTitle("Counts")
-        charge_hist.SetTitle(date + "_" + pmt_array.get_pmt_object_number(i_om).get_pmt_id() + "_charge_spectrum_fit")
-
-        c1 = ROOT.TCanvas()
-        charge_hist.Draw()
-        bi_fit.Draw("same")
-        c1.SetGrid()
-        c1.Update()
-        ROOT.gStyle.SetOptFit(1)
-        c1.SaveAs(name)
-
-        '''print(">>>")
-        print("Fit output:")
-        for i in range(3):
-            print(bi_fit.GetParName(i), bi_fit.GetParameter(i), "+/-", bi_fit.GetParError(i))
-        print("Chi2/NDoF:", bi_fit.GetChisquare(), "/", bi_fit.GetNDF(), "=", bi_fit.GetChisquare() / bi_fit.GetNDF())
-        print(">>>")'''
-        if bi_fit.GetNDF() == 0:
+        if fit_vals[-1][0] == -1:
             pass
         else:
             pars = {
-                "mu": bi_fit.GetParameter(1),
-                "mu_err": bi_fit.GetParError(1),
-                "sig": bi_fit.GetParameter(2),
-                "sig_err": bi_fit.GetParError(2),
+                # TODO: add the correlation matrix to this
+                "mu": fit_vals[0][0],
+                "mu_err": fit_vals[0][1],
+                "sig": fit_vals[1][0],
+                "sig_err": fit_vals[1][1],
                 "base_mu": baseline_hist.GetMean(),
                 "base_sig": baseline_hist.GetStdDev(),
-                "gain": amp_hist.GetMaximumBin(),
-                "chi2": bi_fit.GetChisquare() / bi_fit.GetNDF()
+                "chi2": fit_vals[-1][0],
+                "ndof": fit_vals[-1][1]
             }
-            fit_parameter[i_om].append(pars)
+            fit_parameter[i_om] = pars
 
     file.Close()
     return fit_parameter
 
 
-def main():
-    # Handle the input arguments:
-    ##############################
-    args = pmt_parse_arguments()
-    input_directory = args.i
-    # config_file_name = args.c
-    output_directory = args.o
-    ##############################
+def fit_straight_line(x, y, dy, guess):
+    scale = abs(np.max(x) - np.min(x)) / abs(np.max(y) - np.min(y))
 
-    out_files = [output_directory + '/res_vs_time_ch0.txt', output_directory + '/res_vs_time_ch1.txt']
-    create_file(out_files[0])
-    create_file(out_files[1])
+    X = x - np.average(x)
+    Y = y * scale
+    dY = dy * scale
 
-    filenames_txt = input_directory + "/filenames.txt"
+    popt, pcov = curve_fit(f=linear, xdata=X, ydata=Y, sigma=dY, absolute_sigma=True, p0=guess)
+    perr = np.sqrt(np.diag(pcov))
+    d_inv = np.diag(1 / np.sqrt(np.diag(pcov)))
+    pcor = d_inv @ pcov @ d_inv
+    popt_ = np.array([popt[0] / scale, (popt[1] - popt[0] * np.average(x)) / scale])
+    perr_ = np.array([perr[0] / scale, np.sqrt(perr[1] ** 2 + (np.average(x) * perr[0]) ** 2) / scale])
+
+    fit = {"popt": popt_, "perr": perr_, "pcor": pcor}
+
+    return fit
+
+
+def plot_res():
+    data = pd.read_csv("/Users/williamquinn/Desktop/PMT_Project/res_vs_time.csv", header=0,
+                       dtype={0: int, 1: int, 2: float, 3: float, 4: float, 5: int, 6: float, 7: float},
+                       engine='python')
+    data["time"] = process_date(data["date"])
+    data = data[(data['date'] == 191023) | (data['date'] == 200212) | (data['date'] == 200429)
+                | (data['date'] == 200717) | (data['date'] == 201015) | (data['date'] == 201216)]
+
+    plt.figure(figsize=figsize, facecolor='white')
+
+    sel_dates = [191023, 200212, 200429, 200717, 201015, 201216]
+    chi_cut = 10
+    data_ch0 = data[data["pmt"] == 0]
+    x, y, dy = data_ch0[data_ch0['chi_2'] / data_ch0['ndof'] < chi_cut]['time'].values, \
+               data_ch0[data_ch0['chi_2'] / data_ch0['ndof'] < chi_cut]['res'].values * 100, \
+               data_ch0[data_ch0['chi_2'] / data_ch0['ndof'] < chi_cut]['res_err'].values * 100
+
+    exposed_fit = fit_straight_line(x, y, dy, guess=[0, 0])
+    plt.errorbar(x, y, yerr=dy, fmt='k.', label='Exposed', markersize=3, capsize=1, linewidth=1, capthick=1)
+    plt.plot([x[0], x[-1]], linear([x[0], x[-1]], *exposed_fit["popt"]), 'r-')
+
+    chi_cut = 10
+    data_ch1 = data[data["pmt"] == 1]
+    x, y, dy = data_ch1[data_ch1['chi_2'] / data_ch1['ndof'] < chi_cut]['time'].values, \
+               data_ch1[data_ch1['chi_2'] / data_ch1['ndof'] < chi_cut]['res'].values * 100, \
+               data_ch1[data_ch1['chi_2'] / data_ch1['ndof'] < chi_cut]['res_err'].values * 100
+    control_fit = fit_straight_line(x, y, dy, guess=[0, 0])
+    plt.errorbar(x, y, yerr=dy, fmt='.', label='Control', markersize=3, capsize=1, linewidth=1, capthick=1,
+                 color='grey', ecolor='grey')
+    plt.plot([x[0], x[-1]], linear([x[0], x[-1]], *control_fit["popt"]), 'r-')
+
+    plt.ylim(1.5, 5)
+
+    plt.xlabel('Days from 1% He Onset')
+    plt.ylabel('Resolution at 1MeV /%')
+    plt.fill_between([-100, 0], [5, 5], alpha=0.1,
+                     facecolor='green', label='Atmospheric He')
+    plt.fill_between([0, 98], [5, 5], alpha=0.1,
+                     facecolor='blue', label='1% He')
+    plt.fill_between([98, 500], [5, 5], alpha=0.1,
+                     facecolor='red', label='10% He')
+    plt.xlim(-30, 430)
+    plt.legend(loc='best')
+    plt.tight_layout()
+    plt.savefig("/Users/williamquinn/Desktop/PMT_Project/res.pdf")
+    plt.close()
+
+
+def store_res(pmt_array: PMT_Array):
+    out_file = open(f"/Users/williamquinn/Desktop/PMT_Project/res_vs_time.csv", "w")
+    out_file.write("pmt,date,res,res_err,chi_2,ndof,base_mean,base_sig\n")
+
+    filenames_txt = "/Users/williamquinn/Desktop/PMT_Project/filenames.txt"
 
     try:
         print(">>> Reading data from file: {}".format(filenames_txt))
         date_file = open(filenames_txt, 'r')
-    except FileNotFoundError as fnf_error:
-        print(fnf_error)
+    except FileNotFoundError:
         raise Exception("Error opening data file {}".format(filenames_txt))
 
-    filenames = np.loadtxt(filenames_txt, delimiter=',', dtype={
-        'names': ['filename'],
-        'formats': ['S100']}, unpack=True)
+    filenames = np.loadtxt(filenames_txt, delimiter=',', dtype={'names': ['filename'], 'formats': ['S100']},
+                           unpack=True)
 
-    topology = [2, 1]
-    pmt_array = PMT_Array(topology, "summary")
-    pmt_array.set_pmt_id("GAO612", 0)
-    pmt_array.set_pmt_id("GAO607", 1)
-
-    '''# Set the cuts you wish to apply
-    # If you don't do this the defaults are used
-    if config_file_name is not None:
-        pmt_array.apply_setting(config_file_name)
-        # print_settings(pmt_array)'''
-
-    # Set up the containers for the summary
-    resolutions = [[] for i in range(pmt_array.get_pmt_total_number())]
-    resolutions_err = [[] for i in range(pmt_array.get_pmt_total_number())]
-    dates = [[] for i in range(pmt_array.get_pmt_total_number())]
-    gains = [[] for i in range(pmt_array.get_pmt_total_number())]
-    gains_err = [[] for i in range(pmt_array.get_pmt_total_number())]
-    baseline_means = [[] for i in range(pmt_array.get_pmt_total_number())]
-    baseline_sigs = [[] for i in range(pmt_array.get_pmt_total_number())]
-    fit_chi2 = [[] for i in range(pmt_array.get_pmt_total_number())]
-
-    for i_file in tqdm.tqdm(range(filenames.size)):
+    for i_file in tqdm(range(filenames.size)):
         file = filenames[i_file][0].decode("utf-8")
 
         date = file.split("_")[0]
         voltage = int(file.split("_")[1].split("A")[1])
 
-        if voltage == 1000:
-            pass
-        else:
+        if voltage != 1000:
             continue
 
-        fit_parameters = read_file(date, voltage, input_directory + "/" + file, pmt_array, output_directory)
+        fit_pars = read_file(date, voltage, "/Users/williamquinn/Desktop/PMT_Project/data/1000V/" + file, pmt_array)
 
         for i_om in range(pmt_array.get_pmt_total_number()):
 
-            if len(fit_parameters[i_om]) > 0:
-                pass
-            else:
+            if fit_pars[i_om] is None:
                 continue
 
-            mu = fit_parameters[i_om][0]["mu"]
-            mu_err = fit_parameters[i_om][0]["mu_err"]
-            sig = fit_parameters[i_om][0]["sig"]
-            sig_err = fit_parameters[i_om][0]["sig_err"]
-            chi_2 = fit_parameters[i_om][0]["chi2"]
-            gain = fit_parameters[i_om][0]["gain"]
-            baseline_mean = fit_parameters[i_om][0]["base_mu"]
-            baseline_sig = fit_parameters[i_om][0]["base_sig"]
+            mu = fit_pars[i_om]["mu"]
+            mu_err = fit_pars[i_om]["mu_err"]
+            sig = fit_pars[i_om]["sig"]
+            sig_err = fit_pars[i_om]["sig_err"]
+            chi_2 = fit_pars[i_om]["chi2"]
+            ndof = fit_pars[i_om]["ndof"]
+            baseline_mean = fit_pars[i_om]["base_mu"]
+            baseline_sig = fit_pars[i_om]["base_sig"]
 
-            res, res_err = get_resolution(mu, mu_err, sig, sig_err)
+            res = sig / mu
+            res_err = res * ((sig_err / sig) ** 2 + (mu_err / mu) ** 2)
 
-            resolutions[i_om].append(res)
-            resolutions_err[i_om].append(res_err)
-            dates[i_om].append(int(date))
-            gains[i_om].append(gain)
-            baseline_means[i_om].append(baseline_mean)
-            baseline_sigs[i_om].append(baseline_sig)
-            fit_chi2[i_om].append(chi_2)
+            out_file.write(f'{i_om},{date},{res},{res_err},{chi_2},{ndof},{baseline_mean},{baseline_sig}\n')
 
-            write_to_file(out_files[i_om], '{},{},{},{},{}'.format(date, res, res_err, chi_2, gain))
-
-    # Plot individual summaries
-    for i_om in range(pmt_array.get_pmt_total_number()):
-
-        if len(resolutions[i_om]) > 0:
-            pass
-        else:
-            continue
-        date = process_date(dates[i_om])
-
-        try:
-            start = np.where(date == 0)[0][0]
-        except:
-            start = np.where(date == 1)[0][0]
-        mid = np.where(date == 98)[0][0]
-
-        # print("start:",start)
-
-        plt.plot(date[:start + 1], np.array(gains[i_om][:start + 1]) * 2,
-                 "g.", label="Atmospheric He")
-        plt.plot(date[start + 1:mid + 1], np.array(gains[i_om][start + 1:mid + 1]) * 2,
-                 "b.", label="1% He")
-        plt.plot(date[mid + 1:], np.array(gains[i_om][mid + 1:]) * 2,
-                 "r.", label="10% He")
-        plt.axvline(date[start], 0, 100, ls='--', color='k')
-        plt.axvline(date[mid], 0, 100, ls='--', color='k')
-        plt.xlabel("exposure days relative to 190611")
-        plt.ylabel("PMT gain at 1Mev /mV")
-        plt.title(pmt_array.get_pmt_object_number(i_om).get_pmt_id() + " Gain at 1MeV vs exposure time")
-        plt.grid()
-        plt.ylim(150, 300)
-        plt.legend(loc='lower right')
-        plt.savefig(output_directory + "/summary_plots/" +
-                    pmt_array.get_pmt_object_number(i_om).get_pmt_id() + "_gains_vs_time.png")
-        plt.close()
-
-        plt.errorbar(date, baseline_means[i_om], yerr=baseline_sigs[i_om], fmt='k.-', ecolor='r')
-        plt.grid()
-        plt.xlabel("exposure days relative to 190611")
-        plt.ylabel("Baseline mean /mV")
-        plt.title(pmt_array.get_pmt_object_number(i_om).get_pmt_id() + " Baseline mean vs exposure time")
-        plt.savefig(output_directory + "/summary_plots/" +
-                    pmt_array.get_pmt_object_number(i_om).get_pmt_id() + "_baseline_mean_vs_time.png")
-
-        plt.close()
-
-        '''plt.plot(date, baseline_sigs[i_om])
-        plt.xlabel("exposure days relative to 190611")
-        plt.ylabel("Baseline std-dev")
-        plt.title(pmt_array.get_pmt_object_number(i_om).get_pmt_id() + " Baseline std-dev vs exposure time")
-        plt.savefig(output_directory + "/summary_plots/" +
-                    pmt_array.get_pmt_object_number(i_om).get_pmt_id() + "_baseline_sigma_vs_time")
-        plt.close()'''
-
-        res_filter = []
-        for i_date in range(len(date)):
-            if 1 < resolutions[i_om][i_date] < 3.75 and fit_chi2[i_om][i_date] < 10:
-                res_filter.append(True)
-            else:
-                res_filter.append(False)
-
-        popt, pcov = curve_fit(linear, np.array(date[start:])[res_filter[start:]],
-                               np.array(resolutions[i_om][start:])[res_filter[start:]],
-                               sigma=np.array(resolutions_err[i_om][start:])[res_filter[start:]], p0=[0.001, 2],
-                               bounds=[[0, 0], [0.002, 3.5]], maxfev=500000)
-        x_array = np.linspace(date[start], np.amax(date), 2)
-        chi_2 = chi2(np.array(resolutions[i_om][start:])[res_filter[start:]],
-                     np.array(resolutions_err[i_om][start:])[res_filter[start:]],
-                     linear(date[start:][res_filter[start:]], *popt), len(popt))
-
-        plt.errorbar(date[:start + 1], resolutions[i_om][:start + 1], yerr=resolutions_err[i_om][:start + 1],
-                     fmt="g.", label="Atmospheric He")
-        plt.plot(np.array(date[start:])[res_filter[start:]], np.array(resolutions[i_om][start:])[res_filter[start:]],
-                 'ko',
-                 label="used values")
-        plt.errorbar(date[start + 1:mid + 1], resolutions[i_om][start + 1:mid + 1],
-                     yerr=resolutions_err[i_om][start + 1:mid + 1],
-                     fmt="b.", label="1% He")
-        plt.errorbar(date[mid + 1:], resolutions[i_om][mid + 1:], yerr=resolutions_err[i_om][mid + 1:],
-                     fmt="r.", label="10% He")
-        plt.plot(x_array, linear(x_array, *popt), 'k-')
-        plt.xlabel(
-            "exposure days relative to 190611 \n $y = (${:.1e}$ ± ${:.0e})$x + (${:.1e}$ ± ${:.0e}$)$ $\chi^2_R = {:.2}$".format(
-                popt[0], np.sqrt(pcov[0, 0]), popt[1], np.sqrt(pcov[1, 1]), chi_2))
-        plt.ylabel("Resolution at 1MeV /% $\sigma / \mu$")
-        plt.title(pmt_array.get_pmt_object_number(i_om).get_pmt_id() + " Resolution vs exposure time")
-        plt.axvline(date[start], 0, 100, ls='--', color='k')
-        plt.axvline(date[mid], 0, 100, ls='--', color='k')
-        plt.grid()
-        plt.ylim(2, 4.5)
-        plt.xlim(np.amin(date), np.amax(date))
-        plt.legend(loc='upper right')
-        plt.tight_layout()
-        plt.savefig(output_directory + "/summary_plots/" + pmt_array.get_pmt_object_number(i_om).get_pmt_id() +
-                    "_resolution_vs_time.png")
-        plt.close()
-
-        plt.plot(np.array(date[start:])[res_filter[start:]], np.array(fit_chi2[i_om][start:])[res_filter[start:]],
-                 'ko', label="used values")
-        plt.plot(date[:start + 1], fit_chi2[i_om][:start + 1], "g.", label="Atmospheric He")
-        plt.plot(date[start + 1:mid + 1], fit_chi2[i_om][start + 1:mid + 1], "b.", label="1% He")
-        plt.plot(date[mid + 1:], fit_chi2[i_om][mid + 1:], "r.", label="10% He")
-        plt.xlabel("exposure days relative to 190611")
-        plt.ylabel("$\chi^2_R$")
-        plt.title(pmt_array.get_pmt_object_number(i_om).get_pmt_id() + " Resolution fit $\chi^2_R$ vs exposure time")
-        plt.grid()
-        plt.axvline(date[start], 0, 100, ls='--', color='k')
-        plt.axvline(date[mid], 0, 100, ls='--', color='k')
-        plt.legend(loc='upper right')
-        plt.xlim(np.amin(date), np.amax(date))
-        plt.ylim(0, 10)
-        plt.tight_layout()
-        plt.savefig(output_directory + "/summary_plots/" + pmt_array.get_pmt_object_number(i_om).get_pmt_id() +
-                    "_resolution_vs_time_chi2.png")
-        plt.close()
-
-    # Plot ratio
-    x_date = []
-    ratio = []
-    ratio_err = []
-    gain_ratio = []
-    for i in range(len(dates[0])):
-        for j in range(len(dates[1])):
-            if dates[0][i] == dates[1][j]:
-                x_date.append(dates[0][i])
-                ratio.append(resolutions[0][i] / resolutions[1][j])
-                ratio_err.append(resolutions[0][i] / resolutions[1][j] * np.sqrt(
-                    (resolutions_err[0][i] / resolutions[0][i]) ** 2 + (
-                                resolutions_err[1][j] / resolutions[1][j]) ** 2))
-                gain_ratio.append(gains[0][i] / gains[1][j])
-                break
-
-    popt, pcov = curve_fit(linear, x_date, ratio,
-                           sigma=ratio_err, p0=[1, 1], bounds=[[0, 0], [10, 10]])
-    x_date = process_date(x_date)
-    x_array = np.linspace(np.amin(x_date), np.amax(x_date), 2)
-    chi_2 = chi2(ratio, ratio_err, linear(x_date, *popt), 2)
-
-    plt.errorbar(x_date, ratio, yerr=ratio_err, fmt="k.")
-    plt.plot(x_array, linear(x_array, *popt), "g-",
-             label="$y = (${:.1e}$ ± ${:.0e})$\\times x + (${:.1e}$ ± ${:.0e}$) \chi^2_R = {:.2}$".format(popt[0],
-                                                                                                          np.sqrt(pcov[
-                                                                                                                      0, 0]),
-                                                                                                          popt[1],
-                                                                                                          np.sqrt(pcov[
-                                                                                                                      1, 1]),
-                                                                                                          chi_2))
-    plt.axvline(98, color="r", ls="--")
-    plt.axvline(0, color="b", ls="--")
-    plt.xlabel("exposure days relative to 190611")
-    plt.ylabel("Ratio res_Ch0/res_Ch1")
-    plt.title("Ratio of resolution of CH 0 & 1 vs time")
-    plt.grid()
-    plt.xlim(np.amin(np.array(x_date)), np.amax(np.array(x_date)))
-    plt.ylim(0, 2)
-    plt.savefig(output_directory + "/summary_plots/resolution_ratio_vs_time.png")
-    plt.close()
-
-    plt.plot(x_date, gain_ratio, "k.")
-    plt.axvline(98, color="r", ls="--")
-    plt.axvline(0, color="b", ls="--")
-    plt.xlabel("exposure days relative to 190611")
-    plt.ylabel("Ratio gain_Ch0/gain_Ch1")
-    plt.title("Ratio of gain of CH 0 & 1 vs time")
-    plt.grid()
-    plt.xlim(np.amin(np.array(x_date)), np.amax(np.array(x_date)))
-    plt.ylim(0.7, 1)
-    plt.savefig(output_directory + "/summary_plots/gain_ratio_vs_time.png")
-    plt.close()
+    out_file.close()
 
     print("<<<< FINISHED >>>")
+
+
+def plot_base_drift():
+    data = pd.read_csv("/Users/williamquinn/Desktop/PMT_Project/res_vs_time.csv", header=0,
+                        dtype={0: int, 1: int, 2: float, 3: float, 4: float, 5: int, 6: float, 7: float},
+                        engine='python')
+    data["time"] = process_date(data["date"])
+    data = data[data["base_mean"] > 900]
+
+    fig1 = plt.figure(figsize=figsize, facecolor='white')
+    #frame1 = fig1.add_axes((.125, .3, .55, .6))
+
+    data_ch0 = data[data["pmt"] == 0]
+    exposed_fit = fit_straight_line(data_ch0['time'].values, data_ch0['base_mean'].values, data_ch0['base_sig'].values,
+                                    guess=[0, 0])
+    plt.errorbar(data_ch0['time'].values, data_ch0['base_mean'].values, yerr=data_ch0['base_sig'].values,
+                 fmt='.', label='Exposed', markersize=3, capsize=1, linewidth=1, capthick=1)
+    plt.plot([data_ch0['time'].values[0], data_ch0['time'].values[-1]],
+             linear([data_ch0['time'].values[0], data_ch0['time'].values[-1]], *exposed_fit["popt"]), 'k-', zorder=10)
+
+    data_ch1 = data[data["pmt"] == 1]
+    control_fit = fit_straight_line(data_ch1['time'].values, data_ch1['base_mean'].values, data_ch1['base_sig'].values,
+                                    guess=[0, 0])
+    plt.errorbar(data_ch1['time'].values, data_ch1['base_mean'].values, yerr=data_ch1['base_sig'].values,
+                 fmt='.', label='Control', markersize=3, capsize=1, linewidth=1, capthick=1)
+    plt.plot([data_ch1['time'].values[0], data_ch1['time'].values[-1]],
+             linear([data_ch1['time'].values[0], data_ch1['time'].values[-1]], *control_fit["popt"]), 'k-', zorder=10)
+
+    plt.xlabel('Days from 1% He Onset')
+    plt.ylabel('Voltage /mV')
+    plt.fill_between([-100, 0], [1000, 1000], alpha=0.1,
+                     facecolor='green', label='Atmospheric He')
+    plt.fill_between([0, 98], [1000, 1000], alpha=0.1,
+                     facecolor='blue', label='1% He')
+    plt.fill_between([98, 500], [1000, 1000], alpha=0.1,
+                     facecolor='red', label='10% He')
+    plt.xlim(-40, 430)
+    plt.ylim(978, 981)
+
+    plt.legend(loc='best', bbox_to_anchor=(1.0, 1))
+    plt.tight_layout()
+    plt.savefig("/Users/williamquinn/Desktop/PMT_Project/baseline_drift.pdf")
+    plt.close(fig1)
+
+    plt.figure(figsize=figsize)
+    plt.xlabel('Days from 1% He Onset')
+    plt.ylabel('PCT Change /%')
+    returns_ch0 = data_ch0['base_mean'].pct_change(1)*100
+    returns_ch0.plot(label='Exposed')
+    returns_ch1 = data_ch1['base_mean'].pct_change(1)*100
+    returns_ch1.plot(label='Control')
+    plt.legend(loc='best')
+    plt.tight_layout()
+    plt.savefig("/Users/williamquinn/Desktop/PMT_Project/baseline_pct.pdf")
+    plt.close()
+
+    dataframe = pd.concat([pd.DataFrame(data_ch0['base_mean'].values).shift(1),
+                           pd.DataFrame(data_ch0['base_mean'].values)], axis=1)
+    dataframe.columns = ['t-1', 't+1']
+    result0 = dataframe.corr()
+    print(result0)
+    dataframe = pd.concat([pd.DataFrame(data_ch1['base_mean'].values).shift(1),
+                           pd.DataFrame(data_ch1['base_mean'].values)], axis=1)
+    dataframe.columns = ['t-1', 't+1']
+    result1 = dataframe.corr()
+    print(result1)
+
+    plt.figure(figsize=figsize)
+    lag_plot(data_ch0['base_mean'], label=r'Exposed $\rho$={:.2f}'.format(result0['t-1'][1]), alpha=0.5)
+    plt.legend(loc='best')
+    plt.tight_layout()
+    plt.savefig("/Users/williamquinn/Desktop/PMT_Project/baseline_cor_exposed.pdf")
+
+    plt.figure(figsize=figsize)
+    lag_plot(data_ch1['base_mean'], label=r'Control $\rho$={:.2f}'.format(result1['t-1'][1]), alpha=0.5)
+    plt.legend(loc='best')
+    plt.tight_layout()
+    plt.savefig("/Users/williamquinn/Desktop/PMT_Project/baseline_cor_control.pdf")
+    '''autocorrelation_plot(data_ch0['base_mean'])
+    plt.grid()
+    plt.show()'''
+
+    '''# create lagged dataset
+    values = pd.DataFrame(data_ch0['base_mean'].values)
+    dataframe = pd.concat([values.shift(1), values], axis=1)
+    dataframe.columns = ['t-1', 't+1']
+    # split into train and test sets
+    X = dataframe.values
+    train, test = X[1:len(X) - 7], X[len(X) - 7:]
+    train_X, train_y = train[:, 0], train[:, 1]
+    test_X, test_y = test[:, 0], test[:, 1]
+
+    # persistence model
+    def model_persistence(x):
+        return x
+
+    # walk-forward validation
+    predictions = []
+    for x in test_X:
+        yhat = model_persistence(x)
+        predictions.append(yhat)
+    test_score = mean_squared_error(test_y, predictions)
+    print('Test MSE: %.3f' % test_score)
+    # plot predictions vs expected
+    plt.plot(test_y, label='Test')
+    plt.plot(predictions, label='Prediction')
+    plt.legend(loc='best')
+    plt.show()'''
+
+    '''X = data_ch0['base_mean'].values
+    train, test = X[1:len(X) - 7], X[len(X) - 7:]
+    # train autoregression
+    model = AutoReg(train, lags=7)
+    model_fit = model.fit()
+    print('Coefficients: %s' % model_fit.params)
+    # make predictions
+    predictions = model_fit.predict(start=len(train), end=len(train) + len(test) - 1, dynamic=False)
+    for i in range(len(predictions)):
+        print('predicted=%f, expected=%f' % (predictions[i], test[i]))
+    rmse = np.sqrt(mean_squared_error(test, predictions))
+    print('Test RMSE: %.3f' % rmse)
+    # plot results
+    plt.plot(test, label='test')
+    plt.plot(predictions, label='prediction')
+    plt.legend()
+    plt.show()'''
+
+    '''data = pd.read_csv("/Users/williamquinn/Desktop/PMT_Project/res_vs_time.csv", header=0,
+                       dtype={0: int, 1: int, 2: float, 3: float, 4: float, 5: int, 6: float, 7: float},
+                       engine='python')
+    data['date'] = data['date'].astype(str)
+    data = data[data["pmt"] == 0]
+    f = []
+    for date in data['date'].values:
+        new_date = date[4] + date[5] + '/' + date[2] + date[3] + '/' + '20' + date[0] + date[1]
+        f.append(new_date)
+    data['date'] = pd.DatetimeIndex(f, dayfirst=True)
+    data.set_index('date', inplace=True)
+    data = data[~data.index.duplicated()]
+    data = data.asfreq('D')
+    data["base_mean"] = data["base_mean"].fillna(data["base_mean"].mean())'''
+
+    '''decomposed = seasonal_decompose(data['base_mean'], model='additive')
+    decomposed.plot()  # See note below about this
+    plt.show()'''
+
+    # data['stationary'] = data['base_mean'].diff()
+
+    '''decomposed = seasonal_decompose(data['stationary'][1:], model='additive')
+    decomposed.plot()  # See note below about this
+    plt.show()'''
+
+    '''# create train/test datasets
+    X = data['stationary'].dropna()
+    train_data = X[1:len(X) - 12]
+    test_data = X[len(X) - 12:]
+    # train the autoregression model
+    model = AR(train_data)
+    model_fitted = model.fit()
+    print('The lag value chose is: %s' % model_fitted.k_ar)
+    print('The coefficients of the model are:\n %s' % model_fitted.params)
+
+    # make predictions
+    predictions = model_fitted.predict(
+        start=len(train_data),
+        end=len(train_data) + len(test_data) - 1,
+        dynamic=False)
+
+    # create a comparison dataframe
+    compare_df = pd.concat(
+        [data['stationary'].tail(12),
+         predictions], axis=1).rename(
+        columns={'stationary': 'actual', 0: 'predicted'})
+    # plot the two values
+    # compare_df.plot()
+    # plt.show()
+
+    r2 = r2_score(data['stationary'].tail(12), predictions)
+    print(r2)'''
+
+
+def main():
+    topology = [2, 1]
+    pmt_array = PMT_Array(topology, "summary")
+    pmt_array.set_pmt_id("GAO607", 0)
+    pmt_array.set_pmt_id("GAO612", 1)
+
+    # store_res(pmt_array)
+    plot_res()
+    plot_base_drift()
 
 
 if __name__ == '__main__':

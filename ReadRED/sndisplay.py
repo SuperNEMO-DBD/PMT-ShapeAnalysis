@@ -280,9 +280,11 @@ class calorimeter:
 
     def draw_omid_label(self):
         self.draw_omid = True
+        self.draw_omnum = False
 
     def draw_omnum_label(self):
         self.draw_omnum = True
+        self.draw_omid = False
 
     def draw_content_err_label(self, string: str):
         self.draw_content_err_format = string

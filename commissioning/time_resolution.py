@@ -26,9 +26,9 @@ def get_pulse_time_mf(waveform, template, peak, amplitude, plot, n):
     x = []
     for i in range(peak - 100, peak-20):
         test = waveform[i:i+len(template)]
-        test_err = [np.sqrt(i)/amplitude for i in test]
+        test_err = [np.sqrt(abs(i))/amplitude for i in test]
         test = [i/amplitude for i in test]
-        template_err = [np.sqrt(i/500) for i in template]
+        template_err = [np.sqrt(abs(i)/500) for i in template]
 
         shape = np.dot(test, template)/np.sqrt(np.dot(test, test))
         shapes.append(shape)
@@ -96,6 +96,163 @@ def get_pulse_time_mf(waveform, template, peak, amplitude, plot, n):
         plt.savefig('/Users/williamquinn/Desktop/commissioning/pulse_time_fit_{}.pdf'.format(n))
 
     return pars, errs, chi
+
+
+def plot_reflectometry(times, side):
+
+    sncalo = sn.calorimeter("reflectometery_" + side, with_palette=True)
+    sncalo.draw_omnum_label()
+    for om in times.keys():
+        sncalo.setcontent(om, times[om])
+    sncalo.draw()
+    sncalo.save('/Users/williamquinn/Desktop/commissioning')
+
+
+def fit_3_gaus(sel_events, case, typ):
+    hist = ROOT.TH1D("hist", 'hist', 20, -10, 10)
+    for i in sel_events:
+        hist.Fill(i)
+
+    fit = ROOT.TF1("func", '[0]*TMath::Gaus(x, [1], [2]) + [3]*TMath::Gaus(x, [4], [2]) + [5]*TMath::Gaus(x, [6], [2])')
+    fit.SetParameter(0, 100)
+    fit.SetParameter(1, -6)
+    fit.SetParameter(2, 0.5)
+    fit.SetParameter(3, 100)
+    fit.SetParameter(4, 0)
+    fit.SetParameter(5, 100)
+    fit.SetParameter(7, 2.5)
+    fit.SetParLimits(0, 0, 1000)
+    fit.SetParLimits(1, -10, 10)
+    fit.SetParLimits(2, 0, 10)
+    fit.SetParLimits(3, 0, 1000)
+    fit.SetParLimits(4, -10, 10)
+    fit.SetParLimits(3, 0, 1000)
+    fit.SetParLimits(4, -10, 10)
+    hist.Fit("func", "0Q")
+
+    pars = []
+    errs = []
+    chi = fit.GetChisquare() / fit.GetNDF()
+
+    for i in range(7):
+        pars.append(fit.GetParameter(i))
+        errs.append(fit.GetParError(i))
+
+    n_sf = [0, 0, 0, 0, 0, 0, 0]
+    for i in range(len(n_sf)):
+        while 1:
+            if (abs(errs[i]) / abs(pars[i])) * pow(10, n_sf[i]) >= 1:
+                break
+            else:
+                n_sf[i] += 1
+    string0 = r'$A =$ {} ± {} $\mu =$ {:.' + str(n_sf[1]) + 'f} ± {:.' + str(n_sf[1]) + 'f} $\sigma =$ {:.' + str(
+        n_sf[2]) + 'f} ± {:.' + str(n_sf[2]) + 'f}'
+    string1 = r'$A =$ {} ± {} $\mu =$ {:.' + str(n_sf[4]) + 'f} ± {:.' + str(n_sf[4]) + 'f} $\sigma =$ {:.' + str(
+        n_sf[2]) + 'f} ± {:.' + str(n_sf[2]) + 'f}'
+    string1 = r'$A =$ {} ± {} $\mu =$ {:.' + str(n_sf[6]) + 'f} ± {:.' + str(n_sf[6]) + 'f} $\sigma =$ {:.' + str(
+        n_sf[2]) + 'f} ± {:.' + str(n_sf[2]) + 'f}'
+
+    x = np.linspace(-10, 10, 100)
+
+    plt.figure(figsize=figsize)
+    freq, bin_edges = np.histogram(sel_events, range=(-10, 10), bins=20)
+    width = bin_edges[-1] - bin_edges[-2]
+    bin_centres = bin_edges[:-1] + width / 2
+    plt.bar(bin_centres, freq, width=width, color='C0', label='data')
+    plt.plot(x, np.array(gaussian_noh(x, pars[1], pars[2], pars[0])) + np.array(
+        gaussian_noh(x, pars[4], pars[2], pars[3])) + np.array(
+        gaussian_noh(x, pars[6], pars[2], pars[5])),
+             'C1', label='model')
+    plt.plot(x, gaussian_noh(x, pars[1], pars[2], pars[0]), 'C2', label=string0.format(int(pars[0]), int(errs[0]),
+                                                                                       pars[1], errs[1],
+                                                                                       pars[2], errs[2]))
+    plt.plot(x, gaussian_noh(x, pars[4], pars[2], pars[3]), 'C3', label=string1.format(int(pars[3]), int(errs[3]),
+                                                                                       pars[4], errs[4],
+                                                                                       pars[2], errs[2]))
+    plt.plot(x, gaussian_noh(x, pars[6], pars[2], pars[5]), 'C4', label=string1.format(int(pars[5]), int(errs[5]),
+                                                                                       pars[6], errs[6],
+                                                                                       pars[2], errs[2]))
+    handles, labels = plt.gca().get_legend_handles_labels()
+    patch = patches.Patch(color='white', label=r'$\chi_R =${:.2f}'.format(chi))
+    handles.extend([patch])
+    plt.legend(loc='upper left', handles=handles)
+    plt.xlim(-10, 10)
+    plt.ylim(0, np.max(freq) * 7/3)
+    plt.xlabel('Time Difference /ns')
+    plt.tight_layout()
+    plt.savefig('/Users/williamquinn/Desktop/{}_case_{}.pdf'.format(case, typ))
+
+    del hist
+    del fit
+
+    return pars[2], errs[2]
+
+
+def fit_2_gaus(sel_events, case, typ):
+    hist = ROOT.TH1D("hist", 'hist', 20, -10, 10)
+    for i in sel_events:
+        hist.Fill(i)
+
+    fit = ROOT.TF1("func", '[0]*TMath::Gaus(x, [1], [2]) + [3]*TMath::Gaus(x, [4], [2])')
+    fit.SetParameter(0, 100)
+    fit.SetParameter(1, -2.5)
+    fit.SetParameter(2, 0.5)
+    fit.SetParameter(3, 100)
+    fit.SetParameter(4, 2.5)
+    fit.SetParLimits(0, 0, 1000)
+    fit.SetParLimits(1, -10, 10)
+    fit.SetParLimits(2, 0, 10)
+    fit.SetParLimits(3, 0, 1000)
+    fit.SetParLimits(4, -10, 10)
+    hist.Fit("func", "0Q")
+
+    pars = []
+    errs = []
+    chi = fit.GetChisquare() / fit.GetNDF()
+
+    for i in range(5):
+        pars.append(fit.GetParameter(i))
+        errs.append(fit.GetParError(i))
+
+    n_sf = [0, 0, 0, 0, 0]
+    for i in range(len(n_sf)):
+        while 1:
+            if (abs(errs[i]) / abs(pars[i])) * pow(10, n_sf[i]) >= 1:
+                break
+            else:
+                n_sf[i] += 1
+    string0 = r'$A =$ {} ± {} $\mu =$ {:.' + str(n_sf[1]) + 'f} ± {:.' + str(n_sf[1]) + 'f} $\sigma =$ {:.' + str(n_sf[2]) + 'f} ± {:.' + str(n_sf[2]) + 'f}'
+    string1 = r'$A =$ {} ± {} $\mu =$ {:.' + str(n_sf[4]) + 'f} ± {:.' + str(n_sf[4]) + 'f} $\sigma =$ {:.' + str(n_sf[2]) + 'f} ± {:.' + str(n_sf[2]) + 'f}'
+
+    x = np.linspace(-10, 10, 100)
+
+    plt.figure(figsize=figsize)
+    freq, bin_edges = np.histogram(sel_events, range=(-10, 10), bins=20)
+    width = bin_edges[-1] - bin_edges[-2]
+    bin_centres = bin_edges[:-1] + width / 2
+    plt.bar(bin_centres, freq, width=width, color='C0', label='data')
+    plt.plot(x, np.array(gaussian_noh(x, pars[1], pars[2], pars[0])) + np.array(gaussian_noh(x, pars[4], pars[2], pars[3])),
+             'C1', label='model')
+    plt.plot(x, gaussian_noh(x, pars[1], pars[2], pars[0]), 'C2', label=string0.format(int(pars[0]), int(errs[0]),
+                                                                                       pars[1], errs[1],
+                                                                                       pars[2], errs[2]))
+    plt.plot(x, gaussian_noh(x, pars[4], pars[2], pars[3]), 'C3', label=string1.format(int(pars[3]), int(errs[3]),
+                                                                                       pars[4], errs[4],
+                                                                                       pars[2], errs[2]))
+    handles, labels = plt.gca().get_legend_handles_labels()
+    patch = patches.Patch(color='white', label=r'$\chi_R =${:.2f}'.format(chi))
+    handles.extend([patch])
+    plt.legend(loc='upper left', handles=handles)
+    plt.xlim(-10, 10)
+    plt.ylim(0, np.max(freq)*2)
+    plt.xlabel('Time Difference /ns')
+    plt.tight_layout()
+    plt.savefig('/Users/williamquinn/Desktop/{}_case_{}.pdf'.format(case, typ))
+
+    del hist
+    del fit
+
+    return pars[2], errs[2]
 
 
 def read_corrected_times():
@@ -192,7 +349,7 @@ def get_event_times(oms, file_name, templates, corrected_times):
     events = {}
     n_events = tree.GetEntries()
     i_e = 0
-    last_event = -1
+    '''last_event = -1
     last_om = 0
     for event in tree:
         i_e += 1
@@ -203,9 +360,9 @@ def get_event_times(oms, file_name, templates, corrected_times):
         if event_num not in events.keys():
             events[event_num] = {}
         events[event_num][om] = []
-    print("Number of events Total:", len(events.keys()))
+    print("Number of events Total:", len(events.keys()))'''
 
-    p_n = 0
+    '''p_n = 0
     for event in events.keys():
         if len(events[event].keys()) != 2:
             events[event] = None
@@ -218,9 +375,9 @@ def get_event_times(oms, file_name, templates, corrected_times):
         elif om_num_1 in events[event].keys() and om_num_2 in events[event].keys():
             p_n += 1
         else:
-            events[event] = None
+            events[event] = None'''
 
-    print("Number of events to process:", p_n)
+    # print("Number of events to process:", p_n)
 
     i_e = 0
     p_n = 0
@@ -228,45 +385,49 @@ def get_event_times(oms, file_name, templates, corrected_times):
     init_time = time.time()
     for event in tree:
         i_e += 1
-        if i_e % 10000 == 0:
+        if i_e % 100 == 0:
             temp_time = time.time()
-            print(i_e, "/", n_events, temp_time - init_time, p_n)
+            print(i_e, "/", n_events, temp_time - init_time)
             init_time = temp_time
 
         event_num = event.event_num
-        if events[event_num] is None:
-            continue
-        else:
-            om = event.OM_ID
-            if om not in oms:
-                continue
-            p_n += 1
-            waveform = list(event.waveform)
-            baseline = get_baseline(waveform, 100)
-            amplitude = get_amplitude(waveform, baseline) * adc2mv
-            peak = get_peak(waveform)
-            tdc = event.tdc * tdc2ns
+        oms = list(event.OM_ID)
 
-            if -1 * amplitude < 100 or not (25 < peak < 500):
-                continue
+        waveforms = [list(event.waveform)[int(i * 1024):int((i + 1) * 1024)] for i in range(len(oms))]
+        baselines = [get_baseline(waveforms[i], 100) for i in range(len(oms))]
+        amplitudes = [-1*adc2mv*get_amplitude(waveforms[i], baselines[i]) for i in range(len(oms))]
+        peaks = [get_peak(waveforms[i]) for i in range(len(oms))]
+        tdcs = [list(event.tdc)[i] for i in range(len(oms))]
 
-            if n_plot < 0:
-                pars, errs, chi = get_pulse_time_mf((np.array(waveform) - baseline) / amplitude * -1, templates[om], peak, -1 * amplitude, True, n_plot)
-                pulse_time_0 = tdc - 400 + pars[2] - corrected_times[om]
-                # pulse_time_0 = tdc - 400 + pars[2]
-                pulse_time_0_err = errs[2]
-                n_plot += 1
-            else:
-                pars, errs, chi = get_pulse_time_mf((np.array(waveform) - baseline) / amplitude * -1, templates[om], peak, -1 * amplitude, False, n_plot)
-                pulse_time_0 = tdc - 400 + pars[2] - corrected_times[om]
-                # pulse_time_0 = tdc - 400 + pars[2]
-                pulse_time_0_err = errs[2]
+        store_event = True
+        for i, om in enumerate(oms):
+            if amplitudes[i] < 100 or not (100 < peaks[i] < 500):
+                store_event = False
 
-            pulse_time_1 = (event.fall_cell *tdc2ns)/256.0 - 400 + tdc - corrected_times[om]
-            # pulse_time_1 = (event.fall_cell * tdc2ns) / 256.0 - 400 + tdc
-            # print(event_num, om, tdc, pulse_time_0, pulse_time_1, pulse_time_1-pulse_time_0)
+        if abs(tdcs[0] - tdcs[1]) > 10:
+            store_event = False
 
-            events[event_num][om] = [pulse_time_0, pulse_time_1, pars, errs, chi]
+        if store_event:
+            if event_num not in events.keys():
+                events[event_num] = {}
+            for i, om in enumerate(oms):
+                if n_plot < 0:
+                    pars, errs, chi = get_pulse_time_mf((np.array(waveforms[i]) - baselines[i]) / amplitudes[i], templates[om], peaks[i], amplitudes[i], True, n_plot)
+                    pulse_time_0 = tdcs[i]*tdc2ns - 400 + pars[2] - corrected_times[om]
+                    # pulse_time_0 = tdc - 400 + pars[2]
+                    pulse_time_0_err = errs[2]
+                    n_plot += 1
+                else:
+                    pars, errs, chi = get_pulse_time_mf((np.array(waveforms[i]) - baselines[i]) / amplitudes[i], templates[om], peaks[i], amplitudes[i], False, n_plot)
+                    pulse_time_0 = tdcs[i]*tdc2ns - 400 + pars[2] - corrected_times[om]
+                    # pulse_time_0 = tdc - 400 + pars[2]
+                    pulse_time_0_err = errs[2]
+
+                pulse_time_1 = (list(event.fall_cell)[i] *tdc2ns)/256.0 - 400 + tdcs[i]*tdc2ns - corrected_times[om]
+                # pulse_time_1 = (event.fall_cell * tdc2ns) / 256.0 - 400 + tdc
+                # print(event_num, om, tdc, pulse_time_0, pulse_time_1, pulse_time_1-pulse_time_0)
+
+                events[event_num][om] = [pulse_time_0, pulse_time_1, pars, errs, chi]
     return events
 
 
@@ -289,7 +450,7 @@ def store_events(events):
 
 def read_events():
     events = {}
-    with open("/Users/williamquinn/Desktop/commissioning/events.csv", "r") as out_file:
+    with open("/Users/williamquinn/Desktop/commissioning/events_1.csv", "r") as out_file:
         fl = out_file.readlines()
         for index, line in enumerate(fl):
             line_list = line.split(",")
@@ -308,13 +469,15 @@ def read_events():
 
 
 def main():
-    corrected_times = read_corrected_times()
+    '''corrected_times = read_corrected_times()
+    # plot_reflectometry(corrected_times, 'it')
+
     # create_templates("/Users/williamquinn/Desktop/commissioning/run_430.root")
     templates = read_templates()
-    filename = "/Users/williamquinn/Desktop/commissioning/run_430.root"
+    filename = "/Users/williamquinn/Desktop/run_430.root"
     events = get_event_times(oms, filename, templates, corrected_times)
-    store_events(events)
-    '''events = read_events()
+    store_events(events)'''
+    events = read_events()
     counter = [0, 0, 0]
     selected_events = {0: {0: [], 1: []}, 1: {0: [], 1: []}, 2: {0: [], 1: []}}
     for event in events.keys():
@@ -339,47 +502,23 @@ def main():
                 counter[2] += 1
     print(counter)
 
-    plt.figure(figsize=figsize)
-    freq, bin_edges = np.histogram(selected_events[0][0], range=(-10, 10), bins=20)
-    width = bin_edges[-1] - bin_edges[-2]
-    bin_centres = bin_edges[:-1] + width/2
-    plt.bar(bin_centres, freq, width=width)
-    plt.savefig('/Users/williamquinn/Desktop/mf_case_0.pdf')
+    ab_mf = fit_3_gaus(selected_events[0][0], 'mf', 'ab')
+    ab_og = fit_3_gaus(selected_events[0][1], 'og', 'ab')
+    ac_mf = fit_2_gaus(selected_events[1][0], 'mf', 'ac')
+    ac_og = fit_2_gaus(selected_events[1][1], 'og', 'ac')
+    bc_mf = fit_2_gaus(selected_events[2][0], 'mf', 'bc')
+    bc_og = fit_2_gaus(selected_events[2][1], 'og', 'bc')
 
-    plt.figure(figsize=figsize)
-    freq, bin_edges = np.histogram(selected_events[0][1], range=(-10, 10), bins=20)
-    width = bin_edges[-1] - bin_edges[-2]
-    bin_centres = bin_edges[:-1] + width / 2
-    plt.bar(bin_centres, freq, width=width)
-    plt.savefig('/Users/williamquinn/Desktop/og_case_0.pdf')
+    err_a_mf = np.sqrt(0.5 * (ab_mf[0]) ** 4 - (bc_mf[0]) ** 4 + (ac_mf[0]) ** 4)
+    err_a_og = np.sqrt(0.5 * (ab_og[0]) ** 4 - (bc_og[0]) ** 4 + (ac_og[0]) ** 4)
+    err_b_mf = np.sqrt(0.5 * (ab_mf[0]) ** 4 - (ac_mf[0]) ** 4 + (bc_mf[0]) ** 4)
+    err_b_og = np.sqrt(0.5 * (ab_og[0]) ** 4 - (ac_og[0]) ** 4 + (bc_og[0]) ** 4)
+    err_c_mf = np.sqrt(0.5 * (bc_mf[0]) ** 4 - (ab_mf[0]) ** 4 + (ac_mf[0]) ** 4)
+    err_c_og = np.sqrt(0.5 * (bc_og[0]) ** 4 - (ab_og[0]) ** 4 + (ac_og[0]) ** 4)
 
-    plt.figure(figsize=figsize)
-    freq, bin_edges = np.histogram(selected_events[1][0], range=(-10, 10), bins=20)
-    width = bin_edges[-1] - bin_edges[-2]
-    bin_centres = bin_edges[:-1] + width / 2
-    plt.bar(bin_centres, freq, width=width)
-    plt.savefig('/Users/williamquinn/Desktop/mf_case_1.pdf')
-
-    plt.figure(figsize=figsize)
-    freq, bin_edges = np.histogram(selected_events[1][1], range=(-10, 10), bins=20)
-    width = bin_edges[-1] - bin_edges[-2]
-    bin_centres = bin_edges[:-1] + width / 2
-    plt.bar(bin_centres, freq, width=width)
-    plt.savefig('/Users/williamquinn/Desktop/og_case_1.pdf')
-
-    plt.figure(figsize=figsize)
-    freq, bin_edges = np.histogram(selected_events[2][0], range=(-10, 10), bins=20)
-    width = bin_edges[-1] - bin_edges[-2]
-    bin_centres = bin_edges[:-1] + width / 2
-    plt.bar(bin_centres, freq, width=width)
-    plt.savefig('/Users/williamquinn/Desktop/mf_case_2.pdf')
-
-    plt.figure(figsize=figsize)
-    freq, bin_edges = np.histogram(selected_events[2][1], range=(-10, 10), bins=20)
-    width = bin_edges[-1] - bin_edges[-2]
-    bin_centres = bin_edges[:-1] + width / 2
-    plt.bar(bin_centres, freq, width=width)
-    plt.savefig('/Users/williamquinn/Desktop/og_case_2.pdf')'''
+    print("A:", err_a_og, err_a_mf, om_num_0)
+    print("B:", err_b_og, err_b_mf, om_num_1)
+    print("C:", err_c_og, err_c_mf, om_num_2)
 
 
 if __name__ == "__main__":

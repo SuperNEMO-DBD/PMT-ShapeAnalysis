@@ -14,8 +14,8 @@ def main():
     tree = file.T
     counter = 0
     n = 1000
-    x = [i*400/1024 for i in range(int(200*2.56))]
-    template = np.array([0.0 for i in range(int(200*2.56))])
+    x = [i*tdc2ns for i in range(int(200/tdc2ns))]
+    template = np.array([0.0 for i in range(int(200/tdc2ns))])
     for event in tree:
         if counter == n:
             break
@@ -28,7 +28,7 @@ def main():
             amplitude = get_amplitude(waveform, baseline)
             peak = get_peak(waveform)
 
-            temp = waveform[peak - int(25*2.56):peak + int(175*2.56)]
+            temp = waveform[peak - int(25/tdc2ns):peak + int(175/tdc2ns)]
             if -1 * amplitude > 10:
                 template += (np.array(temp) - baseline)/amplitude * -1
                 counter += 1
@@ -36,7 +36,7 @@ def main():
     template = template/n
     plt.figure(figsize=figsize)
     plt.plot(x, template)
-    plt.xlabel("Timestamp /ns")
+    plt.xlabel("Timestamp")
     plt.xlim(0, 200)
     plt.tight_layout()
     plt.savefig("/Users/williamquinn/Desktop/commissioning/template.pdf")
