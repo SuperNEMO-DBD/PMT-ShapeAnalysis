@@ -316,7 +316,9 @@ int main(int argc, char **argv)
             int32_t trigger_id = rtd.get_trigger_id();
             int32_t run_id     = rtd.get_run_id();
       
-            if(rtd_counter %10000 == 0 )std::cout<<"In Run : "<<run_id<<" Trigger # "<<trigger_id << " events: " << counter[0] << " " << counter[1] << " " << counter[2] << " " << counter[3] << " " << std::endl;
+            if(rtd_counter %10000 == 0 )std::cout<<"In Run : "<<run_id<<" Trigger # "<<trigger_id << " events: " <<
+            om_counter[0][1] << " " << om_counter[0][2] << " " << om_counter[1][0] << " " << om_counter[1][2] <<
+            " " << om_counter[2][0] << " " om_counter[2][1] << " " std::endl;
 
             // if(event_num == 1000000){break;}
 
