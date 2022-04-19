@@ -413,6 +413,7 @@ int main(int argc, char **argv)
 	                    }
 	                    Double_t my_baseline    = get_baseline( waveform , config_object);
 	                    Double_t my_amplitude   = ((Double_t)get_amplitude( waveform ) - my_baseline) * adc2mv * -1;
+                        std::cout << my_amplitude << std::endl;
 
 	                    if ( do_template )
 	                    {
