@@ -190,7 +190,7 @@ int main(int argc, char **argv)
 
         // Define how many events per category (my_class) you wish,
         // Categories: MWALL = 0, XWALL = 1, GVETO = 2
-        int n_stop = 1000000000;
+        int n_stop = 1000000;
         int my_class;
 
         // Defien how many waveforms you want to use in the template averaging
@@ -255,8 +255,6 @@ int main(int argc, char **argv)
         // Contains event info
         EVENTN eventn = {};
         Int_t event_num = 0;
-        std::vector<int> counter = {0,0,0,0};
-        std::vector<int> c_stop = {1000000, 1000000, 1000000, 1000000};
         int sel_events = 0;
         MATCHFILTER matchfilter;
 
@@ -380,11 +378,11 @@ int main(int argc, char **argv)
 
                         if (calo_id.is_main()) {
                             side = calo_id.get_side();
-                            if (side == 0){my_class = 0;}else{my_class = 1;}
                             col = calo_id.get_column();
                             row = calo_id.get_row();
                             OM_ID = row + col*13 + side*260;
                             is_main = true;
+                            my_class = 0;
                         }
                         else if (calo_id.is_xwall()) {
                             side = calo_id.get_side();
@@ -393,7 +391,7 @@ int main(int argc, char **argv)
                             row = calo_id.get_row();
                             OM_ID = 520 + side*64 + wall*32  + col*16 + row;
                             is_xwall = true;
-                            my_class = 2;
+                            my_class = 1;
                         }
                         else if (calo_id.is_gveto()) {
                             side = calo_id.get_side();
@@ -401,13 +399,12 @@ int main(int argc, char **argv)
                             col = calo_id.get_column();
                             OM_ID = 520 + 128 + side*32 + wall*16 + col;
                             is_gveto = true;
-                            my_class = 3;
+                            my_class = 2;
                         }
 
                         if ( side == 1 ){ is_fr = true; }
                         else{ is_it = true; }
-
-                        if (counter[my_class] == c_stop[my_class]){continue;}
+                        if (om_counter[my_class][side] == n_stop){continue;}
 
 	                    uint16_t waveform_number_of_samples = calo_hit.get_waveform_number_of_samples();
 	                    for (uint16_t isample = 0; isample < waveform_number_of_samples; isample++)
