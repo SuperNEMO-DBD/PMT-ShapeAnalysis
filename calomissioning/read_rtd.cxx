@@ -426,7 +426,7 @@ int main(int argc, char **argv)
 	                        update_temp_vector( template_vectors, temp_vector, template_info, OM_ID, config_object );
 	                        average_counter[OM_ID]++;
 	                    }else{
-	                        if ( my_amplitude > 0)
+	                        if ( my_amplitude > 50)
 				            {
 				                om_counter[my_class][side] ++;
                                 if (do_sweep) {
