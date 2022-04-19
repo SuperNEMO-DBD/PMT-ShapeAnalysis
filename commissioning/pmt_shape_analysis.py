@@ -157,38 +157,37 @@ def main():
         if i_e % 10000 == 0:
             print(i_e, "/", n_events)
 
-        if run == 104:
-            om = event.OM_ID + 260
-        else:
-            om = event.OM_ID
+        for index, om in enumerate(list(event.OM_ID)):
+            if run == 104:
+                om = om + 260
 
-        if om > 712:
-            continue
+            if om > 712:
+                continue
 
-        if n_counter[om] < 1000:
-            waveform = list(event.waveform)
-            baseline = get_baseline(waveform, 100)
-            amplitude = get_amplitude(waveform, baseline)
-            peak = get_peak(waveform)
+            if n_counter[om] < 1000:
+                waveform = list(event.waveform)[index*1024: 1024*(index + 1)]
+                baseline = get_baseline(waveform, 100)
+                amplitude = get_amplitude(waveform, baseline)
+                peak = get_peak(waveform)
 
-            if -1 * amplitude > 50 and 50 < peak < (1024-110):
-                fwhm = get_fwhm_timestamp(waveform, baseline, peak, -1 * amplitude) * tdc2ns
-                x = [i * 400 / 1024 for i in range(1024)][peak - int(25 / tdc2ns):peak + int(175 / tdc2ns)]
-                temp = waveform[peak - int(25 / tdc2ns):peak + int(175 / tdc2ns)]
-                temp = (np.array(temp) - baseline) * adc2mv
-                amplitude = -1* amplitude * adc2mv
+                if -1 * amplitude > 50 and 50 < peak < (1024-110):
+                    fwhm = get_fwhm_timestamp(waveform, baseline, peak, -1 * amplitude) * tdc2ns
+                    x = [i * 400 / 1024 for i in range(1024)][peak - int(25 / tdc2ns):peak + int(175 / tdc2ns)]
+                    temp = waveform[peak - int(25 / tdc2ns):peak + int(175 / tdc2ns)]
+                    temp = (np.array(temp) - baseline) * adc2mv
+                    amplitude = -1* amplitude * adc2mv
 
-                try:
-                    mf_shape, mf_amp = mf_waveform(waveform=temp, template=template)
-                except ValueError:
-                    continue
-                if mf_shape < 0.9 and om_id_string(om) == 'M:1.1.1':
-                    plot_waveform(temp, amplitude, peak, template, om_id_string(om), run, mf_shape)
-                shapes[om].append(mf_shape)
-                mf_amplitudes[om].append(mf_amp)
-                amplitudes[om].append(amplitude)
-                fwhms[om].append(fwhm)
-                n_counter[om] += 1
+                    try:
+                        mf_shape, mf_amp = mf_waveform(waveform=temp, template=template)
+                    except ValueError:
+                        continue
+                    if mf_shape < 0.9 and om_id_string(om) == 'M:1.1.1':
+                        plot_waveform(temp, amplitude, peak, template, om_id_string(om), run, mf_shape)
+                    shapes[om].append(mf_shape)
+                    mf_amplitudes[om].append(mf_amp)
+                    amplitudes[om].append(amplitude)
+                    fwhms[om].append(fwhm)
+                    n_counter[om] += 1
 
     avs = [None for i in range(712)]
     stds = [None for i in range(712)]
