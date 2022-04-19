@@ -317,7 +317,7 @@ int main(int argc, char **argv)
       
             if(rtd_counter %10000 == 0 )std::cout<<"In Run : "<<run_id<<" Trigger # "<<trigger_id << " events: " << sel_events << std::endl;
 
-            if(sel_events == 30000){break;}
+            // if(sel_events == 30000){break;}
 
             // Loop on calo hit records in the RTD data object:
             for (const auto & p_calo_hit : rtd.get_calo_hits())
@@ -476,7 +476,7 @@ int main(int argc, char **argv)
             }//end of calohit
             if (eventn.OM_ID.size() > 0){continue;}else{
                 tree.Fill();
-                sel_events ++;
+                // sel_events ++;
             }
             event_num ++;
         }   //end of file
