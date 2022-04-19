@@ -21,19 +21,19 @@ def main():
     for event in tree:
         if counter == n:
             break
-        om = event.OM_ID + 260
-        om_id = om_id_string(om)
+        for index, om in enumerate(list(event.OM_ID)):
+            om_id = om_id_string(om)
 
-        if om_id == 'M:1.0.1' and counter < n:
-            waveform = list(event.waveform)
-            baseline = get_baseline(waveform, 100)
-            amplitude = get_amplitude(waveform, baseline)
-            peak = get_peak(waveform)
+            if om_id == 'M:1.0.1' and counter < n:
+                waveform = list(event.waveform)[index*1024: 1024*(index + 1)]
+                baseline = get_baseline(waveform, 100)
+                amplitude = get_amplitude(waveform, baseline)
+                peak = get_peak(waveform)
 
-            temp = waveform[peak - int(25/tdc2ns):peak + int(175/tdc2ns)]
-            if -1 * amplitude > 50:
-                template += (np.array(temp) - baseline)/amplitude * -1
-                counter += 1
+                temp = waveform[peak - int(25/tdc2ns):peak + int(175/tdc2ns)]
+                if -1 * amplitude > 50:
+                    template += (np.array(temp) - baseline)/amplitude * -1
+                    counter += 1
 
     template = template/n
     plt.figure(figsize=figsize)

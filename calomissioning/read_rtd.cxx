@@ -301,6 +301,7 @@ int main(int argc, char **argv)
         // Working RTD object --> Raw Trigger Data
         // 1 record per trigger composed by few CaloHit
         snfee::data::raw_trigger_data rtd;
+        bool om_bool = true;
 
         std::size_t rtd_counter = 0;
         while ( rtd_source.has_record_tag() )
@@ -315,7 +316,7 @@ int main(int argc, char **argv)
             int32_t trigger_id = rtd.get_trigger_id();
             int32_t run_id     = rtd.get_run_id();
       
-            if(rtd_counter %10000 == 0 )std::cout<<"In Run : "<<run_id<<" Trigger # "<<trigger_id << " events: " << sel_events << std::endl;
+            if(rtd_counter %10000 == 0 )std::cout<<"In Run : "<<run_id<<" Trigger # "<<trigger_id << " events: " << eventn << std::endl;
 
             // if(sel_events == 30000){break;}
 
@@ -425,7 +426,7 @@ int main(int argc, char **argv)
 	                        update_temp_vector( template_vectors, temp_vector, template_info, OM_ID, config_object );
 	                        average_counter[OM_ID]++;
 	                    }else{
-	                        if ( my_amplitude > 100.0)
+	                        if ( my_amplitude > 0)
 				            {
 				                om_counter[my_class][side] ++;
                                 if (do_sweep) {
@@ -434,7 +435,7 @@ int main(int argc, char **argv)
 
                                 // For the slected OMs fill eventn struct
                                 //if (OM_ID == om_num_0 || OM_ID == om_num_1 || OM_ID == om_num_2)
-                                if (1 == 1)
+                                if (om_bool)
                                 {
                                     eventn.tdc.push_back((ULong64_t)tdc);
 
