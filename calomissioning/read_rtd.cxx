@@ -256,7 +256,7 @@ int main(int argc, char **argv)
         EVENTN eventn = {};
         Int_t event_num = 0;
         std::vector<int> counter = {0,0,0,0};
-        std::vector<int> n_stop = {1000000, 1000000, 1000000, 1000000};
+        std::vector<int> c_stop = {1000000, 1000000, 1000000, 1000000};
         int sel_events = 0;
         MATCHFILTER matchfilter;
 
@@ -407,7 +407,7 @@ int main(int argc, char **argv)
                         if ( side == 1 ){ is_fr = true; }
                         else{ is_it = true; }
 
-                        if (counter[my_class] == n_stop[my_class]){continue;}
+                        if (counter[my_class] == c_stop[my_class]){continue;}
 
 	                    uint16_t waveform_number_of_samples = calo_hit.get_waveform_number_of_samples();
 	                    for (uint16_t isample = 0; isample < waveform_number_of_samples; isample++)
