@@ -1458,6 +1458,23 @@ def get_amplitude(waveform, baseline):
     return amp - baseline
 
 
+def get_fwhm_timestamp(waveform, baseline, peak, amplitude):
+    fwhm = 0
+    start = 0
+    end = 0
+    for i in range(peak - 50, peak + 100):
+        if start == end == 0:
+            if -1*(waveform[i] - baseline) > amplitude/2:
+                start = i
+        elif start != 0 and end == 0:
+            if -1*(waveform[i] - baseline) < amplitude/2:
+                end = i
+        else:
+            break
+    fwhm = end - start
+    return fwhm
+
+
 def get_peak(waveform):
     peak = 0
     amp = 10000

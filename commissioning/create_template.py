@@ -1,5 +1,7 @@
 import sys
 
+import matplotlib.pyplot as plt
+
 sys.path.insert(1, '../')
 from pmt_he_study.models import *
 from ReadRED import sndisplay as sn
@@ -29,7 +31,7 @@ def main():
             peak = get_peak(waveform)
 
             temp = waveform[peak - int(25/tdc2ns):peak + int(175/tdc2ns)]
-            if -1 * amplitude > 10:
+            if -1 * amplitude > 50:
                 template += (np.array(temp) - baseline)/amplitude * -1
                 counter += 1
 
@@ -37,9 +39,10 @@ def main():
     plt.figure(figsize=figsize)
     plt.plot(x, template)
     plt.xlabel("Timestamp")
+    plt.title("Template PMT Pulse OM - M:1.0.1")
     plt.xlim(0, 200)
     plt.tight_layout()
-    plt.savefig("/Users/williamquinn/Desktop/commissioning/template.pdf")
+    plt.savefig("/Users/williamquinn/Desktop/commissioning/template_M101.pdf")
 
     for event in tree:
         om = event.OM_ID + 260
@@ -64,6 +67,7 @@ def main():
                 plt.xlim(x[0], x[-1])
                 plt.xlabel('Timestamp /ns')
                 plt.ylabel('Voltage /mV')
+                plt.title('Matched Filter Example OM - M:1.0.1')
 
                 handles, labels = plt.gca().get_legend_handles_labels()
                 patch = patches.Patch(color='white', label='MF Shape {:.3f}'.format(mf_shape))
