@@ -316,7 +316,7 @@ int main(int argc, char **argv)
             int32_t trigger_id = rtd.get_trigger_id();
             int32_t run_id     = rtd.get_run_id();
       
-            if(rtd_counter %10000 == 0 )std::cout<<"In Run : "<<run_id<<" Trigger # "<<trigger_id << " events: " << eventn << std::endl;
+            if(rtd_counter %10000 == 0 )std::cout<<"In Run : "<<run_id<<" Trigger # "<<trigger_id << " events: " << event_num << std::endl;
 
             // if(sel_events == 30000){break;}
 
