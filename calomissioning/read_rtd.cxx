@@ -413,7 +413,6 @@ int main(int argc, char **argv)
 	                    }
 	                    Double_t my_baseline    = get_baseline( waveform , config_object);
 	                    Double_t my_amplitude   = ((Double_t)get_amplitude( waveform ) - my_baseline) * adc2mv * -1;
-                        std::cout << my_amplitude << std::endl;
 
 	                    if ( do_template )
 	                    {
@@ -476,9 +475,9 @@ int main(int argc, char **argv)
 	                }
 	            } //end of channels
             }//end of calohit
-            if (eventn.OM_ID.size() > 0){continue;}else{
+
+            if (eventn.OM_ID.size() == 0){continue;}else{
                 tree.Fill();
-                std::cout << "Filling" << std::endl;
                 // sel_events ++;
             }
             event_num ++;
