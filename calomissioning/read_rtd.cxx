@@ -255,6 +255,8 @@ int main(int argc, char **argv)
         // Contains event info
         EVENTN eventn = {};
         Int_t event_num = 0;
+        std::vector<int> counter = {0,0,0,0};
+        std::vector<int> n_stop = {1000000, 1000000, 1000000, 1000000};
         int sel_events = 0;
         MATCHFILTER matchfilter;
 
@@ -318,7 +320,7 @@ int main(int argc, char **argv)
       
             if(rtd_counter %10000 == 0 )std::cout<<"In Run : "<<run_id<<" Trigger # "<<trigger_id << " events: " << event_num << std::endl;
 
-            if(event_num == 1000000){break;}
+            // if(event_num == 1000000){break;}
 
             // Loop on calo hit records in the RTD data object:
             for (const auto & p_calo_hit : rtd.get_calo_hits())
@@ -378,11 +380,11 @@ int main(int argc, char **argv)
 
                         if (calo_id.is_main()) {
                             side = calo_id.get_side();
+                            if (side == 0){my_class = 0;}else{my_class = 1;}
                             col = calo_id.get_column();
                             row = calo_id.get_row();
                             OM_ID = row + col*13 + side*260;
                             is_main = true;
-                            my_class = 0;
                         }
                         else if (calo_id.is_xwall()) {
                             side = calo_id.get_side();
@@ -391,7 +393,7 @@ int main(int argc, char **argv)
                             row = calo_id.get_row();
                             OM_ID = 520 + side*64 + wall*32  + col*16 + row;
                             is_xwall = true;
-                            my_class = 1;
+                            my_class = 2;
                         }
                         else if (calo_id.is_gveto()) {
                             side = calo_id.get_side();
@@ -399,11 +401,13 @@ int main(int argc, char **argv)
                             col = calo_id.get_column();
                             OM_ID = 520 + 128 + side*32 + wall*16 + col;
                             is_gveto = true;
-                            my_class = 2;
+                            my_class = 3;
                         }
 
                         if ( side == 1 ){ is_fr = true; }
                         else{ is_it = true; }
+
+                        if (counter[my_class] == n_stop[my_class]){continue;}
 
 	                    uint16_t waveform_number_of_samples = calo_hit.get_waveform_number_of_samples();
 	                    for (uint16_t isample = 0; isample < waveform_number_of_samples; isample++)
@@ -437,7 +441,7 @@ int main(int argc, char **argv)
                                 //if (OM_ID == om_num_0 || OM_ID == om_num_1 || OM_ID == om_num_2)
                                 if (om_bool)
                                 {
-                                    if (OM_ID > 260){std::cout << OM_ID << std::endl;}
+                                    //if (OM_ID > 260){std::cout << OM_ID << std::endl;}
 
                                     eventn.tdc.push_back((ULong64_t)tdc);
 
