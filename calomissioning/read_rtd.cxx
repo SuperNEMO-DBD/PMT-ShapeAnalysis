@@ -401,7 +401,6 @@ int main(int argc, char **argv)
                             is_gveto = true;
                             my_class = 2;
                         }
-                        std::cout << OM_ID << std::endl;
 
                         if ( side == 1 ){ is_fr = true; }
                         else{ is_it = true; }
@@ -438,6 +437,8 @@ int main(int argc, char **argv)
                                 //if (OM_ID == om_num_0 || OM_ID == om_num_1 || OM_ID == om_num_2)
                                 if (om_bool)
                                 {
+                                    if (OM_ID > 260){std::cout << OM_ID << std::endl;}
+
                                     eventn.tdc.push_back((ULong64_t)tdc);
 
                                     eventn.fall_cell.push_back(ch_falling_cell);
