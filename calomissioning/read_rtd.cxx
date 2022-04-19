@@ -477,6 +477,7 @@ int main(int argc, char **argv)
             }//end of calohit
             if (eventn.OM_ID.size() > 0){continue;}else{
                 tree.Fill();
+                std::cout << "Filling" << std::endl;
                 // sel_events ++;
             }
             event_num ++;
