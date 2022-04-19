@@ -1110,6 +1110,41 @@ def linear(x, m, c):
     return y
 
 
+def om_type(omnum: int):
+    string = ''
+    index = 0
+    if 0 <= omnum < 260:
+        row = omnum % 13
+        if row == 12 or row == 0:
+            string = '5inchMW'
+            index = 0
+        else:
+            string = '8inchMW'
+            index = 1
+    elif omnum < 520:
+        omnum = omnum - 260
+        row = omnum % 13
+        if row == 12 or row == 0:
+            string = '5inchMW'
+            index = 0
+        else:
+            string = '8inchMW'
+            index = 1
+    elif omnum < 584:
+        string = '5inchXW'
+        index = 2
+    elif omnum < 648:
+        string = '5inchXW'
+        index = 2
+    elif omnum < 680:
+        string = '5inchGV'
+        index = 3
+    elif omnum < 712:
+        string = '5inchGV'
+        index = 3
+    return index, string
+
+
 def om_id_string(omnum: int):
     string = ''
     if 0 <= omnum < 260:

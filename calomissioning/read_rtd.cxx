@@ -401,6 +401,7 @@ int main(int argc, char **argv)
                             is_gveto = true;
                             my_class = 2;
                         }
+                        std::cout << OM_ID << std::endl;
 
                         if ( side == 1 ){ is_fr = true; }
                         else{ is_it = true; }
@@ -462,6 +463,9 @@ int main(int argc, char **argv)
                                     eventn.col.push_back(col);
                                     eventn.row.push_back(row);
                                     eventn.OM_ID.push_back(OM_ID);
+                                    eventn.is_gveto.push_back(is_gveto);
+                                    eventn.is_main.push_back(is_main);
+                                    eventn.is_xwall.push_back(is_xwall);
                                     eventn.is_it.push_back(is_it);
                                     eventn.is_fr.push_back(is_fr);
 

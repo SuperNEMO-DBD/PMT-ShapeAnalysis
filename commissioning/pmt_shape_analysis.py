@@ -92,7 +92,7 @@ def plot_av_shapes(avs, stds, ref_om, run):
     sncalo_0.draw_content = False
     sncalo_0.draw_omid = False
     for om, val in enumerate(avs):
-        if om == ref_om:
+        if om == ref_om and ref_om is not None:
             sncalo_0.setcontent(om, 1)
         elif val is None or val < 0.9:
             pass
@@ -107,7 +107,7 @@ def plot_av_shapes(avs, stds, ref_om, run):
     sncalo_1.draw_content = False
     sncalo_1.draw_omid = False
     for om, val in enumerate(stds):
-        if om == ref_om:
+        if om == ref_om and ref_om is not None:
             sncalo_1.setcontent(om, 1)
         elif val is None:
             pass
@@ -132,6 +132,24 @@ def plot_waveform(waveform, amplitude, peak, template, om_id, run, shape):
     plt.legend(loc='best')
     plt.tight_layout()
     plt.savefig("/Users/williamquinn/Desktop/commissioning/{}_pulse_vs_template_{}.pdf".format(run, om_id))
+
+
+def plot_om_type_shape(avs, run):
+    new_avs = [[] for i in range(4)]
+    for om, av in enumerate(avs):
+        om_t, st = om_type(om)
+        new_avs[om_t].append(av)
+
+    plt.figure(figsize=figsize)
+    for index in range(4):
+        freq, bin_edges = np.histogram(new_avs[index], bins=10, range=(0.95, 1))
+        width = bin_edges[2] - bin_edges[1]
+        bin_centres = bin_edges[:-1] + width/2
+        plt.bar(bin_centres, freq, width=width, alpha=0.3)
+    plt.ylabel("No. OMs")
+    plt.xlabel("Shape Index")
+    plt.tight_layout()
+    plt.savefig("/Users/williamquinn/Desktop/commissioning/{}_om_tupe_shape_dist.pdf".format(run))
 
 
 def main():
@@ -207,13 +225,16 @@ def main():
 
         if om_id == 'M:1.1.1':
             plot_shape_dist(om_id, shapes[om], run)
+            # plot_fwhm_shape_vs_amp(amplitudes[om], shapes[om], fwhms[om], run, om_id)
+            # plot_amp_vs_shape(amplitudes[om], shapes[om], run, om_id)
+            # plot_amp_vs_fwhm(amplitudes[om], fwhms[om], run, om_id)
+            # plot_fwhm_vs_shape(fwhms[om], shapes[om], run, om_id)
+
+        if om_id == 'M:1.0.1':
             ref_om = om
-            #plot_fwhm_shape_vs_amp(amplitudes[om], shapes[om], fwhms[om], run, om_id)
-            #plot_amp_vs_shape(amplitudes[om], shapes[om], run, om_id)
-            #plot_amp_vs_fwhm(amplitudes[om], fwhms[om], run, om_id)
-            #plot_fwhm_vs_shape(fwhms[om], shapes[om], run, om_id)
 
     plot_av_shapes(avs, stds, ref_om, run)
+    plot_om_type_shape(avs, run)
     file.Close()
 
 
