@@ -434,7 +434,7 @@ int main(int argc, char **argv)
 
                                 // For the slected OMs fill eventn struct
                                 //if (OM_ID == om_num_0 || OM_ID == om_num_1 || OM_ID == om_num_2)
-                                if ()
+                                if (1 == 1)
                                 {
                                     eventn.tdc.push_back((ULong64_t)tdc);
 
