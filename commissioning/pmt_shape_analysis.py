@@ -95,11 +95,11 @@ def plot_av_shapes(avs, stds, ref_om, run):
     for om, val in enumerate(avs):
         if om == ref_om and ref_om is not None:
             sncalo_0.setcontent(om, 1)
-        elif val is None or val < 0.9:
-            pass
         else:
             sncalo_0.setcontent(om, val)
-    sncalo_0.setrange(0.95, 1)
+        '''        elif val is None or val < 0.9:
+            pass'''
+    # sncalo_0.setrange(0.95, 1)
     sncalo_0.draw()
     sncalo_0.save("/Users/williamquinn/Desktop/commissioning")
     del sncalo_0
@@ -183,6 +183,28 @@ def main():
             if om > 712:
                 continue
 
+            if om == 262:
+                waveform = list(event.waveform)
+                baseline = get_baseline(waveform, 100)
+                plt.plot(waveform)
+                plt.show()
+                '''amplitude = get_amplitude(waveform, baseline)
+                peak = get_peak(waveform)
+                x = [i * 400 / 1024 for i in range(1024)][peak - int(25 / tdc2ns):peak + int(175 / tdc2ns)]
+                temp = waveform[peak - int(25 / tdc2ns):peak + int(175 / tdc2ns)]
+                temp = (np.array(temp) - baseline) * adc2mv
+                amplitude = -1 * amplitude * adc2mv
+
+                plt.plot([i * 400 / 1024 for i in range(1024)],
+                         adc2mv * np.array(list(event.waveform)[index * 1024: 1024 * (index + 1)]) - baseline)
+                plt.plot(x, temp)
+                plt.plot(x, -1 * amplitude * template / np.min(template))
+                mf_shape, mf_amp = mf_waveform(waveform=temp, template=template)
+                print(om, om_id_string(om), mf_shape)
+                plt.show()'''
+            else:
+                continue
+
             if n_counter[om] < 1000:
                 waveform = list(event.waveform)[index*1024: 1024*(index + 1)]
                 baseline = get_baseline(waveform, 100)
@@ -198,13 +220,9 @@ def main():
 
                     try:
                         mf_shape, mf_amp = mf_waveform(waveform=temp, template=template)
-                    except ValueError:
-                        print(len(template), len(temp), peak)
-                        plt.plot(temp, ".", label='pulse')
-                        plt.plot(-1*amplitude*template/(np.min(template)), ".")
-                        plt.legend()
-                        plt.show()
-                        return
+                    except:
+                        continue
+
                     if mf_shape < 0.9 and om_id_string(om) == 'M:1.1.1':
                         plot_waveform(temp, amplitude, peak, template, om_id_string(om), run, mf_shape)
                     shapes[om].append(mf_shape)
