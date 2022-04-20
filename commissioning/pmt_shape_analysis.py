@@ -186,7 +186,9 @@ def main():
             if om == 262:
                 waveform = list(event.waveform)
                 baseline = get_baseline(waveform, 100)
+                peak = get_peak(waveform)
                 plt.plot(waveform)
+                print(peak)
                 plt.show()
                 '''amplitude = get_amplitude(waveform, baseline)
                 peak = get_peak(waveform)

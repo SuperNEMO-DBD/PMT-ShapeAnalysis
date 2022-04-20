@@ -414,6 +414,7 @@ int main(int argc, char **argv)
 	                        uint16_t adc = calo_hit.get_waveforms().get_adc(isample,ichannel);
 	                        waveform.push_back(adc);
 	                    }
+                        Int_t my_peak           = get_peak_cell( waveform )
 	                    Double_t my_baseline    = get_baseline( waveform , config_object);
 	                    Double_t my_amplitude   = ((Double_t)get_amplitude( waveform ) - my_baseline) * adc2mv * -1;
 
@@ -429,7 +430,7 @@ int main(int argc, char **argv)
 	                        update_temp_vector( template_vectors, temp_vector, template_info, OM_ID, config_object );
 	                        average_counter[OM_ID]++;
 	                    }else{
-	                        if ( my_amplitude > 50 && 125 < ch_peak_cell < (1024-175))
+	                        if ( my_amplitude > 50 && 125 < my_peak < (1024-175))
 				            {
 				                om_counter[my_class][side] ++;
                                 //std::cout << my_class << " " << side << " " << om_counter[my_class][side] << std::endl;
