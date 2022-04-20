@@ -430,8 +430,9 @@ int main(int argc, char **argv)
 	                        update_temp_vector( template_vectors, temp_vector, template_info, OM_ID, config_object );
 	                        average_counter[OM_ID]++;
 	                    }else{
-	                        if ( my_amplitude > 50 && 125 < my_peak < (1024-175))
+	                        if ( my_amplitude > 50 && my_peak > 125 &&  my_peak < (1024-175))
 				            {
+                                if (my_peak < 125){std::cout << "Breaking the laws of physics" << std::endl;}
 				                om_counter[my_class][side] ++;
                                 //std::cout << my_class << " " << side << " " << om_counter[my_class][side] << std::endl;
                                 if (do_sweep) {

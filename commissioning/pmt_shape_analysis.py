@@ -187,7 +187,8 @@ def main():
                 waveform = list(event.waveform)
                 baseline = get_baseline(waveform, 100)
                 peak = get_peak(waveform)
-                plt.plot(waveform)
+                x = [i*tdc2ns for i in range(len(waveform))]
+                plt.plot(x, np.array(waveform))
                 print(peak)
                 plt.show()
                 '''amplitude = get_amplitude(waveform, baseline)
