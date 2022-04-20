@@ -414,7 +414,7 @@ int main(int argc, char **argv)
 	                        uint16_t adc = calo_hit.get_waveforms().get_adc(isample,ichannel);
 	                        waveform.push_back(adc);
 	                    }
-                        Int_t my_peak           = get_peak_cell( waveform )
+                        Int_t my_peak           = get_peak_cell( waveform );
 	                    Double_t my_baseline    = get_baseline( waveform , config_object);
 	                    Double_t my_amplitude   = ((Double_t)get_amplitude( waveform ) - my_baseline) * adc2mv * -1;
 
