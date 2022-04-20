@@ -9,7 +9,7 @@ adc2mv = 0.610352
 
 
 def main():
-    file = ROOT.TFile("/Users/williamquinn/Desktop/commissioning/run_430.root", "READ")
+    file = ROOT.TFile("/Users/williamquinn/Desktop/commissioning/run_523.root", "READ")
     tree = file.T
     events = [0 for i in range(712)]
     n_events = tree.GetEntries()
@@ -18,13 +18,15 @@ def main():
         i_e += 1
         if i_e % 10000 == 0:
             print(i_e, "/", n_events)
-        om = event.OM_ID
-        amplitude = event.raw_amplitude
+        for index, om in enumerate(list(event.OM_ID)):
+            amplitude = list(event.raw_amplitude)[index]
 
-        if (-1*amplitude) * adc2mv > 100:
-            events[om] += 1
+            if amplitude > 50:
+                events[om] += 1
 
-    sncalo = sn.calorimeter("event_map_430", with_palette=True)
+    print(events)
+
+    sncalo = sn.calorimeter("event_map_523", with_palette=True)
     sncalo.draw_omid = False
     sncalo.draw_omnum_label()
     sncalo.draw_content = True

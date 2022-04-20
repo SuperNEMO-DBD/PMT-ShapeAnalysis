@@ -91,6 +91,7 @@ def plot_av_shapes(avs, stds, ref_om, run):
     sncalo_0 = sn.calorimeter("average_shape_{}".format(run), with_palette=True)
     sncalo_0.draw_content = False
     sncalo_0.draw_omid = False
+    print(avs)
     for om, val in enumerate(avs):
         if om == ref_om and ref_om is not None:
             sncalo_0.setcontent(om, 1)
@@ -188,7 +189,7 @@ def main():
                 amplitude = get_amplitude(waveform, baseline)
                 peak = get_peak(waveform)
 
-                if -1 * amplitude > 50 and 50 < peak < (1024-110):
+                if -1 * amplitude > 50 and int(25 / tdc2ns) < peak < (1024-int(175 / tdc2ns)):
                     fwhm = get_fwhm_timestamp(waveform, baseline, peak, -1 * amplitude) * tdc2ns
                     x = [i * 400 / 1024 for i in range(1024)][peak - int(25 / tdc2ns):peak + int(175 / tdc2ns)]
                     temp = waveform[peak - int(25 / tdc2ns):peak + int(175 / tdc2ns)]
@@ -198,7 +199,12 @@ def main():
                     try:
                         mf_shape, mf_amp = mf_waveform(waveform=temp, template=template)
                     except ValueError:
-                        continue
+                        print(len(template), len(temp), peak)
+                        plt.plot(temp, ".", label='pulse')
+                        plt.plot(-1*amplitude*template/(np.min(template)), ".")
+                        plt.legend()
+                        plt.show()
+                        return
                     if mf_shape < 0.9 and om_id_string(om) == 'M:1.1.1':
                         plot_waveform(temp, amplitude, peak, template, om_id_string(om), run, mf_shape)
                     shapes[om].append(mf_shape)

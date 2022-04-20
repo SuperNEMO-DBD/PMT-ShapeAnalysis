@@ -429,7 +429,7 @@ int main(int argc, char **argv)
 	                        update_temp_vector( template_vectors, temp_vector, template_info, OM_ID, config_object );
 	                        average_counter[OM_ID]++;
 	                    }else{
-	                        if ( my_amplitude > 50)
+	                        if ( my_amplitude > 50 && 25 < ch_peak_cell < (1024-175))
 				            {
 				                om_counter[my_class][side] ++;
                                 //std::cout << my_class << " " << side << " " << om_counter[my_class][side] << std::endl;
