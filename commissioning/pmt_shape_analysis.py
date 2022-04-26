@@ -95,11 +95,11 @@ def plot_av_shapes(avs, stds, ref_om, run):
     for om, val in enumerate(avs):
         if om == ref_om and ref_om is not None:
             sncalo_0.setcontent(om, 1)
+        elif val is None or val < 0.9:
+            pass
         else:
             sncalo_0.setcontent(om, val)
-        '''        elif val is None or val < 0.9:
-            pass'''
-    # sncalo_0.setrange(0.95, 1)
+    sncalo_0.setrange(0.95, 1)
     sncalo_0.draw()
     sncalo_0.save("/Users/williamquinn/Desktop/commissioning")
     del sncalo_0
@@ -138,17 +138,20 @@ def plot_waveform(waveform, amplitude, peak, template, om_id, run, shape):
 def plot_om_type_shape(avs, run):
     new_avs = [[] for i in range(4)]
     for om, av in enumerate(avs):
+        if av == None:
+            continue
         om_t, st = om_type(om)
         new_avs[om_t].append(av)
-
+    labels = ['5" MW', '8" MW', '5" XW', '5" GV']
     plt.figure(figsize=figsize)
     for index in range(4):
         freq, bin_edges = np.histogram(new_avs[index], bins=10, range=(0.95, 1))
         width = bin_edges[2] - bin_edges[1]
         bin_centres = bin_edges[:-1] + width/2
-        plt.bar(bin_centres, freq, width=width, alpha=0.3)
+        plt.bar(bin_centres, freq, width=width, alpha=0.5, label=labels[index])
     plt.ylabel("No. OMs")
     plt.xlabel("Shape Index")
+    plt.legend(loc='best')
     plt.tight_layout()
     plt.savefig("/Users/williamquinn/Desktop/commissioning/{}_om_tupe_shape_dist.pdf".format(run))
 
@@ -181,31 +184,6 @@ def main():
                 om = om + 260
 
             if om > 712:
-                continue
-
-            if om == 262:
-                waveform = list(event.waveform)
-                baseline = get_baseline(waveform, 100)
-                peak = get_peak(waveform)
-                x = [i*tdc2ns for i in range(len(waveform))]
-                plt.plot(x, np.array(waveform))
-                print(peak)
-                plt.show()
-                '''amplitude = get_amplitude(waveform, baseline)
-                peak = get_peak(waveform)
-                x = [i * 400 / 1024 for i in range(1024)][peak - int(25 / tdc2ns):peak + int(175 / tdc2ns)]
-                temp = waveform[peak - int(25 / tdc2ns):peak + int(175 / tdc2ns)]
-                temp = (np.array(temp) - baseline) * adc2mv
-                amplitude = -1 * amplitude * adc2mv
-
-                plt.plot([i * 400 / 1024 for i in range(1024)],
-                         adc2mv * np.array(list(event.waveform)[index * 1024: 1024 * (index + 1)]) - baseline)
-                plt.plot(x, temp)
-                plt.plot(x, -1 * amplitude * template / np.min(template))
-                mf_shape, mf_amp = mf_waveform(waveform=temp, template=template)
-                print(om, om_id_string(om), mf_shape)
-                plt.show()'''
-            else:
                 continue
 
             if n_counter[om] < 1000:
@@ -260,7 +238,7 @@ def main():
         if om_id == 'M:1.0.1':
             ref_om = om
 
-    plot_av_shapes(avs, stds, ref_om, run)
+    # plot_av_shapes(avs, stds, ref_om, run)
     plot_om_type_shape(avs, run)
     file.Close()
 
