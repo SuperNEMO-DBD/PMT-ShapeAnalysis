@@ -122,7 +122,7 @@ int main(int argc, char **argv)
     //bool do_waveforms = false;
 
     try {
-    
+
         if (argc > 0)
         {
             for (int i{1}; i < argc;  i++)
@@ -162,7 +162,7 @@ int main(int argc, char **argv)
                 }
 	        }
         }
-    
+
         if (input_file_name.length() < 1)
         {
 	        std::cout<<"Invalid input file"<<std::endl;
@@ -309,13 +309,13 @@ int main(int argc, char **argv)
             eventn = {};
 
             rtd_counter++;
-      
+
             // Load the next RTD object:
             rtd_source.load(rtd);
             // General informations:
             int32_t trigger_id = rtd.get_trigger_id();
             int32_t run_id     = rtd.get_run_id();
-      
+
             if(rtd_counter %10000 == 0 )std::cout<<"In Run : "<<run_id<<" Trigger # "<<trigger_id << " events: " <<
             om_counter[0][0] << " " << om_counter[0][1] << " " << om_counter[1][0] << " " << om_counter[1][1] <<
             " " << om_counter[2][0] << " " << om_counter[2][1] << std::endl;
@@ -361,7 +361,7 @@ int main(int argc, char **argv)
 	                sncabling::calo_signal_id readout_id(sncabling::CALOSIGNAL_CHANNEL,
 	                        crate_num, board_num,
 	                        snfee::model::feb_constants::SAMLONG_NUMBER_OF_CHANNELS * chip_num + ichannel);
-	  
+
 	                if (caloSignalCabling.has_channel(readout_id))
 	                {
 	                    const sncabling::om_id & calo_id = caloSignalCabling.get_om(readout_id);
@@ -494,7 +494,7 @@ int main(int argc, char **argv)
             }
             event_num ++;
         }   //end of file
-    
+
         std::cout<<"Events processed : " << rtd_counter<< " entries" << std::endl;
         output_file->cd();
         output_file->Write();

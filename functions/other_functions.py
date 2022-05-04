@@ -1145,6 +1145,18 @@ def om_type(omnum: int):
     return index, string
 
 
+def get_om_num(typ, side, wall, col, row):
+    if typ == 'M':
+        om = row + col*13 + side*260
+    elif typ == 'X':
+        om = 520 + side*64 + wall*32 + col*16 + row
+    elif typ == 'G':
+        om = 520 + 128 + side*32 + wall*16 + col
+    else:
+        raise ValueError("Type of OM needs to be M, X or G")
+    return om
+
+
 def om_id_string(omnum: int):
     string = ''
     if 0 <= omnum < 260:

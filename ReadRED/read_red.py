@@ -1100,21 +1100,155 @@ def plot_3d_event(filename, ppts):
     root_file.Close()
 
 
+def plot_all_times(file_name, run_time):
+    run = file_name.split("/")[-1].split("_")[1]
+    file = ROOT.TFile(file_name, "READ")
+    tree = file.event_tree
+    r0s, r1s, r2s, r3s, r4s, r5s, r6s = [], [], [], [], [], [], []
+
+    for event in tree:
+        if len(event.tracker_time_anode) > 50:
+            continue
+        if len(list(event.calo_time)) == 0:
+            continue
+        for i in range(len(event.tracker_time_anode)):
+            if event.tracker_time_top_cathode[i] != is_none and event.tracker_time_bottom_cathode[i] != is_none and \
+                    event.tracker_time_anode[i] != is_none:
+                time = np.amin(list(event.calo_time)) * 1e6
+                r0 = event.tracker_time_anode[i] * 1e6 - time
+                r1 = event.tracker_time_anode_first_lt[i] * 1e6 - time
+                r2 = event.tracker_time_anode_second_lt[i] * 1e6 - time
+                r3 = event.tracker_time_anode_first_ht[i] * 1e6 - time
+                r4 = event.tracker_time_anode_second_ht[i] * 1e6 - time
+                r5 = event.tracker_time_bottom_cathode[i] * 1e6 - time
+                r6 = event.tracker_time_top_cathode[i] * 1e6 - time
+
+                r0s.append(r0)
+                r1s.append(r1)
+                r2s.append(r2)
+                r3s.append(r3)
+                r4s.append(r4)
+                r5s.append(r5)
+                r6s.append(r6)
+    rs = [r0s, r1s, r2s, r3s, r4s, r5s, r6s]
+    plt.figure(figsize=figsize)
+    lower, higher = -20, 100
+    lw = 1
+    for index, r in enumerate(rs):
+        freq, bin_edges = np.histogram(r, range=(lower, higher), bins=120)
+        width = bin_edges[-1] - bin_edges[-2]
+        bin_centres = bin_edges[:-1] + width/2
+        plt.plot(bin_centres, freq/run_time, "C{}".format(index), label='R{}'.format(index), linewidth=lw)
+
+    plt.xlabel(r"Time /$\mu$s")
+    plt.xlim(-40, higher)
+    plt.title("All Cells Timestamps R0-6")
+    plt.legend(loc='best')
+    plt.ylabel("Counts per minute")
+    plt.yscale("log")
+    plt.tight_layout()
+    plt.savefig("/Users/williamquinn/Desktop/read_red/{}_all_times.pdf".format(run))
+
+    file.Close()
+
+
+def plot_anode_time_comps(file_name, run_time):
+    run = file_name.split("/")[-1].split("_")[1]
+    file = ROOT.TFile(file_name, "READ")
+    tree = file.event_tree
+    r0s, r1s, r2s, r3s, r4s, r5s, r6s = [], [], [], [], [], [], []
+
+    for event in tree:
+        if len(event.tracker_time_anode) > 50:
+            continue
+        if len(list(event.calo_time)) == 0:
+            continue
+        for i in range(len(event.tracker_time_anode)):
+            if event.tracker_time_top_cathode[i] != is_none and event.tracker_time_bottom_cathode[i] != is_none and \
+                    event.tracker_time_anode[i] != is_none:
+                time = np.amin(list(event.calo_time)) * 1e6
+                r0 = event.tracker_time_anode[i] * 1e6 - time
+                r1 = event.tracker_time_anode_first_lt[i] * 1e6 - time
+                r2 = event.tracker_time_anode_second_lt[i] * 1e6 - time
+                r3 = event.tracker_time_anode_first_ht[i] * 1e6 - time
+                r4 = event.tracker_time_anode_second_ht[i] * 1e6 - time
+                r5 = event.tracker_time_bottom_cathode[i] * 1e6 - time
+                r6 = event.tracker_time_top_cathode[i] * 1e6 - time
+
+                r0s.append(r0)
+                r1s.append(r1)
+                r2s.append(r2)
+                r3s.append(r3)
+                r4s.append(r4)
+                r5s.append(r5)
+                r6s.append(r6)
+    file.Close()
+
+    lower, higher = 0, 100
+    n = 50
+
+    # t1 vs t2
+    plt.figure(figsize=(3, 2))
+    plt.hist2d(r1s, r2s, bins=(n, n), range=[[lower, higher], [lower, higher]], cmap='Blues')
+    plt.xlabel(r"Timestamp t1 /$\mu$s")
+    plt.ylabel(r"Timestamp t2 /$\mu$s")
+    plt.colorbar()
+    plt.tight_layout()
+    plt.savefig("/Users/williamquinn/Desktop/read_red/{}_t1_v_t2_times.pdf".format(run))
+
+    # t1 vs t3
+    plt.figure(figsize=(3, 2))
+    plt.hist2d(r1s, r3s, bins=(n, n), range=[[lower, higher], [lower, higher]], cmap='Greens')
+    plt.xlabel(r"Timestamp t1 /$\mu$s")
+    plt.ylabel(r"Timestamp t3 /$\mu$s")
+    plt.colorbar()
+    plt.tight_layout()
+    plt.savefig("/Users/williamquinn/Desktop/read_red/{}_t1_v_t3_times.pdf".format(run))
+
+    # t2 vs t4
+    plt.figure(figsize=(3, 2))
+    plt.hist2d(r2s, r4s, bins=(n, n), range=[[lower, higher], [lower, higher]], cmap='Purples')
+    plt.xlabel(r"Timestamp t2 /$\mu$s")
+    plt.ylabel(r"Timestamp t4 /$\mu$s")
+    plt.colorbar()
+    plt.tight_layout()
+    plt.savefig("/Users/williamquinn/Desktop/read_red/{}_t2_v_t4_times.pdf".format(run))
+
+    # t3 vs t4
+    plt.figure(figsize=(3, 2))
+    plt.hist2d(r3s, r4s, bins=(n, n), range=[[lower, higher], [lower, higher]], cmap='Reds')
+    plt.xlabel(r"Timestamp t3 /$\mu$s")
+    plt.ylabel(r"Timestamp t4 /$\mu$s")
+    plt.colorbar()
+    plt.tight_layout()
+    plt.savefig("/Users/williamquinn/Desktop/read_red/{}_t3_v_t4_times.pdf".format(run))
+
+
 def main():
-    args = parse_arguments()
-    input_file = args.i
-    output_directory = args.d
+    # args = parse_arguments()
+    # input_file = args.i
+    # output_directory = args.d
 
     # plot_full_event_map("/Users/williamquinn/Desktop/read_red", False, output_directory)
     # plot_full_event_map("/Users/williamquinn/Desktop/read_red", True, output_directory)
-    ppts = plot_full_drift_times("/Users/williamquinn/Desktop/read_red", 'full_drift_times', output_directory)
+    # ppts = plot_full_drift_times("/Users/williamquinn/Desktop/read_red", 'full_drift_times', output_directory)
     # plot_drift_time_vs_voltage("/Users/williamquinn/Desktop/read_red", output_directory)
     # plot_ppt_vs_dt("/Users/williamquinn/Desktop/read_red", output_directory)
 
     # plot_r56_vs_r12("/Users/williamquinn/Desktop/read_red", 'red_669_output.root', output_directory, 10)
     # plot_r56_vs_r12("/Users/williamquinn/Desktop/read_red", 'red_618_output.root', output_directory, 10)
     # plot_r56_vs_r12("/Users/williamquinn/Desktop/read_red", 'red_619_output.root', output_directory, 10)
-    plot_3d_event("/Users/williamquinn/Desktop/read_red/red_619_output.root", ppts)
+    # plot_3d_event("/Users/williamquinn/Desktop/read_red/red_619_output.root", ppts)
+
+    plot_all_times("/Users/williamquinn/Desktop/read_red/red_612_output.root", 60)
+    plot_all_times("/Users/williamquinn/Desktop/read_red/red_619_output.root", 10)
+    plot_all_times("/Users/williamquinn/Desktop/read_red/red_625_output.root", 15)
+    plot_all_times("/Users/williamquinn/Desktop/read_red/red_626_output.root", 15)
+    plot_all_times("/Users/williamquinn/Desktop/read_red/red_627_output.root", 15)
+    plot_all_times("/Users/williamquinn/Desktop/read_red/red_659_output.root", 15)
+    plot_all_times("/Users/williamquinn/Desktop/read_red/red_660_output.root", 15)
+    plot_all_times("/Users/williamquinn/Desktop/read_red/red_661_output.root", 15)
+    plot_anode_time_comps("/Users/williamquinn/Desktop/read_red/red_619_output.root", 10)
 
     '''file = open(input_file, "r")
     fl = file.readlines()
