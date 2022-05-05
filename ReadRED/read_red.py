@@ -37,22 +37,6 @@ def parse_arguments():
     return args
 
 
-def plot_event_map(name: str, hits: list, output_directory):
-    sntracker = sn.tracker(name, with_palette=True)
-    sntracker.draw_cellid_label()
-    sntracker.draw_content_label('{:.2f}')
-
-    for i_cell in range(len(hits)):
-        if hits[i_cell] == 0:
-            continue
-        sntracker.setcontent(i_cell, hits[i_cell])
-
-    # sntracker.setrange(0, 35)
-
-    sntracker.draw()
-    sntracker.save(output_directory)
-
-
 def plot_bad_map(anode_events, top_cathode_events, bottom_cathode_events, output_directory):
     sntracker = sn.tracker("bad_map", with_palette=True)
     sntracker.draw_cellid_label()
@@ -1223,6 +1207,134 @@ def plot_anode_time_comps(file_name, run_time):
     plt.tight_layout()
     plt.savefig("/Users/williamquinn/Desktop/read_red/{}_t3_v_t4_times.pdf".format(run))
 
+    plt.figure(figsize=figsize)
+    plt.hist2d(r5s, r6s, bins=(n, n), range=[[lower, higher], [lower, higher]], cmap='Oranges')
+    plt.xlabel(r"Timestamp t5 /$\mu$s")
+    plt.ylabel(r"Timestamp t6 /$\mu$s")
+    plt.colorbar()
+    plt.tight_layout()
+    plt.savefig("/Users/williamquinn/Desktop/read_red/{}_t5_v_t6_times.pdf".format(run))
+
+
+def plot_ppt_all(file_name, run_time):
+    run = file_name.split("/")[-1].split("_")[1]
+    file = ROOT.TFile(file_name, "READ")
+    tree = file.event_tree
+    ppts = []
+
+    for event in tree:
+        if len(event.tracker_time_anode) > 50:
+            continue
+        if len(list(event.calo_time)) == 0:
+            continue
+        for i in range(len(event.tracker_time_anode)):
+            if event.tracker_time_top_cathode[i] != is_none and event.tracker_time_bottom_cathode[i] != is_none and \
+                    event.tracker_time_anode[i] != is_none:
+                time = np.amin(list(event.calo_time)) * 1e6
+                r0 = event.tracker_time_anode[i] * 1e6 - time
+                r1 = event.tracker_time_anode_first_lt[i] * 1e6 - time
+                r2 = event.tracker_time_anode_second_lt[i] * 1e6 - time
+                r3 = event.tracker_time_anode_first_ht[i] * 1e6 - time
+                r4 = event.tracker_time_anode_second_ht[i] * 1e6 - time
+                r5 = event.tracker_time_bottom_cathode[i] * 1e6 - time
+                r6 = event.tracker_time_top_cathode[i] * 1e6 - time
+                ppts.append(r5 + r6)
+    file.Close()
+
+    plt.figure(figsize=figsize)
+    freq, bin_edges = np.histogram(ppts, bins=80, range=(20, 100))
+    width = bin_edges[2] - bin_edges[1]
+    bin_centres = bin_edges[:-1] + width/2
+    plt.bar(bin_centres, freq/run_time, color="C1", alpha=0.7, width=width)
+    plt.xlabel(r"PPT /$\mu$s")
+    plt.xlim(40,100)
+    plt.ylabel("Counts per minute")
+    plt.title("Plasma Propation Time all cells")
+    plt.tight_layout()
+    plt.savefig("/Users/williamquinn/Desktop/read_red/{}_all_ppt_times.pdf".format(run))
+
+
+def plot_ppt_all_divided(file_name, run_time):
+    run = file_name.split("/")[-1].split("_")[1]
+    file = ROOT.TFile(file_name, "READ")
+    tree = file.event_tree
+    ppts = [[], []]
+
+    for event in tree:
+        if len(event.tracker_time_anode) > 50:
+            continue
+        if len(list(event.calo_time)) == 0:
+            continue
+        for i in range(len(event.tracker_time_anode)):
+            if event.tracker_time_top_cathode[i] != is_none and event.tracker_time_bottom_cathode[i] != is_none and \
+                    event.tracker_time_anode[i] != is_none:
+                cell_num = int(event.tracker_cell_num[i])
+                side, row, layer = cell_id(cell_num)
+                if row == 42 or row == 55:
+                    index = 1
+                elif layer == 0 or layer == 8:
+                    index = 1
+                else:
+                    index = 0
+                time = np.amin(list(event.calo_time)) * 1e6
+                r5 = event.tracker_time_bottom_cathode[i] * 1e6 - time
+                r6 = event.tracker_time_top_cathode[i] * 1e6 - time
+                ppts[index].append(r5 + r6)
+    file.Close()
+
+    plt.figure(figsize=figsize)
+    freq, bin_edges = np.histogram(ppts[0], bins=80, range=(20, 100))
+    width = bin_edges[2] - bin_edges[1]
+    bin_centres = bin_edges[:-1] + width / 2
+    plt.bar(bin_centres, freq / run_time, color="C0", alpha=0.7, width=width, label='Centre Cells')
+    freq, bin_edges = np.histogram(ppts[1], bins=80, range=(20, 100))
+    width = bin_edges[2] - bin_edges[1]
+    bin_centres = bin_edges[:-1] + width / 2
+    plt.bar(bin_centres, freq / run_time, color="C1", alpha=0.7, width=width, label='Edge Cells')
+    plt.xlabel(r"PPT /$\mu$s")
+    plt.xlim(40, 100)
+    plt.ylabel("Counts per minute")
+    plt.title("Plasma Propation Time all cells")
+    plt.legend(loc='best')
+    plt.tight_layout()
+    plt.savefig("/Users/williamquinn/Desktop/read_red/{}_all_ppt_divided_times.pdf".format(run))
+
+
+def plot_event_map(file_name, run_time):
+    run = file_name.split("/")[-1].split("_")[1]
+    file = ROOT.TFile(file_name, "READ")
+    tree = file.event_tree
+    hits = [None for i in range(2034)]
+    for event in tree:
+        if len(event.tracker_time_anode) > 50:
+            continue
+        if len(list(event.calo_time)) == 0:
+            continue
+        for i in range(len(event.tracker_time_anode)):
+            if event.tracker_time_top_cathode[i] != is_none and event.tracker_time_bottom_cathode[i] != is_none and \
+                    event.tracker_time_anode[i] != is_none:
+                cell_num = int(event.tracker_cell_num[i])
+                if hits[cell_num] is None:
+                    hits[cell_num] = 1
+                else:
+                    hits[cell_num] += 1
+    file.Close()
+
+    sntracker = sn.tracker('{}_event_map'.format(run), with_palette=True)
+    sntracker.draw_cellid = False
+    sntracker.draw_cellnum = False
+    sntracker.draw_content = False
+
+    for i_cell in range(len(hits)):
+        if hits[i_cell] is None:
+            continue
+        sntracker.setcontent(i_cell, hits[i_cell]/run_time)
+
+    # sntracker.setrange(0, 35)
+
+    sntracker.draw()
+    sntracker.save("/Users/williamquinn/Desktop/read_red")
+
 
 def main():
     # args = parse_arguments()
@@ -1240,15 +1352,18 @@ def main():
     # plot_r56_vs_r12("/Users/williamquinn/Desktop/read_red", 'red_619_output.root', output_directory, 10)
     # plot_3d_event("/Users/williamquinn/Desktop/read_red/red_619_output.root", ppts)
 
-    plot_all_times("/Users/williamquinn/Desktop/read_red/red_612_output.root", 60)
+    '''plot_all_times("/Users/williamquinn/Desktop/read_red/red_612_output.root", 60)
     plot_all_times("/Users/williamquinn/Desktop/read_red/red_619_output.root", 10)
     plot_all_times("/Users/williamquinn/Desktop/read_red/red_625_output.root", 15)
     plot_all_times("/Users/williamquinn/Desktop/read_red/red_626_output.root", 15)
     plot_all_times("/Users/williamquinn/Desktop/read_red/red_627_output.root", 15)
     plot_all_times("/Users/williamquinn/Desktop/read_red/red_659_output.root", 15)
     plot_all_times("/Users/williamquinn/Desktop/read_red/red_660_output.root", 15)
-    plot_all_times("/Users/williamquinn/Desktop/read_red/red_661_output.root", 15)
-    plot_anode_time_comps("/Users/williamquinn/Desktop/read_red/red_619_output.root", 10)
+    plot_all_times("/Users/williamquinn/Desktop/read_red/red_661_output.root", 15)'''
+    # plot_anode_time_comps("/Users/williamquinn/Desktop/read_red/red_619_output.root", 10)
+    plot_ppt_all("/Users/williamquinn/Desktop/read_red/red_619_output.root", 10)
+    # plot_event_map("/Users/williamquinn/Desktop/read_red/red_619_output.root", 10)
+    plot_ppt_all_divided("/Users/williamquinn/Desktop/read_red/red_619_output.root", 10)
 
     '''file = open(input_file, "r")
     fl = file.readlines()
