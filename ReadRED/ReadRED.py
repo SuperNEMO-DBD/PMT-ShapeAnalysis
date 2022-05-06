@@ -77,35 +77,7 @@ def parse_root_file(file_name):
         tracker_cell_row_id = list(event.tracker_cell_row_id)                   # list(int) TR row (0-112)
         tracker_cell_layer_id = list(event.tracker_cell_layer_id)               # list(int) TR layer (0-8)
         # tracker_clock = list(event.tracker_clock)                             # list(int) Don't know
-        all_R0, all_R1, all_R2, all_R3, all_R4 = list(event.tracker_anode_R0_ticks),\
-                                                 list(event.tracker_anode_R1_ticks),\
-                                                 list(event.tracker_anode_R2_ticks),\
-                                                 list(event.tracker_anode_R3_ticks),\
-                                                 list(event.tracker_anode_R4_ticks)
-        all_R5, all_R6 = list(event.tracker_bottom_cathode_R5_ticks), list(event.tracker_top_cathode_R6_ticks)
-        tracker_anode_R0_ticks, tracker_anode_R1_ticks, tracker_anode_R2_ticks, tracker_anode_R3_ticks, \
-        tracker_anode_R4_ticks, tracker_bottom_cathode_R5_ticks,\
-        tracker_top_cathode_R6_ticks = [[]], [[]], [[]], [[]], [[]], [[]], [[]]
-        j = 0
-        for i in range(len(all_R0)):
-            j += 1
-            if j == MAX_GG_TIMES:
-                j = 0
-                tracker_anode_R0_ticks.append([])
-                tracker_anode_R1_ticks.append([])
-                tracker_anode_R2_ticks.append([])
-                tracker_anode_R3_ticks.append([])
-                tracker_anode_R4_ticks.append([])
-                tracker_bottom_cathode_R5_ticks.append([])
-                tracker_top_cathode_R6_ticks.append([])
-            tracker_anode_R0_ticks[-1].append(all_R0[i])
-            tracker_anode_R1_ticks[-1].append(all_R1[i])
-            tracker_anode_R2_ticks[-1].append(all_R2[i])
-            tracker_anode_R3_ticks[-1].append(all_R3[i])
-            tracker_anode_R4_ticks[-1].append(all_R4[i])
-            tracker_bottom_cathode_R5_ticks[-1].append(all_R5[i])
-            tracker_top_cathode_R6_ticks[-1].append(all_R6[i])
-        '''tracker_anode_R0_ticks = [list(event.tracker_anode_R0_ticks)[i * MAX_GG_TIMES:MAX_GG_TIMES * (i + 1)] for i in
+        tracker_anode_R0_ticks = [list(event.tracker_anode_R0_ticks)[i * MAX_GG_TIMES:MAX_GG_TIMES * (i + 1)] for i in
                                   range(nb_tracker_hits)]  # list(int) Anode time LSB: 12.5 ns
         tracker_anode_R1_ticks = [list(event.tracker_anode_R1_ticks)[i * MAX_GG_TIMES:MAX_GG_TIMES * (i + 1)] for i in
                                   range(nb_tracker_hits)]  # list(int) Anode: 1st low threshold LSB: 12.5 ns
@@ -118,10 +90,11 @@ def parse_root_file(file_name):
         tracker_bottom_cathode_R5_ticks = [list(event.tracker_bottom_cathode_R5_ticks)[i * MAX_GG_TIMES:MAX_GG_TIMES * (i + 1)] for i in
                                            range(nb_tracker_hits)]  # list(int) Cathode bottom LSB: 12.5 ns
         tracker_top_cathode_R6_ticks = [list(event.tracker_top_cathode_R6_ticks)[i * MAX_GG_TIMES:MAX_GG_TIMES * (i + 1)] for i in
-                                        range(nb_tracker_hits)]  # list(int) Cathode top LSB: 12.5 ns'''
+                                        range(nb_tracker_hits)]  # list(int) Cathode top LSB: 12.5 ns
 
         ################################################################################################################
-        #  Process data here
+        #  Process data here either store in a container like in the data dictionary
+        #  OR process directly here
         ################################################################################################################
 
         ################
@@ -154,6 +127,7 @@ def parse_root_file(file_name):
         tracker_cell_nums = [None for i in range(nb_tracker_hits)]
         tracker_ppts = [None for i in range(nb_tracker_hits)]
         tracker_cell_times = [[] for i in range(nb_tracker_hits)]
+
         for i_cell in range(nb_tracker_hits):
             tracker_cell_num = tracker_cell_side_id[i_cell] * 113 * 9 + tracker_cell_row_id[i_cell] * 9 + tracker_cell_layer_id[i_cell]
             # Note: There are 10 entries for each of the cell R0-6. I have chosen to use the 0th entry
