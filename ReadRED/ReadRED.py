@@ -22,6 +22,8 @@ def parse_arguments():
 
 
 def process_timestamps(timestamps, n_tracker_hits):
+    if len(timestamps) != n_tracker_hits*MAX_GG_TIMES:
+        raise ValueError("Length of the timestamps: {}".format(len(timestamps)))
     output = [[] for i in range(int(n_tracker_hits))]
     for index, timestamp in enumerate(timestamps):
         j = index // MAX_GG_TIMES
