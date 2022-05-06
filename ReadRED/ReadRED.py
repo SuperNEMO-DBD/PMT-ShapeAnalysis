@@ -21,6 +21,14 @@ def parse_arguments():
     return args
 
 
+def process_timestamps(timestamps, n_tracker_hits):
+    output = [[] for i in range(int(n_tracker_hits))]
+    for index, timestamp in enumerate(timestamps):
+        j = index // MAX_GG_TIMES
+        output[j].append(timestamp)
+    return output
+
+
 def parse_root_file(file_name):
     root_file = TFile(file_name, "READ")
     tree = root_file.RED
@@ -77,7 +85,15 @@ def parse_root_file(file_name):
         tracker_cell_row_id = list(event.tracker_cell_row_id)                   # list(int) TR row (0-112)
         tracker_cell_layer_id = list(event.tracker_cell_layer_id)               # list(int) TR layer (0-8)
         # tracker_clock = list(event.tracker_clock)                             # list(int) Don't know
-        tracker_anode_R0_ticks = [list(event.tracker_anode_R0_ticks)[i * MAX_GG_TIMES:MAX_GG_TIMES * (i + 1)] for i in
+        tracker_anode_R0_ticks = process_timestamps(list(event.tracker_anode_R0_ticks), nb_tracker_hits)
+        tracker_anode_R1_ticks = process_timestamps(list(event.tracker_anode_R1_ticks), nb_tracker_hits)
+        tracker_anode_R2_ticks = process_timestamps(list(event.tracker_anode_R2_ticks), nb_tracker_hits)
+        tracker_anode_R3_ticks = process_timestamps(list(event.tracker_anode_R3_ticks), nb_tracker_hits)
+        tracker_anode_R4_ticks = process_timestamps(list(event.tracker_anode_R4_ticks), nb_tracker_hits)
+        tracker_bottom_cathode_R5_ticks = process_timestamps(list(event.tracker_bottom_cathode_R5_ticks), nb_tracker_hits)
+        tracker_top_cathode_R6_ticks = process_timestamps(list(event.tracker_top_cathode_R6_ticks), nb_tracker_hits)
+
+        '''tracker_anode_R0_ticks = [list(event.tracker_anode_R0_ticks)[i * MAX_GG_TIMES:MAX_GG_TIMES * (i + 1)] for i in
                                   range(nb_tracker_hits)]  # list(int) Anode time LSB: 12.5 ns
         tracker_anode_R1_ticks = [list(event.tracker_anode_R1_ticks)[i * MAX_GG_TIMES:MAX_GG_TIMES * (i + 1)] for i in
                                   range(nb_tracker_hits)]  # list(int) Anode: 1st low threshold LSB: 12.5 ns
@@ -90,7 +106,7 @@ def parse_root_file(file_name):
         tracker_bottom_cathode_R5_ticks = [list(event.tracker_bottom_cathode_R5_ticks)[i * MAX_GG_TIMES:MAX_GG_TIMES * (i + 1)] for i in
                                            range(nb_tracker_hits)]  # list(int) Cathode bottom LSB: 12.5 ns
         tracker_top_cathode_R6_ticks = [list(event.tracker_top_cathode_R6_ticks)[i * MAX_GG_TIMES:MAX_GG_TIMES * (i + 1)] for i in
-                                        range(nb_tracker_hits)]  # list(int) Cathode top LSB: 12.5 ns
+                                        range(nb_tracker_hits)]  # list(int) Cathode top LSB: 12.5 ns'''
 
         ################################################################################################################
         #  Process data here either store in a container like in the data dictionary
@@ -127,6 +143,7 @@ def parse_root_file(file_name):
         tracker_cell_nums = [None for i in range(nb_tracker_hits)]
         tracker_ppts = [None for i in range(nb_tracker_hits)]
         tracker_cell_times = [[] for i in range(nb_tracker_hits)]
+        tracker_cell_timestamps = [[] for i in range(nb_tracker_hits)]
 
         for i_cell in range(nb_tracker_hits):
             tracker_cell_num = tracker_cell_side_id[i_cell] * 113 * 9 + tracker_cell_row_id[i_cell] * 9 + tracker_cell_layer_id[i_cell]
@@ -139,6 +156,7 @@ def parse_root_file(file_name):
                   tracker_anode_R1_ticks[i_cell][0], tracker_anode_R2_ticks[i_cell][0],
                   tracker_anode_R3_ticks[i_cell][0], tracker_anode_R4_ticks[i_cell][0],
                   tracker_bottom_cathode_R5_ticks[i_cell][0], tracker_top_cathode_R6_ticks[i_cell][0]]
+            tracker_cell_timestamps[i_cell] = rs
             # Time (RX - calo hit time) in µs
             ts = []
             for r in rs:
@@ -148,7 +166,7 @@ def parse_root_file(file_name):
                     ts.append(None)
                 else:
                     ts.append((r*t_tdc2sec - calo_time)*1E6)
-            tracker_cell_times[i_cell].append(ts)
+            tracker_cell_times[i_cell] = ts
             tracker_cell_nums[i_cell] = tracker_cell_num
             try:
                 tracker_ppts[i_cell] = ts[5] + ts[6]
@@ -158,6 +176,7 @@ def parse_root_file(file_name):
         # Fill the dictionary
         data[event_id] = {
             "cells": {cell: {
+                "rs": tracker_cell_timestamps[index],
                 "ts": tracker_cell_times[index],
                 "ppts": tracker_ppts[index]
             } for index, cell in enumerate(tracker_cell_nums)},
@@ -165,6 +184,10 @@ def parse_root_file(file_name):
                 "amplitudes": -1 * calo_fwmeas_peak_amplitude[index] * adc2mv/8
             } for index, om in enumerate(calo_om_nums)}
         }
+
+        '''if event_id == 0:
+            for index in range(len(tracker_cell_timestamps)):
+                print(tracker_cell_nums[index], tracker_cell_timestamps[index])'''
 
         # Progress
         new_counter = (event_id + 1) / n_events * 100 // 10
