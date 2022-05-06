@@ -69,8 +69,7 @@ def parse_root_file(file_name):
         calo_fwmeas_rising_cell = list(event.calo_fwmeas_rising_cell)           # list(int) Calo rising cell (right edge) TDC unit/256
         calo_fwmeas_falling_cell = list(event.calo_fwmeas_falling_cell)         # list(int) Calo falling cell (left edge) TDC unit/256
 
-        calo_waveform = [list(event.calo_waveform)[1024 * i:1024 * (i + 1)] for i in
-                         range(n_calo_hits)]  # list(list(int)) Calo waveform
+        calo_waveform = [list(event.calo_waveform)[1024 * i:1024 * (i + 1)] for i in range(n_calo_hits)]  # list(list(int)) Calo waveform
 
         nb_tracker_hits = event.nb_tracker_hits                                 # int Number of tracker cells that have at least one hit
         # tracker_hit_id = list(event.tracker_hit_id)                           # list(int) TR hit ids
@@ -78,7 +77,35 @@ def parse_root_file(file_name):
         tracker_cell_row_id = list(event.tracker_cell_row_id)                   # list(int) TR row (0-112)
         tracker_cell_layer_id = list(event.tracker_cell_layer_id)               # list(int) TR layer (0-8)
         # tracker_clock = list(event.tracker_clock)                             # list(int) Don't know
-        tracker_anode_R0_ticks = [list(event.tracker_anode_R0_ticks)[i * MAX_GG_TIMES:MAX_GG_TIMES * (i + 1)] for i in
+        all_R0, all_R1, all_R2, all_R3, all_R4 = list(event.tracker_anode_R0_ticks),\
+                                                 list(event.tracker_anode_R1_ticks),\
+                                                 list(event.tracker_anode_R2_ticks),\
+                                                 list(event.tracker_anode_R3_ticks),\
+                                                 list(event.tracker_anode_R4_ticks)
+        all_R5, all_R6 = list(event.tracker_bottom_cathode_R5_ticks), list(event.tracker_top_cathode_R6_ticks)
+        tracker_anode_R0_ticks, tracker_anode_R1_ticks, tracker_anode_R2_ticks, tracker_anode_R3_ticks, \
+        tracker_anode_R4_ticks, tracker_bottom_cathode_R5_ticks,\
+        tracker_top_cathode_R6_ticks = [[]], [[]], [[]], [[]], [[]], [[]], [[]]
+        j = 0
+        for i in range(len(all_R0)):
+            j += 1
+            if j == MAX_GG_TIMES:
+                j = 0
+                tracker_anode_R0_ticks.append([])
+                tracker_anode_R1_ticks.append([])
+                tracker_anode_R2_ticks.append([])
+                tracker_anode_R3_ticks.append([])
+                tracker_anode_R4_ticks.append([])
+                tracker_bottom_cathode_R5_ticks.append([])
+                tracker_top_cathode_R6_ticks.append([])
+            tracker_anode_R0_ticks[-1].append(all_R0[i])
+            tracker_anode_R1_ticks[-1].append(all_R1[i])
+            tracker_anode_R2_ticks[-1].append(all_R2[i])
+            tracker_anode_R3_ticks[-1].append(all_R3[i])
+            tracker_anode_R4_ticks[-1].append(all_R4[i])
+            tracker_bottom_cathode_R5_ticks[-1].append(all_R5[i])
+            tracker_top_cathode_R6_ticks[-1].append(all_R6[i])
+        '''tracker_anode_R0_ticks = [list(event.tracker_anode_R0_ticks)[i * MAX_GG_TIMES:MAX_GG_TIMES * (i + 1)] for i in
                                   range(nb_tracker_hits)]  # list(int) Anode time LSB: 12.5 ns
         tracker_anode_R1_ticks = [list(event.tracker_anode_R1_ticks)[i * MAX_GG_TIMES:MAX_GG_TIMES * (i + 1)] for i in
                                   range(nb_tracker_hits)]  # list(int) Anode: 1st low threshold LSB: 12.5 ns
@@ -91,7 +118,7 @@ def parse_root_file(file_name):
         tracker_bottom_cathode_R5_ticks = [list(event.tracker_bottom_cathode_R5_ticks)[i * MAX_GG_TIMES:MAX_GG_TIMES * (i + 1)] for i in
                                            range(nb_tracker_hits)]  # list(int) Cathode bottom LSB: 12.5 ns
         tracker_top_cathode_R6_ticks = [list(event.tracker_top_cathode_R6_ticks)[i * MAX_GG_TIMES:MAX_GG_TIMES * (i + 1)] for i in
-                                        range(nb_tracker_hits)]  # list(int) Cathode top LSB: 12.5 ns
+                                        range(nb_tracker_hits)]  # list(int) Cathode top LSB: 12.5 ns'''
 
         ################################################################################################################
         #  Process data here
@@ -117,7 +144,12 @@ def parse_root_file(file_name):
                 calo_om_num = 520 + calo_om_side_id[i_om] * 64 + calo_om_wall_id[i_om] * 32 + calo_om_column_id[i_om] * 16 + calo_om_row_id[i_om]
             calo_om_nums[i_om] = calo_om_num
 
-        calo_time = min(calo_ticks) * c_tdc2sec
+        try:
+            # Take the first calorimeter time
+            calo_time = min(calo_ticks) * c_tdc2sec
+        except ValueError:
+            # If there are no calo hits (its likely noise) set the calo time to 0
+            calo_time = 0
 
         tracker_cell_nums = [None for i in range(nb_tracker_hits)]
         tracker_ppts = [None for i in range(nb_tracker_hits)]
@@ -179,7 +211,7 @@ def plot_event_map(data: dict, output_path):
             sntracker.fill(cell, 1)
 
     sntracker.draw()
-    sntracker.save("")
+    sntracker.save(output_path)
     del sntracker
 
     sncalo = sn.calorimeter(new_name='calo_event_map', with_palette=True)
