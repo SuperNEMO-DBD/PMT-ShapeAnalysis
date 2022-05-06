@@ -1,5 +1,12 @@
-import uproot
-import format_plot
+########################################################################################################################
+# Author: William Quinn
+# Date: 06/05/2022
+#
+# To run the file you nee pyroot installed. See the following:
+# https://anaconda.org/conda-forge/root/
+#
+# python3 ReadRED.py -i /path/to/root/file.root -d <optional output directory>
+########################################################################################################################
 import os
 import sndisplay as sn
 from ROOT import TFile
