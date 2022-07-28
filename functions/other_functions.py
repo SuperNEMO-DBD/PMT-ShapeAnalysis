@@ -1085,8 +1085,8 @@ def chi2(y_obs, y_err, y_exp, n_par):
     ndof = len(y_obs) - n_par - 1
     for i in range(len(y_exp)):
         chi2 += ((y_exp[i] - y_obs[i]) / y_err[i]) ** 2
-    chi2 = chi2 / ndof
-    return chi2
+    chi2 = chi2
+    return chi2, ndof
 
 
 def gaussian(x, mean, sigma, amplitude, height):
@@ -1417,7 +1417,8 @@ def adjust_pars():
     my_list = np.where(means < 5)[0]
 
     t_popt, t_pcov = curve_fit(f=quadratic, xdata=f[my_list], ydata=means[my_list])
-    return t_popt, t_pcov
+    t_perr = np.sqrt(np.diag(t_pcov))
+    return t_popt, t_pcov, t_perr
 
 
 def partial_pressure(data, gain_data, nums, nums_err):
@@ -1466,18 +1467,19 @@ def root_fit(x, y, yerr, model):
         pars.append(fit.GetParameter(i))
         errs.append(fit.GetParError(i))
 
-    print(len(pars))
-    t_pcov = ROOT.TMatrixDSym(r.GetCovarianceMatrix()).GetMatrixArray()
-    fitter = ROOT.TVirtualFitter.GetFitter(ROOT.TVirtualFitter())
-    print(t_pcov.GetValue(0))
+    # print(len(pars))
+    # t_pcov = ROOT.TMatrixDSym(r.GetCovarianceMatrix()).GetMatrixArray()
+    t_pcov = r.GetCovarianceMatrix().GetMatrixArray()
+    # fitter = ROOT.TVirtualFitter.GetFitter(ROOT.TVirtualFitter())
+    # print(len(t_pcov))
     pcov = np.array([0 for i in range(int(len(pars)**2))]).reshape(len(pars), len(pars))
-    print(pcov)
+    # print(pcov)
 
-    for row in range(len(pars)):
+    '''for row in range(len(pars)):
         for col in range(len(pars)):
-            pcov[row][col] = t_pcov[row][col]
+            pcov[row][col] = t_pcov[row][col]'''
 
-    return pars, errs, pcov, chi, ndof
+    return pars, errs, chi, ndof
 
 
 def extrapolate(model, pars, limit, typ):

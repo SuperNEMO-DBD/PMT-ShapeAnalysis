@@ -7,11 +7,13 @@ def om_id(omnum: int):
     id_ = {"side": None, "wall": None, "col": None, 'row': None}
     if 0 <= omnum < 260:
         id_['side'] = 0
+        id_['wall'] = -1
         id_['col'] = omnum // 13
         id_['row'] = omnum % 13
     elif omnum < 520:
         omnum = omnum - 260
         id_['side'] = 1
+        id_['wall'] = -1
         id_['col'] = omnum // 13
         id_['row'] = omnum % 13
     elif omnum < 584:
@@ -31,11 +33,13 @@ def om_id(omnum: int):
         id_['side'] = 0
         id_['wall'] = omnum % 16
         id_['col'] = omnum // 16
+        id_['row'] = -1
     elif omnum < 712:
         omnum = omnum - 520 - 128 - 32
         id_['side'] = 1
         id_['wall'] = omnum % 16
         id_['col'] = omnum // 16
+        id_['row'] = -1
     return id_
 
 
@@ -64,20 +68,33 @@ class coord:
             raise TypeError
 
 
+def parse_arguments():
+    import argparse
+    parser = argparse.ArgumentParser(description="Input file names")
+    parser.add_argument('-i', required=True, type=str, help='Input data file')
+    args = parser.parse_args()
+    return args
+
+
 def main():
+
+    args = parse_arguments()
+    event_num = args.i
     oms = {}
     trs = {}
-    file = open("/Users/williamquinn/Desktop/read_red/event_88.csv")
+    file = open(f"/Users/williamquinn/Desktop/read_red/619_event_{event_num}.csv")
     fl = file.readlines()
     for index, line in enumerate(fl):
         line_list = line.split(",")
         if line_list[0] == "OM":
-            oms[int(line_list[1].strip())] = None
+            oms[int(line_list[1].strip())] = float(line_list[2].strip())
         elif line_list[0] == "GG":
             trs[int(line_list[1].strip())] = float(line_list[2].strip())
 
     for om in oms.keys():
+        amplitude = oms[om]
         oms[om] = om_id(om)
+        oms[om]["amp"] = amplitude
 
     for cell in trs.keys():
         pos = trs[cell]
@@ -128,6 +145,8 @@ def main():
         ax.plot((H + D).x, (H + D).y, (H + D).z, color='grey', alpha=0.2)
 
     for om in oms.keys():
+        if om > 520 or oms[om]["amp"] < 200:
+            continue
         full_oms = oms[om]
         xl = full_oms["col"] * om_dim["length"]
         xh = xl + om_dim["length"]
@@ -161,7 +180,6 @@ def main():
         xs.append(x)
         ys.append(y)
         zs.append(z)
-        print(trs[cell], x, y, z)
     xs = np.array(xs)
     ys = np.array(ys)
     zs = np.array(zs)
@@ -182,7 +200,7 @@ def main():
     ax.xaxis.pane.set_edgecolor('grey')
     ax.yaxis.pane.set_edgecolor('grey')
     ax.zaxis.pane.set_edgecolor('grey')
-    plt.savefig("event_88_3d.pdf")
+    plt.savefig(f"/Users/williamquinn/Desktop/read_red/619_event_{event_num}_3d.pdf")
 
 
 if __name__ == "__main__":

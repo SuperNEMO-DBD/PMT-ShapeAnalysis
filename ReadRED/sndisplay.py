@@ -1093,6 +1093,7 @@ class demonstrator:
 
     def save(self, location: str):
         self.demonstrator_canvas.SaveAs(location + "/" + self.name + '_d.pdf')
+        self.reset()
 
 
 def sndisplay_calo_test():

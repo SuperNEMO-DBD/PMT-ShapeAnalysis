@@ -5,17 +5,19 @@ from pmt_he_study.models import *
 
 
 def plot_corrected(data):
-    t_popt, t_pcov = adjust_pars()
+    t_popt, t_pcov, t_perr = adjust_pars()
     nums = [data[0]["he_ap_nums"], data[1]["he_ap_nums"]]
-    nums_err = [data[0]["he_ap_nums"] * 0.01, data[1]["he_ap_nums"] * 0.01]
+    nums_err = [data[0]["he_ap_nums_err"], data[1]["he_ap_nums_err"]]
 
-    err_p0 = np.sqrt(t_pcov[0, 0]) / t_popt[0]
-    err_p1 = np.sqrt(t_pcov[1, 1]) / t_popt[1]
-    err_p2 = np.sqrt(t_pcov[2, 2])
+    print(nums_err[0]/nums[0])
+
+    err_p0 = t_perr[0] / t_popt[0]
+    err_p1 = t_perr[1] / t_popt[1]
+    err_p2 = t_perr[2]
     A = [t_popt[0] * (data[i]["he_ap_nums"] ** 2) for i in range(2)]
-    err_A = [A[i] * np.sqrt((err_p0) ** 2 + 2 * (0.01) ** 2) for i in range(2)]
+    err_A = [A[i] * np.sqrt((err_p0) ** 2 + 2 * (data[i]["he_ap_nums_err"]/data[i]["he_ap_nums"]) ** 2) for i in range(2)]
     B = [t_popt[1] * data[i]["he_ap_nums"] for i in range(2)]
-    err_B = [B[i] * np.sqrt((err_p1) ** 2 + 2 * (0.01) ** 2) for i in range(2)]
+    err_B = [B[i] * np.sqrt((err_p1) ** 2 + 2 * (data[i]["he_ap_nums_err"]/data[i]["he_ap_nums"]) ** 2) for i in range(2)]
     C = t_popt[2]
     err_C = err_p2
     he_nums_corr = [A[i] + B[i] + C for i in range(2)]
@@ -28,7 +30,7 @@ def plot_corrected(data):
                  markersize=1, capsize=cap_size, linewidth=line_width, capthick=cap_thick)
     plt.xlabel("Days from onset of 1% Helium")
     plt.ylabel("Number")
-    plt.title("Average After-Pulse Number Correction")
+    # plt.title("Average After-Pulse Number Correction")
     plt.legend(loc='best')
     plt.tight_layout()
     plt.savefig("/Users/williamquinn/Desktop/PMT_Project/data_correction.pdf")
@@ -179,11 +181,14 @@ def read_file(pmt_array: PMT_Array, input_filename: str):
             except:
                 continue
 
-            data[i_om]["dates"] = np.append(data[i_om]["dates"], process_date([int(date)]))
-            data[i_om]["ap_nums"] = np.append(data[i_om]["ap_nums"], num_hist.GetMean())
-            data[i_om]["ap_nums_err"] = np.append(data[i_om]["ap_nums_err"], num_hist.GetMeanError())
-            data[i_om]["he_ap_nums"] = np.append(data[i_om]["he_ap_nums"], he_num_hist.GetMean())
-            data[i_om]["he_ap_nums_err"] = np.append(data[i_om]["he_ap_nums_err"], he_num_hist.GetMeanError())
+            if he_num_hist.GetMean() < 0.01:
+                pass
+            else:
+                data[i_om]["dates"] = np.append(data[i_om]["dates"], process_date([int(date)]))
+                data[i_om]["ap_nums"] = np.append(data[i_om]["ap_nums"], num_hist.GetMean())
+                data[i_om]["ap_nums_err"] = np.append(data[i_om]["ap_nums_err"], num_hist.GetMeanError())
+                data[i_om]["he_ap_nums"] = np.append(data[i_om]["he_ap_nums"], he_num_hist.GetMean())
+                data[i_om]["he_ap_nums_err"] = np.append(data[i_om]["he_ap_nums_err"], he_num_hist.GetMeanError())
 
             del num_hist
             del he_num_hist
@@ -230,7 +235,7 @@ def plot_av_charge_gain(gain_data: dict, voltage: int):
 
 
 def plot_aan(data: dict):
-    t_popt, t_pcov = adjust_pars()
+    t_popt, t_pcov, t_perr = adjust_pars()
     try:
         start = np.where(data[0]["dates"] == 0)[0][0]
     except:
@@ -238,14 +243,14 @@ def plot_aan(data: dict):
     mid = np.where(data[0]["dates"] == 98)[0][0]
 
     nums = [data[0]["ap_nums"], data[1]["ap_nums"]]
-    nums_err = [data[0]["ap_nums"]*0.01, data[1]["ap_nums"]*0.01]
-    err_p0 = np.sqrt(t_pcov[0, 0]) / t_popt[0]
-    err_p1 = np.sqrt(t_pcov[1, 1]) / t_popt[1]
-    err_p2 = np.sqrt(t_pcov[2, 2])
+    nums_err = [data[0]["ap_nums_err"], data[1]["ap_nums_err"]]
+    err_p0 = t_perr[0] / t_popt[0]
+    err_p1 = t_perr[1] / t_popt[1]
+    err_p2 = t_perr[2]
     A = [t_popt[0] * (data[i]["he_ap_nums"] ** 2) for i in range(2)]
-    err_A = [A[i] * np.sqrt((err_p0) ** 2 + 2 * (0.01) ** 2) for i in range(2)]
+    err_A = [A[i] * np.sqrt((err_p0) ** 2 + 2 * (data[i]["he_ap_nums_err"]/data[i]["he_ap_nums"]) ** 2) for i in range(2)]
     B = [t_popt[1] * data[i]["he_ap_nums"] for i in range(2)]
-    err_B = [B[i] * np.sqrt((err_p1) ** 2 + 2 * (0.01) ** 2) for i in range(2)]
+    err_B = [B[i] * np.sqrt((err_p1) ** 2 + 2 * (data[i]["he_ap_nums_err"]/data[i]["he_ap_nums"]) ** 2) for i in range(2)]
     C = t_popt[2]
     err_C = err_p2
     he_nums_corr = [A[i] + B[i] + C for i in range(2)]
@@ -287,10 +292,10 @@ def plot_aan(data: dict):
                  markersize=1, capsize=cap_size, linewidth=line_width, capthick=cap_thick)
     plt.errorbar(x_3, y_3, zorder=0, yerr=y_err_3, fmt="C3o", label="Control",
                  markersize=1, capsize=cap_size, linewidth=line_width, capthick=cap_thick)
-    plt.errorbar(data[0]["dates"], data[0]["he_ap_nums"], zorder=0, yerr=data[0]["he_ap_nums"] * 0.01, fmt="C4o",
+    plt.errorbar(data[0]["dates"], data[0]["he_ap_nums"], zorder=0, yerr=data[0]["he_ap_nums_err"], fmt="C4o",
                  label="Exposed raw",
                  markersize=1, capsize=cap_size, linewidth=line_width, capthick=cap_thick)
-    plt.errorbar(data[1]["dates"], data[1]["he_ap_nums"], zorder=0, yerr=data[1]["he_ap_nums"] * 0.01, fmt="C5o",
+    plt.errorbar(data[1]["dates"], data[1]["he_ap_nums"], zorder=0, yerr=data[1]["he_ap_nums_err"], fmt="C5o",
                  label="Control raw",
                  markersize=1, capsize=cap_size, linewidth=line_width, capthick=cap_thick)
 
@@ -304,7 +309,7 @@ def plot_aan(data: dict):
 
 
 def plot_pp(model, data: dict, gain_data: dict):
-    t_popt, t_pcov = adjust_pars()
+    t_popt, t_pcov, t_perr = adjust_pars()
     try:
         start = np.where(data[0]["dates"] == 0)[0][0]
     except:
@@ -312,15 +317,16 @@ def plot_pp(model, data: dict, gain_data: dict):
     mid = np.where(data[0]["dates"] == 98)[0][0]
 
     nums = [data[0]["ap_nums"], data[1]["ap_nums"]]
-    nums_err = [data[0]["ap_nums"] * 0.01, data[1]["ap_nums"] * 0.01]
+    # nums_err = [data[0]["ap_nums"] * 0.01, data[1]["ap_nums"] * 0.01]
+    nums_err = [data[0]["ap_nums_err"], data[1]["ap_nums_err"]]
 
-    err_p0 = np.sqrt(t_pcov[0, 0]) / t_popt[0]
-    err_p1 = np.sqrt(t_pcov[1, 1]) / t_popt[1]
-    err_p2 = np.sqrt(t_pcov[2, 2])
+    err_p0 = t_perr[0] / t_popt[0]
+    err_p1 = t_perr[1] / t_popt[1]
+    err_p2 = t_perr[2]
     A = [t_popt[0] * (data[i]["he_ap_nums"] ** 2) for i in range(2)]
-    err_A = [A[i]*np.sqrt((err_p0)**2 + 2*(0.01)**2) for i in range(2)]
+    err_A = [A[i]*np.sqrt((err_p0)**2 + 2*(data[i]["he_ap_nums_err"]/data[i]["he_ap_nums"])**2) for i in range(2)]
     B = [t_popt[1] * data[i]["he_ap_nums"] for i in range(2)]
-    err_B = [B[i]*np.sqrt((err_p1)**2 + 2*(0.01)**2) for i in range(2)]
+    err_B = [B[i]*np.sqrt((err_p1)**2 + 2*(data[i]["he_ap_nums_err"]/data[i]["he_ap_nums"])**2) for i in range(2)]
     C = t_popt[2]
     err_C = err_p2
     he_nums_corr = [A[i] + B[i] + C for i in range(2)]
@@ -331,7 +337,7 @@ def plot_pp(model, data: dict, gain_data: dict):
     x = data[0]["dates"][mid + 1:] - data[0]["dates"][mid + 1:][0]
     y = pp[0][mid + 1:]
     yerr = pp_err[0][mid + 1:]
-    pars, errs, chi = root_fit(x, y, yerr, model)
+    pars, errs, chi, ndof = root_fit(x, y, yerr, model)
 
     x_model = np.array(data[0]["dates"][mid + 1:])
     y_model = model.func(x, pars)
@@ -342,10 +348,10 @@ def plot_pp(model, data: dict, gain_data: dict):
     x_3, y_3, y_err_3 = data[1]["dates"],                    pp[1],                     pp_err[1]
 
     k = pars[1]
-    extrapolate(model, pars, 3.13, "")
-    extrapolate(model, pars, 0.13, "")
+    # extrapolate(model, pars, 3.13, "")
+    # extrapolate(model, pars, 0.13, "")
 
-    fig1 = plt.figure(figsize=(5, 5), facecolor='w')
+    fig1 = plt.figure(figsize=(5, 4), facecolor='w')
     frame1 = fig1.add_axes((.15, .32, .8, .6))
     frame1.set_xticklabels([])
     plt.errorbar(x_0, y_0 - k, zorder=0, yerr=y_err_0, fmt="C0s", label="Atmospheric He",
@@ -356,7 +362,7 @@ def plot_pp(model, data: dict, gain_data: dict):
                  markersize=1, capsize=cap_size, linewidth=line_width, capthick=cap_thick)
     plt.errorbar(x_3, y_3 - np.average(y_3[mid + 1:]), zorder=0, yerr=y_err_3, fmt="C3o", label="Control",
                  markersize=1, capsize=cap_size, linewidth=line_width, capthick=cap_thick)
-    plt.plot(x_model, y_model - k, 'k-', label='Model', zorder=10)
+    plt.plot(x_model, y_model - k, 'k-', label='Model', zorder=10, linewidth=line_width)
 
     handles, labels = plt.gca().get_legend_handles_labels()
 
@@ -373,11 +379,11 @@ def plot_pp(model, data: dict, gain_data: dict):
     patch_1 = patches.Patch(color='white', label=strings[1].format(pars[1], errs[1]))
     patch_2 = patches.Patch(color='white',
                             label=strings[2].format(pars[2] / (3600 * 24), errs[2] / (3600 * 24)))
-    patch_3 = patches.Patch(color='white', label=r'$\chi^2_R =$ {:.2f}'.format(chi))
+    patch_3 = patches.Patch(color='white', label=r'$\chi^2$/N$_{DoF}$' + ' = {:.2f}/{}'.format(chi*ndof, ndof))
     handles.extend([patch, patch_1, patch_2, patch_3])
 
     plt.ylabel("Pressure /Pa")
-    plt.title("Reconstructed Helium Internal Partial Pressure")
+    # plt.title("Reconstructed Helium Internal Partial Pressure")
     plt.xlim(-30, 420)
     plt.legend(handles=handles, loc='upper left')
 
@@ -386,7 +392,8 @@ def plot_pp(model, data: dict, gain_data: dict):
     plt.axhline(0, ls='--', color='black')
     plt.ylabel("(model-data)/model")
     plt.xlim(-30, 420)
-    plt.errorbar(x_model, (y_model - y_2) / y_model, yerr=y_err_2 / y_model, fmt="k.")
+    plt.errorbar(x_model, (y_model - y_2) / y_model, yerr=y_err_2 / y_model, fmt="k.",
+                 markersize=1, capsize=cap_size, linewidth=line_width, capthick=cap_thick)
     plt.tight_layout()
 
     plt.savefig("/Users/williamquinn/Desktop/PMT_Project/" + model.name + "_pi_vs_time.pdf")
@@ -394,7 +401,7 @@ def plot_pp(model, data: dict, gain_data: dict):
     x = data[0]["dates"][mid + 1:] - data[0]["dates"][mid + 1:][0]
     y = he_pp[0][mid + 1:]
     yerr = he_pp_err[0][mid + 1:]
-    pars, errs, chi = root_fit(x, y, yerr, model)
+    pars, errs, chi, ndof = root_fit(x, y, yerr, model)
 
     x_model = np.array(data[0]["dates"][mid + 1:])
     y_model = model.func(x, pars)
@@ -405,10 +412,10 @@ def plot_pp(model, data: dict, gain_data: dict):
     x_3, y_3, y_err_3 = data[1]["dates"], he_pp[1], he_pp_err[1]
 
     k = pars[1]
-    extrapolate(model, pars, 3.13, "he")
-    extrapolate(model, pars, 0.13, "he")
+    # extrapolate(model, pars, 3.13, "he")
+    # extrapolate(model, pars, 0.13, "he")
 
-    fig1 = plt.figure(figsize=(5, 5), facecolor='w')
+    fig1 = plt.figure(figsize=(5, 4), facecolor='w')
     frame1 = fig1.add_axes((.15, .32, .8, .6))
     frame1.set_xticklabels([])
     plt.errorbar(x_0, y_0 - k, zorder=0, yerr=y_err_0, fmt="C0s", label="Atmospheric He",
@@ -419,7 +426,7 @@ def plot_pp(model, data: dict, gain_data: dict):
                  markersize=1, capsize=cap_size, linewidth=line_width, capthick=cap_thick)
     plt.errorbar(x_3, y_3 - np.average(y_3[mid + 1:]), zorder=0, yerr=y_err_3, fmt="C3o", label="Control",
                  markersize=1, capsize=cap_size, linewidth=line_width, capthick=cap_thick)
-    plt.plot(x_model, y_model - k, 'k-', label='Model', zorder=10)
+    plt.plot(x_model, y_model - k, 'k-', label='Model', zorder=10, linewidth=line_width)
 
     handles, labels = plt.gca().get_legend_handles_labels()
     n_sf = [0, 0, 0]
@@ -435,11 +442,11 @@ def plot_pp(model, data: dict, gain_data: dict):
     patch_1 = patches.Patch(color='white', label=strings[1].format(pars[1], errs[1]))
     patch_2 = patches.Patch(color='white',
                             label=strings[2].format(pars[2] / (3600 * 24), errs[2] / (3600 * 24)))
-    patch_3 = patches.Patch(color='white', label=r'$\chi^2_R =$ {:.2f}'.format(chi))
+    patch_3 = patches.Patch(color='white', label=r'$\chi^2$/N$_{DoF}$' + ' = {:.2f}/{}'.format(chi*ndof, ndof))
     handles.extend([patch, patch_1, patch_2, patch_3])
 
     plt.ylabel("Pressure /Pa")
-    plt.title("Reconstructed Helium Internal Partial Pressure")
+    # plt.title("Reconstructed Helium Internal Partial Pressure")
     plt.xlim(-30, 420)
     plt.legend(handles=handles, loc='upper left')
 
@@ -448,7 +455,8 @@ def plot_pp(model, data: dict, gain_data: dict):
     plt.axhline(0, ls='--', color='black')
     plt.ylabel("(model-data)/model")
     plt.xlim(-30, 420)
-    plt.errorbar(x_model, (y_model - y_2) / y_model, yerr=y_err_2 / y_model, fmt="k.")
+    plt.errorbar(x_model, (y_model - y_2) / y_model, yerr=y_err_2 / y_model, fmt="k.",
+                 markersize=1, capsize=cap_size, linewidth=line_width, capthick=cap_thick)
     plt.tight_layout()
 
     plt.savefig("/Users/williamquinn/Desktop/PMT_Project/" + model.name + "_he_pi_vs_time.pdf")
@@ -462,7 +470,7 @@ def main():
     pmt_array.set_pmt_id("GAO612", 1)
     pmt_array.set_pmt_id("GAO607", 0)
 
-    data = read_file(pmt_array, "/Users/williamquinn/Desktop/data/1400V/filenames.txt")
+    data = read_file(pmt_array, "/Users/williamquinn/Desktop/PMT_Project/data/1400V/filenames.txt")
     # plot_aan(data)
     # plot_corrected(data)
     # plot_av_charge_gain(gain_data, 1400)

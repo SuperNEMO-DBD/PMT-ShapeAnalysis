@@ -16,7 +16,7 @@ from datetime import datetime
 
 
 def print_settings(pmt_array: PMT_Array):
-    pass
+    print(pmt_array.get_pmt_object_number(0).setting_dict)
 
 
 def read_tree(root_file_name: str, pmt_array: PMT_Array, output_file_location: str, output_file_name: str):

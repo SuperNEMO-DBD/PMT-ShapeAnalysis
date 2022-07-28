@@ -12,18 +12,18 @@ import numpy as np
 
 
 def main():
-    filenames = ["/Users/williamquinn/Desktop/data/1400V/200306_A1400_B1400_t2134_output.root",
-                 "/Users/williamquinn/Desktop/data/1400V/200506_A1400_B1400_t2247_output.root",
-                 "/Users/williamquinn/Desktop/data/1400V/200706_A1400_B1400_t0012_output.root",
-                 "/Users/williamquinn/Desktop/data/1400V/200906_A1400_B1400_t2242_output.root",
-                 "/Users/williamquinn/Desktop/data/1400V/201106_A1400_B1400_t1200_output.root",
-                 "/Users/williamquinn/Desktop/data/1400V/211209_A1400_B1400_t1101_output.root"]
+    filenames = ["/Users/williamquinn/Desktop/PMT_Project/data/1400V/200306_A1400_B1400_t2134_output.root",
+                 "/Users/williamquinn/Desktop/PMT_Project/data/1400V/200506_A1400_B1400_t2247_output.root",
+                 "/Users/williamquinn/Desktop/PMT_Project/data/1400V/200706_A1400_B1400_t0012_output.root",
+                 "/Users/williamquinn/Desktop/PMT_Project/data/1400V/200906_A1400_B1400_t2242_output.root",
+                 "/Users/williamquinn/Desktop/PMT_Project/data/1400V/201106_A1400_B1400_t1200_output.root",
+                 "/Users/williamquinn/Desktop/PMT_Project/data/1400V/211209_A1400_B1400_t1101_output.root"]
     # exposures = process_exposure(np.array([int(filenames[i].split("/")[-1].split("_")[0]) for i in range(len(filenames))]))
     exposures = [3.47, 9.57, 15.67, 21.77, 27.87, 67.58]
     fig = plt.figure(figsize=figsize, facecolor='white')
 
     markers = ["s", "^", "o"]
-    lower, upper = 800, 7000
+    lower, upper = 0, 6400
     n_bins = int((upper - lower)/50)
 
     for index, i_file in enumerate(filenames):
@@ -35,7 +35,7 @@ def main():
         times = []
         for i in range(hist.GetNbinsX()):
             for j in range(int(hist.GetBinContent(i + 1))):
-                times.append(int(hist.GetBinLowEdge(i + 1)))
+                times.append(int(hist.GetBinCenter(i + 1)) - 590)
         file.Close()
         del hist
 
@@ -51,7 +51,7 @@ def main():
     #plt.yscale('log')
     plt.xlabel('After-Pulse Waveform Time /ns')
     plt.ylabel('Counts per Waveform')
-    plt.title('After-Pulse Time Distributions')
+    # plt.title('After-Pulse Time Distributions')
     handles, labels = plt.gca().get_legend_handles_labels()
     patch = patches.Patch(color='white', label='Exposure')
     patch1 = patches.Patch(color='white', label='atm-day')
@@ -59,7 +59,7 @@ def main():
     handles.insert(0, patch)
     plt.legend(handles=handles, loc='best')
     plt.tight_layout()
-    plt.savefig("/Users/williamquinn/Desktop/ap_times_dist.pdf")
+    plt.savefig("/Users/williamquinn/Desktop/PMT_Project/ap_times_dist.pdf")
 
 
 if __name__ == "__main__":

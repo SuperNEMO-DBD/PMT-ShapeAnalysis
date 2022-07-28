@@ -15,7 +15,6 @@ from pmt_he_study.models import *
 from tqdm import tqdm
 
 # import custom made classes
-from functions.other_functions import do_bi_1000, chi2, process_date, linear, gaussian
 from src.PMT_Array import PMT_Array
 
 
@@ -80,7 +79,9 @@ def plot_fit(charges: np.array, fit_pars, date, name):
 
     plt.ylabel('counts')
     plt.xlim(bin_centres[low_bin - 5], bin_centres[high_bin + 5])
-    plt.title(date + ' Resolution @1MeV: {:.2f} %'.format(sig / mu * 100))
+    res = sig / mu
+    res_err = np.sqrt((sig_err/sig)**2 + (mu_err/mu)**2)*res
+    plt.title(date + ' Resolution @1MeV: {:.2f}±{:.2f} %'.format(res * 100, res_err * 100))
 
     # Residual plot
     frame2 = fig1.add_axes((.125, .15, .55, .125))
@@ -184,6 +185,10 @@ def plot_res():
                data_ch0[data_ch0['chi_2'] / data_ch0['ndof'] < chi_cut]['res'].values * 100, \
                data_ch0[data_ch0['chi_2'] / data_ch0['ndof'] < chi_cut]['res_err'].values * 100
 
+    x.append(process_date([211210])[0])
+    y.append(3.560868430248626)
+    dy.append(0.07177205264705984)
+
     exposed_fit = fit_straight_line(x, y, dy, guess=[0, 0])
     plt.errorbar(x, y, yerr=dy, fmt='k.', label='Exposed', markersize=3, capsize=1, linewidth=1, capthick=1)
     plt.plot([x[0], x[-1]], linear([x[0], x[-1]], *exposed_fit["popt"]), 'r-')
@@ -208,7 +213,7 @@ def plot_res():
                      facecolor='blue', label='1% He')
     plt.fill_between([98, 500], [5, 5], alpha=0.1,
                      facecolor='red', label='10% He')
-    plt.xlim(-30, 430)
+    plt.xlim(-30, 700)
     plt.legend(loc='best')
     plt.tight_layout()
     plt.savefig("/Users/williamquinn/Desktop/PMT_Project/res.pdf")
@@ -452,7 +457,9 @@ def main():
 
     # store_res(pmt_array)
     plot_res()
-    plot_base_drift()
+    # plot_base_drift()
+
+    # x = read_file('201216', 1000, '/Users/williamquinn/Desktop/PMT_Project/data/set_5/201216_A1000_B1000_t0918_Ch0.root', pmt_array)
 
 
 if __name__ == '__main__':

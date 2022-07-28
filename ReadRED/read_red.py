@@ -12,6 +12,44 @@ t_tdc2sec = 1.25E-08
 tdc2ns = 0.390625
 adc2mv = 0.610352
 MAX_GG_TIMES = 10
+is_none_i = -9999
+is_none_f = -9999.9
+
+
+def om_id_string(omnum: int):
+    string = ''
+    if 0 <= omnum < 260:
+        col = omnum // 13
+        row = omnum % 13
+        string = f'M:0.{col}.{row}'
+    elif omnum < 520:
+        omnum = omnum - 260
+        col = omnum // 13
+        row = omnum % 13
+        string = f'M:1.{col}.{row}'
+    elif omnum < 584:
+        omnum = omnum - 520
+        wall = omnum // 32
+        col = omnum % 32 // 16
+        row = omnum % 32 % 16
+        string = f'X:0.{wall}.{col}.{row}'
+    elif omnum < 648:
+        omnum = omnum - 520 - 64
+        wall = omnum // 32
+        col = omnum % 32 // 16
+        row = omnum % 32 % 16
+        string = f'X:1.{wall}.{col}.{row}'
+    elif omnum < 680:
+        omnum = omnum - 520 - 128
+        wall = omnum % 16
+        col = omnum // 16
+        string = f'G:0.{col}.{wall}'
+    elif omnum < 712:
+        omnum = omnum - 520 - 128 - 32
+        wall = omnum % 16
+        col = omnum // 16
+        string = f'G:1.{col}.{wall}'
+    return string
 
 
 def cell_id(cellnum):
@@ -451,38 +489,35 @@ def plot_full_event_map(directory: str, cut: bool, output_directory):
 def plot_full_drift_times(directory: str, name: str, output_directory):
     files = ["red_617_output.root", "red_635_output.root", "red_638_output.root", "red_645_output.root",
              "red_652_output.root", "red_660_output.root", "red_668_output.root", "red_608_output.root"]
-    drifts = [[] for i in range(2034)]
+    ppts = [[] for i in range(2034)]
     lower, upper = -50, 200
     n_bins = 50
 
     for i_file, file in enumerate(files):
         root_file = ROOT.TFile(directory + "/" + file, "READ")
         event_tree = root_file.event_tree
-        tot_drift_0 = []
-        tot_drift_1 = []
+        tot_ppt_0 = []
+        tot_ppt_1 = []
         for event in event_tree:
             if len(event.tracker_time_anode) > 50:
                 continue
-            '''if len(event.calo_time) == 0:
+            if len(event.calo_time) == 0 or len(event.tracker_time_anode) == 0:
                 continue
-            ht = False
-            for j in range(len(event.calo_time)):
-                if bool(event.calo_high_t[j]):
-                    ht = True
-            if not ht:
-                continue'''
 
+            calo_time = min(list(event.calo_time)) * 1e6
             for i in range(len(event.tracker_time_anode)):
-                if event.tracker_time_top_cathode[i] != is_none and event.tracker_time_bottom_cathode[i] != is_none and event.tracker_time_anode[i] != is_none:
-                    time = event.tracker_time_anode[i]
-                    drift = ((event.tracker_time_top_cathode[i] - time) + (event.tracker_time_bottom_cathode[i] - time))*1e6
-                    drifts[event.tracker_cell_num[i]].append(drift)
+                if event.tracker_time_top_cathode[i] != is_none_f and event.tracker_time_bottom_cathode[i] != is_none_f and event.tracker_time_anode[i] != is_none_f:
+                    t0 = event.tracker_time_anode[i]*1e6 - calo_time
+                    t5 = event.tracker_time_bottom_cathode[i]*1e6 - calo_time
+                    t6 = event.tracker_time_top_cathode[i]*1e6 - calo_time
+                    ppt = t5 + t6
+                    ppts[event.tracker_cell_num[i]].append(ppt)
 
                     side, row, layer = cell_id(event.tracker_cell_num[i])
                     if layer in [0, 8] or row in [0, 13, 14, 27, 28, 41, 42, 55, 56, 68, 71, 84, 85, 98, 99, 112]:
-                        tot_drift_0.append(drift)
+                        tot_ppt_0.append(ppt)
                     else:
-                        tot_drift_1.append(drift)
+                        tot_ppt_1.append(ppt)
 
         '''fig = plt.figure(figsize=figsize, facecolor='white')
         freq, bin_edges = np.histogram(tot_drift_0, 100, range=(0, 100))
@@ -508,18 +543,18 @@ def plot_full_drift_times(directory: str, name: str, output_directory):
     means = []
     stds = []
     chis = []
-    for i_cell in range(len(drifts)):
-        if len(drifts[i_cell]) > 0:
-            mean = np.average(drifts[i_cell])
-            std = np.std(drifts[i_cell])
-            freq, bin_edges = np.histogram(drifts[i_cell], n_bins, range=(lower, upper))
+    for i_cell in range(len(ppts)):
+        if len(ppts[i_cell]) > 0:
+            mean = np.average(ppts[i_cell])
+            std = np.std(ppts[i_cell])
+            freq, bin_edges = np.histogram(ppts[i_cell], n_bins, range=(lower, upper))
             width = bin_edges[-1] - bin_edges[-2]
             bin_centres = bin_edges[:-1] + width / 2
 
             fit = ROOT.TF1("fit", "[0]*TMath::Gaus(x, [1], [2])", lower, upper)
             hist = ROOT.TH1D("", "", n_bins, lower, upper)
-            for i in range(len(drifts[i_cell])):
-                hist.Fill(drifts[i_cell][i])
+            for i in range(len(ppts[i_cell])):
+                hist.Fill(ppts[i_cell][i])
             fit.SetParLimits(0, 0, (np.max(freq) + np.max(freq)*0.1))
             if bin_centres[np.argmax(freq)] - 10 < 0 or bin_centres[np.argmax(freq)] + 10 > 100:
                 fit.SetParLimits(1, 0, 100)
@@ -550,7 +585,7 @@ def plot_full_drift_times(directory: str, name: str, output_directory):
             stds.append(None)
             chis.append(None)
 
-    sntracker = sn.tracker(name + "_av", True)
+    '''sntracker = sn.tracker(name + "_av", True)
     sntracker.draw_cellid_label()
     sntracker.draw_content_label('{:.2f}')
 
@@ -586,7 +621,7 @@ def plot_full_drift_times(directory: str, name: str, output_directory):
         sntracker.setcontent(i_cell, chis[i_cell])
 
     sntracker.draw()
-    sntracker.save(output_directory)
+    sntracker.save(output_directory)'''
 
     return means
 
@@ -771,7 +806,7 @@ def plot_ppt_vs_dt(directory, output_directory):
     temps = [-2.5, -2.5, -2.5, -5, 2.5, 5, 0, 0]
     markers = ['s', 'o']
 
-    fig = plt.figure(figsize=(6,3), facecolor='white')
+    fig = plt.figure(figsize=figsize, facecolor='white')
     for i_file, file in enumerate(files):
         dts = [0 for i in range(2034)]
         drifts = [[[], []], [[], []]]
@@ -1108,6 +1143,9 @@ def parse_root_file(file_name):
                 calo_om_num = 520 + calo_om_side_id[i_om] * 64 + calo_om_wall_id[i_om] * 32 + calo_om_column_id[i_om] * 16 + calo_om_row_id[i_om]
             calo_om_nums[i_om] = calo_om_num
 
+            '''print(calo_om_num, om_id_string(calo_om_num), calo_om_side_id[i_om],
+                  calo_om_wall_id[i_om], calo_om_column_id[i_om], calo_om_row_id[i_om])'''
+
         try:
             # Take the first calorimeter time
             calo_time = min(calo_ticks) * c_tdc2sec
@@ -1150,13 +1188,15 @@ def parse_root_file(file_name):
 
         # Fill the dictionary
         data[event_id] = {
+            "event": {"time": calo_time},
             "cells": {cell: {
                 "rs": tracker_cell_timestamps[index],
                 "ts": tracker_cell_times[index],
                 "ppts": tracker_ppts[index]
             } for index, cell in enumerate(tracker_cell_nums)},
             "oms": {om: {
-                "amplitudes": -1 * calo_fwmeas_peak_amplitude[index] * adc2mv/8
+                "amplitudes": -1 * calo_fwmeas_peak_amplitude[index] * adc2mv / 8,
+                "ht": calo_ht[index]
             } for index, om in enumerate(calo_om_nums)}
         }
 
@@ -1169,7 +1209,152 @@ def parse_root_file(file_name):
         if new_counter != counter:
             counter = new_counter
             print("> Progress: {:.1f}".format(event_id / n_events * 100) + f"%. Events {len(data.keys())}")
+    root_file.Close()
     return data
+
+
+def store_3d_event(plot_2d: bool):
+    filename = "/Users/williamquinn/Desktop/read_red/snemo_run-619_red.root"
+    data = parse_root_file(filename)
+
+    av_ppts = [None for i in range(2034)]
+    ppts = [[] for i in range(2034)]
+    '''event_n = 97
+    event_data = data[event_n]
+    cells = list(event_data["cells"].keys())'''
+
+    # get the ppt from the relevant cells in the data
+    for event in data.keys():
+        for cell in data[event]["cells"].keys():
+            '''if cell not in cells:
+                continue'''
+            ppt = data[event]["cells"][cell]["ppts"]
+            t0 = data[event]["cells"][cell]["ts"][0]
+            if ppt is None or t0 is None:
+                continue
+            ppts[int(cell)].append(ppt)
+
+    sntracker = sn.tracker("619_av_ppt", with_palette=True)
+    sntracker.draw_cellnum_label()
+    sntracker.draw_content = False
+    # Get the average ppt for the cells in event
+    for cell in range(2034):
+        if len(ppts[cell]) == 0:
+            continue
+        freq, bin_edges = np.histogram(ppts[int(cell)], 50, range=(30, 100))
+        width = bin_edges[-1] - bin_edges[-2]
+        bin_centres = bin_edges[:-1] + width / 2
+        av = np.average(ppts[cell])
+
+        fit = ROOT.TF1("fit", "[0]*TMath::Gaus(x, [1], [2])", 30, 100)
+        hist = ROOT.TH1D("", "", 50, 30, 100)
+        n = 0
+        for j in range(len(ppts[int(cell)])):
+            if 30 < ppts[int(cell)][j] < 100:
+                hist.Fill(ppts[int(cell)][j])
+                n += 1
+        if n == 0:
+            continue
+
+        fit.SetParLimits(0, 0, (np.max(freq) * 1.1))
+        fit.SetParLimits(1, 30, 100)
+        fit.SetParLimits(2, 0, 100)
+        fit.SetParameters(np.max(freq), av, 1)
+        hist.Fit("fit", "0Q")
+        A = fit.GetParameter(0)
+        mu = fit.GetParameter(1)
+        mu_err = fit.GetParError(1)
+        sig = fit.GetParameter(2)
+        ndof = fit.GetNDF()
+        chi = fit.GetChisquare()
+        av_ppts[int(cell)] = mu
+
+        if plot_2d:
+            fig = plt.figure(figsize=figsize)
+            plt.title(r'$\chi^2/N_{ndof}$:' + '{:.2f}/{} mu: {}'.format(chi, ndof, mu))
+            plt.bar(bin_centres, freq, width=width, alpha=0.5)
+            plt.plot(bin_centres, gaussian(bin_centres, A, mu, sig), "-")
+            plt.savefig('/Users/williamquinn/Desktop/read_red/619_{}_ppt.pdf'.format(cell))
+            plt.close(fig)
+
+        sntracker.setcontent(cell, mu)
+    sntracker.draw()
+    sntracker.save('/Users/williamquinn/Desktop/read_red')
+    del sntracker
+
+    for event in data.keys():
+        event_data = data[event]
+        cells = list(event_data["cells"].keys())
+        calo_tot = 0
+        for om in data[event]["oms"].keys():
+            ht = data[event]["oms"][om]["ht"]
+            calo_tot += ht
+
+        if calo_tot != 2:
+            continue
+
+        tr_tot = 0
+        for cell in data[event]["cells"].keys():
+            t0 = data[event]["cells"][cell]["ts"][0]
+            t5 = data[event]["cells"][cell]["ts"][5]
+            t6 = data[event]["cells"][cell]["ts"][6]
+            if t0 is not None:
+                tr_tot += 1
+
+        if tr_tot < 5:
+            continue
+
+        if plot_2d:
+            sndemo = sn.demonstrator(f"{619}_event_{event}")
+            for om in range(712):
+                if om in event_data["oms"].keys():
+                    sndemo.setomcontent(om, 1)
+            for cell in range(2034):
+                if cell in event_data["cells"].keys():
+                    t0 = event_data["cells"][int(cell)]["ts"][0]
+                    t5 = event_data["cells"][int(cell)]["ts"][5]
+                    t6 = event_data["cells"][int(cell)]["ts"][6]
+                    if t0 is not None and t5 is not None and t6 is not None:
+                        sndemo.setggcontent(cell, 1)
+                    else:
+                        sndemo.setggcontent(cell, 3)
+            try:
+                sndemo.draw_top()
+                sndemo.save("/Users/williamquinn/Desktop/read_red")
+            except ValueError:
+                print("sndisplay problem")
+            del sndemo
+
+        D = 2
+        with open(f"/Users/williamquinn/Desktop/read_red/{619}_event_{event}" + ".csv", "w") as outfile:
+            for om in range(712):
+                if om in event_data["oms"].keys():
+                    outfile.write(f"OM,{om},{event_data['oms'][om]['amplitudes']}\n")
+            for cell in range(2034):
+                if cell not in cells:
+                    continue
+                t0 = event_data["cells"][int(cell)]["ts"][0]
+                if t0 is None:
+                    continue
+
+                t5 = event_data["cells"][cell]["ts"][5]
+                t6 = event_data["cells"][cell]["ts"][6]
+                if av_ppts[cell] is None:
+                    continue
+
+                if t5 is not None and t6 is not None:
+                    if t5 < t6:
+                        d = D * t5 / av_ppts[cell]
+                    else:
+                        d = D * (1 - t6 / av_ppts[cell])
+                elif t5 is None and t6 is None:
+                    continue
+                else:
+                    if t5 is None:
+                        d = D * (1 - t6 / av_ppts[cell])
+                    else:
+                        d = D * t5 / av_ppts[cell]
+                outfile.write("GG," + str(cell) + "," + str(d) + "\n")
 
 
 def plot_3d_event(filename, ppts):
@@ -1184,30 +1369,17 @@ def plot_3d_event(filename, ppts):
         top_cathode_times = [None for i in range(2034)]
         bot_cathode_times = [None for i in range(2034)]
         pos = [None for i in range(2034)]
-        if len(event.tracker_time_anode) > 50:
+        if len(event.tracker_time_anode) > 50 or len(event.calo_time) == 0 or len(event.tracker_time_anode) == 0:
             continue
-        calo_time = None
-        ht = False
-        if len(event.calo_time) != 0:
-            for j in range(len(event.calo_time)):
-                if bool(event.calo_high_t[j]):
-                    ht = True
-                    temp_calo_time = event.calo_time[j]
-                    if calo_time is not None and temp_calo_time < calo_time:
-                        calo_time = temp_calo_time
-                    elif calo_time is None:
-                        calo_time = temp_calo_time
-                    om_hit[event.calo_om_num[j]] = True
-                    # plot_event = True
+        calo_time = min(list(event.calo_time))*1e6
 
         for i in range(len(event.tracker_time_anode)):
-            if event.tracker_time_top_cathode[i] != is_none and event.tracker_time_bottom_cathode[i] != is_none and \
-                    event.tracker_time_anode[i] != is_none:
-                time = event.tracker_time_anode[i]
-                if calo_time is not None:
-                    anode_times.append((event.tracker_time_anode[i] - calo_time) * 1e6)
-                t5 = (event.tracker_time_bottom_cathode[i] - time) * 1e6
-                t6 = (event.tracker_time_top_cathode[i] - time) * 1e6
+            if event.tracker_time_top_cathode[i] != is_none_f and event.tracker_time_bottom_cathode[i] != is_none_f and \
+                    event.tracker_time_anode[i] != is_none_f:
+                t0 = event.tracker_time_anode[i]*1e6 - calo_time
+                anode_times.append(t0)
+                t5 = event.tracker_time_bottom_cathode[i]*1e6 - calo_time
+                t6 = event.tracker_time_top_cathode[i]*1e6 - calo_time
                 top_cathode_times[event.tracker_cell_num[i]] = t6
                 bot_cathode_times[event.tracker_cell_num[i]] = t5
 
@@ -1508,8 +1680,12 @@ def plot_av_ppt_HV_map():
     files = ['snemo_run-617_red.root', 'snemo_run-635_red.root', 'snemo_run-638_red.root', 'snemo_run-645_red.root',
              'snemo_run-652_red.root', 'snemo_run-660_red.root', 'snemo_run-668_red.root', 'snemo_run-608_red.root']
     HVs = [1600, 1650, 1612, 1625, 1650, 1675, 1600, 1600]
+    run_times = [10, 3.67, 30, 15, 10, 15, 10, 60]
+    full_run_times = [0 for i in range(2034)]
     Areas = [3, 5, 6, 7, 1, 2, 4, 0]
     av_ppt = [None for i in range(2034)]
+    std_ppt = [None for i in range(2034)]
+    sel_events = [0 for i in range(2034)]
     hvs = [None for i in range(2034)]
 
     for index, file in enumerate(files):
@@ -1527,6 +1703,7 @@ def plot_av_ppt_HV_map():
                     continue
                 else:
                     ppts[cell].append(ppt)
+                    sel_events[cell] += 1
         for cell in range(2034):
             if len(ppts[cell]) == 0:
                 continue
@@ -1535,18 +1712,67 @@ def plot_av_ppt_HV_map():
                 print("It happened")
                 continue
             else:
-                av_ppt[cell] = np.average(ppts[cell])
+                freq, bin_edges = np.histogram(ppts[cell], bins=20, range=(30, 100))
+                width = bin_edges[1] - bin_edges[0]
+                bin_centres = bin_edges[:-1] + width/2
+                try:
+                    av = np.average(ppts[cell])
+                    if not (30 <= av <= 100):
+                        continue
+                    m = max(freq)
+                    popt, pcov = curve_fit(xdata=bin_centres, ydata=freq, f=gaussian,
+                                           p0=[max(freq), np.average(ppts[cell]), 1],
+                                           bounds=[[0, 0.5*av, 0],
+                                                   [m*1.1, 1.5*av, 20]],
+                                           maxfev=5000)
+                except RuntimeError:
+                    print(f"<Bad cell {cell}>")
+                    continue
+                av_ppt[cell] = popt[1]
+                std_ppt[cell] = popt[2]
                 hvs[cell] = HVs[index]
+                full_run_times[cell] = run_times[index]
+
+    sntracker = sn.tracker("sel_events", with_palette=True)
+    sntracker.draw_cellid = False
+    sntracker.draw_cellnum = False
+    sntracker.draw_content = False
+    for cell in range(2034):
+        if full_run_times[cell] == 0:
+            continue
+        else:
+            sntracker.setcontent(cell, sel_events[cell]/full_run_times[cell])
+    sntracker.draw()
+    sntracker.save("/Users/williamquinn/Desktop/read_red")
+    del sntracker
 
     sntracker = sn.tracker("av_ppt", with_palette=True)
     sntracker.draw_cellid = False
     sntracker.draw_cellnum = False
     sntracker.draw_content = False
+    max_z = 100
+    min_z = 30
     for cell in range(2034):
-        if av_ppt[cell] is None:
+        if av_ppt[cell] is None or not (min_z <= av_ppt[cell] <= max_z):
             continue
         else:
             sntracker.setcontent(cell, av_ppt[cell])
+    sntracker.setrange(min_z, max_z)
+    sntracker.draw()
+    sntracker.save("/Users/williamquinn/Desktop/read_red")
+    del sntracker
+
+    sntracker = sn.tracker("std_ppt", with_palette=True)
+    sntracker.draw_cellid = False
+    sntracker.draw_cellnum = False
+    sntracker.draw_content = False
+    max_z = 100
+    min_z = 30
+    for cell in range(2034):
+        if std_ppt[cell] is None or not (min_z <= av_ppt[cell] <= max_z):
+            continue
+        else:
+            sntracker.setcontent(cell, std_ppt[cell])
     sntracker.draw()
     sntracker.save("/Users/williamquinn/Desktop/read_red")
     del sntracker
@@ -1560,9 +1786,162 @@ def plot_av_ppt_HV_map():
             continue
         else:
             sntracker.setcontent(cell, hvs[cell])
+    sntracker.setrange(min(HVs), max(HVs))
     sntracker.draw()
     sntracker.save("/Users/williamquinn/Desktop/read_red")
     del sntracker
+
+
+def plot_av_ppt_vs_HV():
+    files = ['snemo_run-608_red.root', 'snemo_run-617_red.root', 'snemo_run-635_red.root', 'snemo_run-638_red.root',
+             'snemo_run-640_red.root', 'snemo_run-641_red.root', 'snemo_run-642_red.root', 'snemo_run-645_red.root',
+             'snemo_run-654_red.root', 'snemo_run-660_red.root', 'snemo_run-668_red.root', 'snemo_run-669_red.root',
+             'snemo_run-670_red.root', 'snemo_run-671_red.root']
+    times = [60, 10,
+             3.66667, 30, 5,
+             5, 5, 15,
+             10, 15, 10,
+             10, 10, 10]
+    HVs = [1600, 1600,
+           1650, 1612, 1650,
+           1675, 1700, 1625,
+           1650, 1675, 1600,
+           1625, 1650, 1675]
+    Areas = [0, 3,
+             5, 6, 6,
+             6, 6, 7,
+             1, 2, 4,
+             4, 4, 4]
+    ppt_data = {}
+    for hv in HVs:
+        if hv not in ppt_data.keys():
+            ppt_data[hv] = {"ppts": [[], []]}
+
+    tot_ppts = [[[], []] for i in range(len(HVs))]
+    tot_ppts_err = [[[], []] for i in range(len(HVs))]
+    markers = ['s', 'o']
+
+    for index, file in enumerate(files):
+        print(f">>> File to process {file}")
+        data = parse_root_file("/Users/williamquinn/Desktop/read_red/" + file)
+        for event in data:
+            cell_data = data[event]["cells"]
+            for cell in cell_data:
+                ppt = cell_data[cell]["ppts"]
+                ts = cell_data[cell]['ts']
+                if ppt is None:
+                    continue
+                elif ts[0] is None:
+                    continue
+                side, row, layer = cell_id(cell)
+                if layer in [0, 8] or row in [0, 13, 14, 27, 28, 41, 42, 55, 56, 68, 71, 84, 85, 98, 99, 112]:
+                    ppt_data[HVs[index]]["ppts"][0].append(ppt)
+                else:
+                    ppt_data[HVs[index]]["ppts"][1].append(ppt)
+
+    plt.figure(figsize=figsize, facecolor='white')
+    for hv in ppt_data.keys():
+        if hv == 1612:
+            continue
+        for typ in range(len(ppt_data[hv]["ppts"])):
+            ppts = ppt_data[hv]["ppts"][typ]
+            freq, bin_edges = np.histogram(ppts, 50, range=(30, 100))
+            width = bin_edges[-1] - bin_edges[-2]
+            bin_centres = bin_edges[:-1] + width / 2
+
+            fit = ROOT.TF1("fit", "[0]*TMath::Gaus(x, [1], [2])", 30, 100)
+            hist = ROOT.TH1D("", "", 50, 30, 100)
+            for j in range(len(ppts)):
+                hist.Fill(ppts[j])
+            fit.SetParLimits(0, 0, (np.max(freq) + np.max(freq) * 0.1))
+            if bin_centres[np.argmax(freq)] - 10 < 30 or bin_centres[np.argmax(freq)] + 10 > 100:
+                fit.SetParLimits(1, 30, 100)
+            else:
+                fit.SetParLimits(1, bin_centres[np.argmax(freq)] - 10, bin_centres[np.argmax(freq)] + 10)
+            fit.SetParLimits(2, 0, 50)
+            fit.SetParameters(np.max(freq), bin_centres[np.argmax(freq)], 1, 1)
+            hist.Fit("fit", "0Q")
+            A = fit.GetParameter(0)
+            mu = fit.GetParameter(1)
+            mu_err = fit.GetParError(1)
+            sig = fit.GetParameter(2)
+            ndof = fit.GetNDF()
+            chi = fit.GetChisquare()
+
+            plt.errorbar(hv, mu, yerr=sig,
+                         fmt='C{}{}'.format(typ, markers[typ]),
+                         markersize=3, capsize=1, linewidth=1, capthick=1)
+
+    plt.errorbar(0, 0, yerr=1, fmt='C0s', markersize=3, capsize=1, linewidth=1, capthick=1, label='Edges')
+    plt.errorbar(0, 0, yerr=1, fmt='C1o', markersize=3, capsize=1, linewidth=1, capthick=1, label='Centres')
+    plt.xlabel("Voltage /V")
+    plt.ylabel("Plasma Propagation Time /µs")
+    # plt.title("Run {} All Cells".format(run_num))
+    plt.legend(loc='best')
+    plt.xlim(1575, 1725)
+    plt.ylim(30, 85)
+    plt.tight_layout()
+    plt.savefig("/Users/williamquinn/Desktop/read_red/all_drift_times_vs_voltage.pdf")
+    plt.close()
+
+
+def plot_all_ppt_vs_dt():
+    files = ["snemo_run-608_red.root", "snemo_run-612_red.root", "snemo_run-613_red.root", "snemo_run-614_red.root",
+             "snemo_run-615_red.root", "snemo_run-616_red.root"]
+    times = [60, 60, 15, 15, 15, 15]
+    HVs = [1600, 1600, 1600, 1600, 1600, 1600]
+    Areas = [0, 3, 3, 3, 3, 3]
+
+    output = {"edges": [], "centres": []}
+
+    fig = plt.figure(figsize=figsize, facecolor='white')
+    for index, file in enumerate(files):
+        print(f">>> File to process {file}")
+        data = parse_root_file("/Users/williamquinn/Desktop/read_red/" + file)
+        dts = [0 for i in range(2034)]
+        for event in data:
+            cell_data = data[event]["cells"]
+            for cell in cell_data.keys():
+                event_time = data[event]["event"]["time"]
+                ppt = cell_data[cell]["ppts"]
+                ts = cell_data[cell]['ts']
+                if event_time is None or ppt is None or ts[0] is None:
+                    continue
+                dt = event_time*1E6 - dts[int(cell)]
+                if dts[int(cell)] == 0:
+                    dts[int(cell)] = cell_data[cell]['ts'][0]
+                    continue
+                dts[int(cell)] = event_time * 1e6
+                if dt > 100000:
+                    continue
+
+                side, row, layer = cell_id(int(cell))
+                if layer in [0, 8] or row in [0, 13, 14, 27, 28, 41, 42, 55, 56, 68, 71, 84, 85, 98, 99, 112]:
+                    output["edges"].append({"x": dt / 1000, "y": ppt})
+                else:
+                    output["centres"].append({"x": dt / 1000, "y": ppt})
+
+    def func(e):
+        return e["x"]
+    output["edges"].sort(key=func)
+    output["centres"].sort(key=func)
+
+    def smooth(y, box_pts):
+        box = np.ones(box_pts) / box_pts
+        y_smooth = np.convolve(y, box, mode='same')
+        return y_smooth
+
+    plt.plot([x["x"] for x in output["edges"]], [y["y"] for y in output["edges"]], 'C0s', markersize=1, label='Edges')
+    # plt.plot([x["x"] for x in output["edges"]], smooth([y["y"] for y in output["edges"]], 20), 'C0-')
+    plt.plot([x["x"] for x in output["centres"]], [y["y"] for y in output["centres"]], 'C1o', markersize=1, label='Centres')
+    # plt.plot([x["x"] for x in output["centres"]], smooth([y["y"] for y in output["centres"]], 20), 'C1-')
+    plt.legend(loc='upper right')
+    plt.xlim(0, 50)
+    plt.ylim(40, 100)
+    plt.xlabel(r"$\Delta t$ /ms")
+    plt.ylabel("Plasma Propagation Time /µs")
+    plt.tight_layout()
+    plt.savefig("/Users/williamquinn/Desktop/read_red/ppt_vs_dt.pdf")
 
 
 def main():
@@ -1572,14 +1951,14 @@ def main():
 
     # plot_full_event_map("/Users/williamquinn/Desktop/read_red", False, output_directory)
     # plot_full_event_map("/Users/williamquinn/Desktop/read_red", True, output_directory)
-    # ppts = plot_full_drift_times("/Users/williamquinn/Desktop/read_red", 'full_drift_times', output_directory)
+    #ppts = plot_full_drift_times("/Users/williamquinn/Desktop/read_red", 'full_drift_times', "/Users/williamquinn/Desktop/read_red")
     # plot_drift_time_vs_voltage("/Users/williamquinn/Desktop/read_red", output_directory)
     # plot_ppt_vs_dt("/Users/williamquinn/Desktop/read_red", output_directory)
 
     # plot_r56_vs_r12("/Users/williamquinn/Desktop/read_red", 'red_669_output.root', output_directory, 10)
     # plot_r56_vs_r12("/Users/williamquinn/Desktop/read_red", 'red_618_output.root', output_directory, 10)
     # plot_r56_vs_r12("/Users/williamquinn/Desktop/read_red", 'red_619_output.root', output_directory, 10)
-    # plot_3d_event("/Users/williamquinn/Desktop/read_red/red_619_output.root", ppts)
+    #plot_3d_event("/Users/williamquinn/Desktop/read_red/red_619_output.root", ppts)
 
     '''plot_all_times("/Users/williamquinn/Desktop/read_red/red_612_output.root", 60)
     plot_all_times("/Users/williamquinn/Desktop/read_red/red_619_output.root", 10)
@@ -1593,7 +1972,10 @@ def main():
     # plot_ppt_all("/Users/williamquinn/Desktop/read_red/red_619_output.root", 10)
     # plot_event_map("/Users/williamquinn/Desktop/read_red/red_619_output.root", 10)
     # plot_ppt_all_divided("/Users/williamquinn/Desktop/read_red/red_619_output.root", 10)
-    plot_av_ppt_HV_map()
+    # plot_av_ppt_HV_map()
+    # plot_av_ppt_vs_HV()
+    # plot_all_ppt_vs_dt()
+    store_3d_event(False)
 
     '''file = open(input_file, "r")
     fl = file.readlines()
