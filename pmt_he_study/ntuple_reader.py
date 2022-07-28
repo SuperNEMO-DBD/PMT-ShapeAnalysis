@@ -9,10 +9,19 @@ import tqdm
 import numpy as np
 
 # import custom made classes
-from functions.other_functions import pmt_parse_arguments
 from src.PMT_Array import PMT_Array
 
 from datetime import datetime
+
+
+def pmt_parse_arguments():
+    import argparse
+    parser = argparse.ArgumentParser(description="Input file names")
+    parser.add_argument('-i', required=True, type=str, help='Input data file path')
+    parser.add_argument('-c', required=False, type=str, help='Config data file path')
+    parser.add_argument('-o', required=True, type=str, help='Output data file path')
+    args = parser.parse_args()
+    return args
 
 
 def print_settings(pmt_array: PMT_Array):
