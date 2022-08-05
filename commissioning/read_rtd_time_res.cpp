@@ -305,12 +305,6 @@ int main(int argc, char **argv)
 
                         if ( my_amplitude > amplitude_cut)
                         {
-                            om_counter[my_class][side] ++;
-                            //std::cout << my_class << " " << side << " " << om_counter[my_class][side] << std::endl;
-                            if (do_sweep) {
-                                matchfilter = sweep(waveform, config_object, my_baseline, template_vectors[OM_ID]);
-                            }
-
                             // For the slected OMs fill eventn struct
                             if (OM_ID == om_num_0 || OM_ID == om_num_1 || OM_ID == om_num_2)
                             {
@@ -477,7 +471,7 @@ CONF read_config( std::string filename )
 
     if (!file.good())
     {
-        std::cout << "matched_filter.cpp : ERROR opening configuration file : " << filename << std::endl;
+        std::cout << "read_rtd_time_res.cpp : ERROR opening configuration file : " << filename << std::endl;
         std::cout << "EXIT" << std::endl;
         exit(1);
     }
