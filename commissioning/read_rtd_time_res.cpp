@@ -53,7 +53,6 @@ typedef struct {
 
 Int_t get_peak_cell( std::vector<uint16_t> &vec );
 uint16_t get_amplitude( std::vector<uint16_t> &vec );
-void write_templates( std::vector<std::vector<Double_t>> &template_vectors );
 Double_t get_baseline( std::vector<uint16_t> &vec , CONF &conf_object);
 std::vector<std::string> split( const std::string& s, char delimiter );
 CONF read_config( std::string filename );
@@ -367,8 +366,6 @@ int main(int argc, char **argv)
         output_file->Close();
         std::cout << "File closed" << std::endl;
 
-        if ( do_template ){ write_templates( template_vectors ); }
-
     } catch (std::exception & error)
     {
         std::cerr << "[error] " << error.what() << std::endl;
@@ -404,43 +401,6 @@ uint16_t get_amplitude( std::vector<uint16_t> &vec )
         }
     }
     return amplitude;
-}
-void write_templates( std::vector<std::vector<Double_t>> &template_vectors )
-{
-    TFile* template_root_file = new TFile("templates.root", "RECREATE");
-    template_root_file->cd();
-
-    for (Int_t i_temp = 0; i_temp < (Int_t)template_vectors.size(); ++i_temp)
-    {
-        std::string name = "Template_Ch" + std::to_string(i_temp);
-        std::cout << std::endl;
-        std::cout << name << std::endl;
-        TH1D* hist = new TH1D(name.c_str(), name.c_str(), template_vectors[i_temp].size(), 0, template_vectors[i_temp].size());
-
-        Double_t norm = sqrt( get_inner_product( template_vectors[i_temp], template_vectors[i_temp] ) );
-        if ( norm == 0 )
-        {
-            std::cout << ">>> Normalised template vector : " << i_temp << " is 0" << std::endl;
-            for (int j_bin = 1; j_bin < (Int_t)template_vectors[i_temp].size() + 1; ++j_bin)
-            {
-                hist->SetBinContent(j_bin, template_vectors[i_temp][j_bin - 1]);
-                std::cout << j_bin - 1 << " " << template_vectors[i_temp][j_bin - 1] << std::endl;
-            }
-            hist->Write();
-            delete hist;
-            continue;
-        }
-
-        for (int j_bin = 1; j_bin < (Int_t)template_vectors[i_temp].size() + 1; ++j_bin)
-        {
-            hist->SetBinContent(j_bin, template_vectors[i_temp][j_bin - 1]/norm);
-            std::cout << j_bin - 1 << " " << template_vectors[i_temp][j_bin - 1]/norm << std::endl;
-        }
-        hist->Write();
-        delete hist;
-    }
-    template_root_file->Close();
-    std::cout << "Templates written" << std::endl;
 }
 Double_t get_baseline( std::vector<uint16_t> &vec , CONF &conf_object)
 {
