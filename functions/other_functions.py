@@ -1325,8 +1325,9 @@ def do_bi_1400(hist, mean):
     A = fit.GetParameter(0)
     A_err = fit.GetParError(0)
     chi = fit.GetChisquare() / fit.GetNDF()
+    ndof = fit.GetNDF()
     del fit
-    return [[mu, mu_err], [sig, sig_err], [A, A_err], chi]
+    return [[mu, mu_err], [sig, sig_err], [A, A_err], [chi*ndof, ndof]]
 
 
 def do_bi_1000(hist, mean):
@@ -1419,28 +1420,6 @@ def adjust_pars():
     t_popt, t_pcov = curve_fit(f=quadratic, xdata=f[my_list], ydata=means[my_list])
     t_perr = np.sqrt(np.diag(t_pcov))
     return t_popt, t_pcov, t_perr
-
-
-def partial_pressure(data, gain_data, nums, nums_err):
-    y = [np.array([]), np.array([])]
-    y_err = [np.array([]), np.array([])]
-    for ch in range(2):
-        for i in range(len(data[ch]["dates"])):
-            pos = data[ch]["dates"][i] // 7 + 5
-            G_i = gain_data[1400][ch]["gain"][pos]
-            C_i = gain_data[1400][ch]["av_charge"][pos]
-            dG_i = gain_data[1400][ch]["gain_err"][pos]
-            dC_i = gain_data[1400][ch]["av_charge_err"][pos]
-
-            dnums = nums_err[ch][i]
-
-            val = 18.5 * G_i * 1.603e-19 * nums[ch][i] * 1e12 / C_i
-            val_err = val * np.sqrt( (dG_i/G_i)**2 + (dC_i/C_i)**2 + (dnums/nums[ch][i])**2 )
-
-            y[ch] = np.append(y[ch], val)
-            y_err[ch] = np.append(y_err[ch], val_err)
-
-    return y, y_err
 
 
 def root_fit(x, y, yerr, model):

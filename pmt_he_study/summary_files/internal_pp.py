@@ -4,6 +4,28 @@ sys.path.insert(1, '../..')
 from pmt_he_study.models import *
 
 
+def partial_pressure(data, gain_data, nums, nums_err):
+    y = [np.array([]), np.array([])]
+    y_err = [np.array([]), np.array([])]
+    for ch in range(2):
+        for i in range(len(data[ch]["dates"])):
+            pos = data[ch]["dates"][i] // 7 + 5
+            G_i = gain_data[1400][ch]["gain"][pos]
+            C_i = gain_data[1400][ch]["av_charge"][pos]
+            dG_i = gain_data[1400][ch]["gain_err"][pos]
+            dC_i = gain_data[1400][ch]["av_charge_err"][pos]
+
+            dnums = nums_err[ch][i]
+
+            val = 18.5 * G_i * 1.603e-19 * nums[ch][i] * 1e12 / C_i
+            val_err = val * np.sqrt( (dG_i/G_i)**2 + (dC_i/C_i)**2 + (dnums/nums[ch][i])**2 )
+
+            y[ch] = np.append(y[ch], val)
+            y_err[ch] = np.append(y_err[ch], val_err)
+
+    return y, y_err
+
+
 def plot_corrected(data):
     t_popt, t_pcov, t_perr = adjust_pars()
     nums = [data[0]["he_ap_nums"], data[1]["he_ap_nums"]]

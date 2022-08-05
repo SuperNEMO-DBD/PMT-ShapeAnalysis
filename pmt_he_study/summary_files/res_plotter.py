@@ -169,6 +169,7 @@ def fit_straight_line(x, y, dy, guess):
 
 
 def plot_res():
+    upper_xlim = 800
     data = pd.read_csv("/Users/williamquinn/Desktop/PMT_Project/res_vs_time.csv", header=0,
                        dtype={0: int, 1: int, 2: float, 3: float, 4: float, 5: int, 6: float, 7: float},
                        engine='python')
@@ -185,9 +186,9 @@ def plot_res():
                data_ch0[data_ch0['chi_2'] / data_ch0['ndof'] < chi_cut]['res'].values * 100, \
                data_ch0[data_ch0['chi_2'] / data_ch0['ndof'] < chi_cut]['res_err'].values * 100
 
-    x.append(process_date([211210])[0])
-    y.append(3.560868430248626)
-    dy.append(0.07177205264705984)
+    x.put(-1, process_date([211210])[0])
+    y.put(-1, 3.560868430248626)
+    dy.put(-1, 0.07177205264705984)
 
     exposed_fit = fit_straight_line(x, y, dy, guess=[0, 0])
     plt.errorbar(x, y, yerr=dy, fmt='k.', label='Exposed', markersize=3, capsize=1, linewidth=1, capthick=1)
@@ -211,9 +212,9 @@ def plot_res():
                      facecolor='green', label='Atmospheric He')
     plt.fill_between([0, 98], [5, 5], alpha=0.1,
                      facecolor='blue', label='1% He')
-    plt.fill_between([98, 500], [5, 5], alpha=0.1,
+    plt.fill_between([98, upper_xlim], [5, 5], alpha=0.1,
                      facecolor='red', label='10% He')
-    plt.xlim(-30, 700)
+    plt.xlim(-30, upper_xlim)
     plt.legend(loc='best')
     plt.tight_layout()
     plt.savefig("/Users/williamquinn/Desktop/PMT_Project/res.pdf")
@@ -455,7 +456,7 @@ def main():
     pmt_array.set_pmt_id("GAO607", 0)
     pmt_array.set_pmt_id("GAO612", 1)
 
-    # store_res(pmt_array)
+    store_res(pmt_array)
     plot_res()
     # plot_base_drift()
 

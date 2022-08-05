@@ -149,22 +149,24 @@ def write_to_file(filename: str, av_charge, mev_charge, gain, res):
         g_14_0 = new_gain[1000][0]["v"][i] * new_mev_charge[1400][0]["v"][i]/new_mev_charge[1000][0]["v"][i]
         g_14_1 = new_gain[1000][1]["v"][i] * new_mev_charge[1400][1]["v"][i]/new_mev_charge[1000][1]["v"][i]
         file.write("{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{}\n".format(w[i],
-                                                                                                             new_mev_charge[1000][0]["v"][i], new_mev_charge[1000][0]["e"][i],
-                                                                                                             new_mev_charge[1000][1]["v"][i], new_mev_charge[1000][1]["e"][i],
-                                                                                                             new_mev_charge[1400][0]["v"][i], new_mev_charge[1400][0]["e"][i],
-                                                                                                             new_mev_charge[1400][1]["v"][i], new_mev_charge[1400][1]["e"][i],
-                                                                                                             new_av_charge[1000][0]["v"][i], new_av_charge[1000][0]["e"][i],
-                                                                                                             new_av_charge[1000][1]["v"][i], new_av_charge[1000][1]["e"][i],
-                                                                                                             new_av_charge[1400][0]["v"][i], new_av_charge[1400][0]["e"][i],
-                                                                                                             new_av_charge[1400][1]["v"][i], new_av_charge[1400][1]["e"][i],
-                                                                                                             new_gain[1000][0]["v"][i], new_gain[1000][0]["e"][i],
-                                                                                                             new_gain[1000][1]["v"][i], new_gain[1000][1]["e"][i],
-                                                                                                             new_gain[1000][0]["v"][i] * new_mev_charge[1400][0]["v"][i]/new_mev_charge[1000][0]["v"][i],
-                                                                                                             new_gain[1000][0]["v"][i] * new_mev_charge[1400][0]["v"][i]/new_mev_charge[1000][0]["v"][i] * np.sqrt((new_gain[1000][0]["e"][i]/new_gain[1000][0]["v"][i])**2 + (new_mev_charge[1000][0]["e"][i]/new_mev_charge[1000][0]["v"][i])**2 + (new_mev_charge[1400][0]["e"][i]/new_mev_charge[1400][0]["v"][i])**2),
-                                                                                                             new_gain[1000][1]["v"][i] * new_mev_charge[1400][1]["v"][i]/new_mev_charge[1000][1]["v"][i],
-                                                                                                             new_gain[1000][0]["v"][i] * new_mev_charge[1400][0]["v"][i]/new_mev_charge[1000][0]["v"][i] * np.sqrt((new_gain[1000][1]["e"][i]/new_gain[1000][1]["v"][i])**2 + (new_mev_charge[1000][1]["e"][i]/new_mev_charge[1000][1]["v"][i])**2 + (new_mev_charge[1400][1]["e"][i]/new_mev_charge[1400][1]["v"][i])**2),
-                                                                                                             new_res[1000][0]["v"][i], new_res[1000][0]["e"][i],
-                                                                                                             new_res[1000][1]["v"][i], new_res[1000][1]["e"][i]
+                                                                                                                     new_mev_charge[1000][0]["v"][i], new_mev_charge[1000][0]["e"][i],
+                                                                                                                     new_mev_charge[1000][1]["v"][i], new_mev_charge[1000][1]["e"][i],
+                                                                                                                     new_mev_charge[1400][0]["v"][i], new_mev_charge[1400][0]["e"][i],
+                                                                                                                     new_mev_charge[1400][1]["v"][i], new_mev_charge[1400][1]["e"][i],
+                                                                                                                     new_av_charge[1000][0]["v"][i], new_av_charge[1000][0]["e"][i],
+                                                                                                                     new_av_charge[1000][1]["v"][i], new_av_charge[1000][1]["e"][i],
+                                                                                                                     new_av_charge[1400][0]["v"][i], new_av_charge[1400][0]["e"][i],
+                                                                                                                     new_av_charge[1400][1]["v"][i], new_av_charge[1400][1]["e"][i],
+                                                                                                                     new_gain[1000][0]["v"][i],
+                                                                                                                     new_gain[1000][0]["e"][i],
+                                                                                                                     new_gain[1000][1]["v"][i],
+                                                                                                                     new_gain[1000][1]["e"][i],
+                                                                                                                     new_gain[1000][0]["v"][i] * new_mev_charge[1400][0]["v"][i]/new_mev_charge[1000][0]["v"][i],
+                                                                                                                     new_gain[1000][0]["v"][i] * new_mev_charge[1400][0]["v"][i]/new_mev_charge[1000][0]["v"][i] * np.sqrt((new_gain[1000][0]["e"][i]/new_gain[1000][0]["v"][i])**2 + (new_mev_charge[1000][0]["e"][i]/new_mev_charge[1000][0]["v"][i])**2 + (new_mev_charge[1400][0]["e"][i]/new_mev_charge[1400][0]["v"][i])**2),
+                                                                                                                     new_gain[1000][1]["v"][i] * new_mev_charge[1400][1]["v"][i]/new_mev_charge[1000][1]["v"][i],
+                                                                                                                     new_gain[1000][1]["v"][i] * new_mev_charge[1400][1]["v"][i]/new_mev_charge[1000][1]["v"][i] * np.sqrt((new_gain[1000][1]["e"][i]/new_gain[1000][1]["v"][i])**2 + (new_mev_charge[1000][1]["e"][i]/new_mev_charge[1000][1]["v"][i])**2 + (new_mev_charge[1400][1]["e"][i]/new_mev_charge[1400][1]["v"][i])**2),
+                                                                                                                     new_res[1000][0]["v"][i], new_res[1000][0]["e"][i],
+                                                                                                                     new_res[1000][1]["v"][i], new_res[1000][1]["e"][i]
                                                                                                              ))
     file.close()
 
@@ -302,6 +304,7 @@ def plot_mev_charge(data, voltage):
         charge_cut = 20
     x, y, y_err = [[], []], [[], []], [[], []]
     for k in range(2):
+        # print(data["chi2s"])
         x[k] = [val for index, val in enumerate(data["dates"][k]) if data["chi2s"][k][index] < 10 and data["mev_charge"][k][index] > charge_cut]
         y[k] = [val for index, val in enumerate(data["mev_charge"][k]) if data["chi2s"][k][index] < 10 and val > charge_cut]
         y_err[k] = [val for index, val in enumerate(data["mev_charge_err"][k]) if data["chi2s"][k][index] < 10 and data["mev_charge"][k][index] > charge_cut]
@@ -440,7 +443,7 @@ def read_1400V_files(pmt_array: PMT_Array, filenames: str):
         date = filename.split("_")[0]
         voltage = int(filename.split("_")[1].split("A")[1])
 
-        file = ROOT.TFile("/Users/williamquinn/Desktop/data/1400V/" + filename, "READ")
+        file = ROOT.TFile("/Users/williamquinn/Desktop/PMT_Project/data/1400V/" + filename, "READ")
         file.cd()
 
         for i_om in range(2):
@@ -461,7 +464,10 @@ def read_1400V_files(pmt_array: PMT_Array, filenames: str):
             mev_charges[i_om].append(charge_pars[0][0])
             mev_charges_err[i_om].append(charge_pars[0][1])
 
-            chi2s[i_om].append(charge_pars[-1])
+            if charge_pars[-1][1] == 0:
+                chi2s[i_om].append(100000)
+            else:
+                chi2s[i_om].append(charge_pars[-1][0]/charge_pars[-1][1])
 
             del charge_hist
 
@@ -508,7 +514,7 @@ def read_1000V_files(pmt_array: PMT_Array, filenames: str):
         date = filename.split("_")[0]
         voltage = int(filename.split("_")[1].split("A")[1])
 
-        file = ROOT.TFile("/Users/williamquinn/Desktop/data/1000V/" + filename, "READ")
+        file = ROOT.TFile("/Users/williamquinn/Desktop/PMT_Project/data/1000V/" + filename, "READ")
         file.cd()
 
         for i_om in range(2):
@@ -543,7 +549,10 @@ def read_1000V_files(pmt_array: PMT_Array, filenames: str):
             res[i_om].append(R)
             res_err[i_om].append(R*np.sqrt((charge_pars[0][1]/charge_pars[0][0])**2 + (charge_pars[1][1]/charge_pars[1][0])**2))
 
-            chi2s[i_om].append(charge_pars[-1])
+            if charge_pars[-1][1] == 0:
+                chi2s[i_om].append(100000)
+            else:
+                chi2s[i_om].append(charge_pars[-1][0] / charge_pars[-1][1])
 
             del charge_hist
 
@@ -569,13 +578,13 @@ def main():
     pmt_array.set_pmt_id("GAO612", 1)
     pmt_array.set_pmt_id("GAO607", 0)
 
-    filenames_txt = "/Users/williamquinn/Desktop/data/1400V/filenames.txt"
+    filenames_txt = "/Users/williamquinn/Desktop/PMT_Project/data/1400V/filenames.txt"
     data_1400V = read_1400V_files(pmt_array, filenames_txt)
 
     av_charge_14kV = plot_av_charge(data_1400V, 1400)
     mev_charge_14kV = plot_mev_charge(data_1400V, 1400)
 
-    filenames_txt = "/Users/williamquinn/Desktop/data/1000V/filenames.txt"
+    filenames_txt = "/Users/williamquinn/Desktop/PMT_Project/data/1000V/filenames.txt"
     data_1000V = read_1000V_files(pmt_array, filenames_txt)
 
     av_charge_1kV = plot_av_charge(data_1000V, 1000)

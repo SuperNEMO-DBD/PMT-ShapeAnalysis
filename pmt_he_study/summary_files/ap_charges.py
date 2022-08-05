@@ -23,7 +23,7 @@ def print_cov_matrix(M, name):
     # print(tabulate.tabulate(new_new_M, headers=[name, 'm', 'c'], tablefmt="latex", numalign="right"))
 
 
-def plot(model, dates, ap_charges, ap_charges_err, av_charges, av_charges_err, name):
+def plot_pp(model, dates, ap_charges, ap_charges_err, av_charges, av_charges_err, name):
     date_0 = process_date(dates[0])
     date_1 = process_date(dates[1])
     try:
@@ -42,8 +42,8 @@ def plot(model, dates, ap_charges, ap_charges_err, av_charges, av_charges_err, n
     av_charge_err_0 = np.array(av_charges_err[0])
     av_charge_err_1 = np.array(av_charges_err[1])
 
-    l = 5.91
-    l_err = l/100
+    l = 5.9
+    l_err = 0.2
     y0 = (1 / 0.054) * ap_charge_0 / av_charge_0 / l
     y0_err = y0 * np.sqrt((ap_charge_err_0 / ap_charge_0) ** 2 + (av_charge_err_0 / av_charge_0) ** 2 + (l_err/l)**2)
 
@@ -393,7 +393,7 @@ def main():
     # plot_charge_ratio(model, dates, ap_ratio, ap_ratio_err, "")
     # plot_charge_ratio(model, dates, he_ap_ratio, he_ap_ratio_err, "he")
     # plot(model, dates, ap_charge, ap_charge_err, av_charge, av_charge_err, "")
-    plot(model, dates, he_ap_charge, he_ap_charge_err, av_charge, av_charge_err, "he")
+    plot_pp(model, dates, he_ap_charge, he_ap_charge_err, av_charge, av_charge_err, "he")
 
     model = Model_0()
     # plot_ap_charge(model, dates, ap_charge, ap_charge_err, "")
@@ -401,7 +401,7 @@ def main():
     # plot_charge_ratio(model, dates, ap_ratio, ap_ratio_err, "")
     # plot_charge_ratio(model, dates, he_ap_ratio, he_ap_ratio_err, "he")
     # plot(model, dates, ap_charge, ap_charge_err, av_charge, av_charge_err, "")
-    plot(model, dates, he_ap_charge, he_ap_charge_err, av_charge, av_charge_err, "he")
+    plot_pp(model, dates, he_ap_charge, he_ap_charge_err, av_charge, av_charge_err, "he")
 
 
 if __name__ == "__main__":

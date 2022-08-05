@@ -24,6 +24,7 @@ include_directories(${SNFrontEndElectronics_INCLUDE_DIRS})
 
 # - Executable:
 add_executable(read_rtd read_rtd.cxx)
+add_executable(read_rtd_time_res read_rtd_time_res.cpp)
 
 target_link_libraries(read_rtd SNFrontEndElectronics::snfee)
 target_link_libraries(read_rtd Boost::program_options)
@@ -33,7 +34,21 @@ target_link_libraries(read_rtd ROOT::MathCore)
 target_link_libraries(read_rtd ROOT::Hist)
 target_link_libraries(read_rtd ROOT::Gpad)
 
+target_link_libraries(read_rtd_time_res SNFrontEndElectronics::snfee)
+target_link_libraries(read_rtd_time_res Boost::program_options)
+target_link_libraries(read_rtd_time_res ROOT::Core)
+target_link_libraries(read_rtd_time_res ROOT::Tree)
+target_link_libraries(read_rtd_time_res ROOT::MathCore)
+target_link_libraries(read_rtd_time_res ROOT::Hist)
+target_link_libraries(read_rtd_time_res ROOT::Gpad)
+
 set_target_properties(read_rtd
+        PROPERTIES
+        RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}
+        ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}
+        )
+
+set_target_properties(read_rtd_time_res
         PROPERTIES
         RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}
         ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}
@@ -41,6 +56,15 @@ set_target_properties(read_rtd
 
 install(FILES
         ${CMAKE_BINARY_DIR}/read_rtd
+        DESTINATION ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_BINDIR}
+        PERMISSIONS
+        OWNER_READ OWNER_WRITE OWNER_EXECUTE
+        GROUP_READ GROUP_EXECUTE
+        WORLD_READ WORLD_EXECUTE
+        )
+
+install(FILES
+        ${CMAKE_BINARY_DIR}/read_rtd_time_res
         DESTINATION ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_BINDIR}
         PERMISSIONS
         OWNER_READ OWNER_WRITE OWNER_EXECUTE

@@ -560,10 +560,10 @@ def main():
     # plot_reflectometry(corrected_times, 'it')
 
     # create_templates("/Users/williamquinn/Desktop/commissioning/run_430_waveform.root")
-    # templates = read_templates()
-    # filename = "/Users/williamquinn/Desktop/commissioning/run_430_waveform.root"
-    # events = get_event_times(oms, filename, templates, corrected_times)
-    # store_events(events)
+    templates = read_templates()
+    filename = "/Users/williamquinn/Desktop/commissioning/run_430_waveform.root"
+    events = get_event_times(oms, filename, templates, corrected_times)
+    store_events(events)
     events = read_events()
     counter = [0, 0, 0]
     selected_events = {0: {0: [], 1: []}, 1: {0: [], 1: []}, 2: {0: [], 1: []}}
