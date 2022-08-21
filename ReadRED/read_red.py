@@ -1568,14 +1568,9 @@ def plot_ppt_all(file_name, run_time):
         if len(list(event.calo_time)) == 0:
             continue
         for i in range(len(event.tracker_time_anode)):
-            if event.tracker_time_top_cathode[i] != is_none and event.tracker_time_bottom_cathode[i] != is_none and \
-                    event.tracker_time_anode[i] != is_none:
+            if event.tracker_time_top_cathode[i] != is_none_f and event.tracker_time_bottom_cathode[i] != is_none_f and \
+                    event.tracker_time_anode[i] != is_none_f:
                 time = np.amin(list(event.calo_time)) * 1e6
-                r0 = event.tracker_time_anode[i] * 1e6 - time
-                r1 = event.tracker_time_anode_first_lt[i] * 1e6 - time
-                r2 = event.tracker_time_anode_second_lt[i] * 1e6 - time
-                r3 = event.tracker_time_anode_first_ht[i] * 1e6 - time
-                r4 = event.tracker_time_anode_second_ht[i] * 1e6 - time
                 r5 = event.tracker_time_bottom_cathode[i] * 1e6 - time
                 r6 = event.tracker_time_top_cathode[i] * 1e6 - time
                 ppts.append(r5 + r6)
@@ -1975,8 +1970,8 @@ def main():
     # plot_av_ppt_HV_map()
     # plot_av_ppt_vs_HV()
     # plot_all_ppt_vs_dt()
-    store_3d_event(False)
-
+    # store_3d_event(False)
+    plot_ppt_all("/Users/williamquinn/Desktop/read_red/red_619_output.root", 10)
     '''file = open(input_file, "r")
     fl = file.readlines()
 

@@ -3,9 +3,18 @@ sys.path.insert(1, '../..')
 from pmt_he_study.format_plot import *
 import numpy as np
 import matplotlib.pyplot as plt
+import pandas as pd
 
 
 def main():
+    output = {
+        "injected_num": [],
+        "injected_times": [],
+        "injected_amp": [],
+        "mf_times": [],
+        "mf_shapes": [],
+        "mf_amps": []
+    }
     results = [[0 for i in range(100)], [0 for i in range(100)]]
     with open("/Users/williamquinn/Documents/PhD/PMT-ShapeAnalysis/pmt_he_study/simulation/data.txt", "r") as read_file:
         fl = read_file.readlines()
@@ -48,6 +57,10 @@ def main():
             injected_times = np.array(injected_times)
             injected_amps = np.array(injected_amps)
 
+            output["injected_num"].append(len(injected_times))
+            output["injected_times"].append(injected_times)
+            output["injected_amp"].append(injected_amps)
+
             sel_times = injected_times[selected]
             sel_amps = injected_amps[selected]
             rej_times = injected_times[rejected]
@@ -61,6 +74,13 @@ def main():
             mf_times = np.array(mf_times)
             mf_shapes = np.array(mf_shapes)
             mf_amps = np.array(mf_amps)
+            output["mf_times"].append(mf_times)
+            output["mf_shapes"].append(mf_shapes)
+            output["mf_amps"].append(mf_amps)
+
+    df = pd.DataFrame(output)
+    df.to_json("data.json")
+
     results[0] = np.array(results[0])
     results[1] = np.array(results[1])
     tot = results[0] + results[1]

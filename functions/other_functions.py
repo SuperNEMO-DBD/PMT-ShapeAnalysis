@@ -1085,7 +1085,6 @@ def chi2(y_obs, y_err, y_exp, n_par):
     ndof = len(y_obs) - n_par - 1
     for i in range(len(y_exp)):
         chi2 += ((y_exp[i] - y_obs[i]) / y_err[i]) ** 2
-    chi2 = chi2
     return chi2, ndof
 
 
@@ -1100,7 +1099,7 @@ def gaussian_noh(x, mean, sigma, amplitude):
     y = []
     for i in range(len(x)):
         y.append(amplitude * np.exp((-0.5 * ((x[i] - mean) / sigma) ** 2)))
-    return y
+    return np.array(y)
 
 
 def linear(x, m, c):

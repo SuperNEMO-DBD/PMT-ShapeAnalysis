@@ -1,5 +1,6 @@
 from format_plot import *
 import sndisplay as sn
+import pandas as pd
 
 
 def read_short_map(filename):
@@ -235,6 +236,7 @@ def plot_short_map(short_map, name):
     data_top = short_map["top"]
     data_bot = short_map["bottom"]
     new_data = {}
+    new_data_ = {'cell': [], 'short': []}
 
     for cell_num in data_top.keys():
         if cell_num not in data_bot.keys():
@@ -242,15 +244,23 @@ def plot_short_map(short_map, name):
             raise ValueError
         top = bool(data_top[cell_num])
         bot = bool(data_bot[cell_num])
+        new_data_['cell'].append(cell_num)
         if top and bot:
             new_data[cell_num] = 3
+            new_data_['short'].append(3)
         elif top and not bot:
             new_data[cell_num] = 2
+            new_data_['short'].append(2)
         elif not top and bot:
             new_data[cell_num] = 1
+            new_data_['short'].append(1)
         else:
             new_data[cell_num] = 0
+            new_data_['short'].append(0)
 
+    df = pd.DataFrame(new_data_)
+    # df.columns = ['cell', 'short']
+    print(">>> Number of shorts", len(df[df.short > 0]), "/", len(df))
     sn_tracker = sn.tracker("short_" + name, with_palette=True)
     sn_tracker.draw_content = False
     sn_tracker.draw_cellnum = False
