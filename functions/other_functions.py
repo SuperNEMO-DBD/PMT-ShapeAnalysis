@@ -1422,9 +1422,14 @@ def adjust_pars():
 
 
 def root_fit(x, y, yerr, model):
-    # guess = array('d', [1.52157116e-11, 6.84547311e-02, 1.13069872e+07])
-    guess = array('d', [(y[-1] - y[-50]) / ((x[-1] - x[-50]) * 3600 * 24) / 10000, y[0], 300 * 3600 * 24])
-    names = ["p0", "p1", "L"]
+    if model.name == 'model_eff':
+        guess = array('d', [(y[-1] - y[-50]) / ((x[-1] - x[-50]) * 3600 * 24) / 10000 * 1E12, y[0]*1E3, 200,
+                            400, 400])
+        names = ["p0", "p1", "L", "A", "B"]
+    else:
+        # guess = array('d', [1.52157116e-11, 6.84547311e-02, 1.13069872e+07])
+        guess = array('d', [(y[-1] - y[-50]) / ((x[-1] - x[-50]) * 3600 * 24) / 10000 * 1E12, y[0]*1E3, 300])
+        names = ["p0", "p1", "L"]
     graph = ROOT.TGraphErrors(len(y), array('d', [i for i in x]), array('d', [i for i in y]),
                               array('d', [1 for i in range(len(x))]), array('d', [i for i in yerr]))
 
@@ -1432,7 +1437,23 @@ def root_fit(x, y, yerr, model):
     for i in range(len(guess)):
         fit.SetParameter(i, guess[i])
         fit.SetParName(i, names[i])
-        fit.SetParLimits(i, guess[i] - abs(guess[i]) / 2, guess[i] + abs(guess[i]) / 2)
+        if model.name == 'model_eff':
+            pass
+        else:
+            fit.SetParLimits(i, guess[i] - abs(guess[i]) / 2, guess[i] + abs(guess[i]) / 2)
+
+    if model.name == 'model_eff':
+        fit.SetParameter(0, 0.7)
+        fit.SetParLimits(0, 0.7*0.5, 0.7*1.5)
+
+        fit.SetParameter(1, 3)
+        fit.SetParLimits(1, 2, 4)
+
+        fit.SetParameter(2, 200)
+        fit.SetParLimits(2, 100, 300)
+
+        fit.SetParLimits(3, 0, 1000)
+        fit.SetParLimits(4, 0, 1000)
 
     r = ROOT.TFitResultPtr(graph.Fit("func", "QS"))
     r.Print()

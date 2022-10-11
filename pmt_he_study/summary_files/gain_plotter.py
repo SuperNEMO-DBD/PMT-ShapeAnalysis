@@ -1,10 +1,11 @@
 import sys
 
-import matplotlib.pyplot as plt
 import numpy as np
 
 sys.path.insert(1, '../..')
 from pmt_he_study.models import *
+from pmt_he_study.format_plot import *
+from src.PMT_Classes import *
 
 e = 1.603E-19
 names = ['Exposed', 'Control']

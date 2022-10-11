@@ -2,6 +2,8 @@ import sys
 
 sys.path.insert(1, '../..')
 from pmt_he_study.models import *
+from pmt_he_study.format_plot import *
+from src.PMT_Classes import *
 
 
 def partial_pressure(data, gain_data, nums, nums_err):
@@ -22,6 +24,8 @@ def partial_pressure(data, gain_data, nums, nums_err):
 
             y[ch] = np.append(y[ch], val)
             y_err[ch] = np.append(y_err[ch], val_err)
+    #y = [y[0][y[0] > 0], y[1][y[1] > 0]]
+    #print(y)
 
     return y, y_err
 
@@ -224,7 +228,7 @@ def plot_av_charge_gain(gain_data: dict, voltage: int):
     frame1.set_xticklabels([])
     val = 1
     if voltage == 1400:
-        plt.ylim(100, 150)
+        # plt.ylim(100, 150)
         val = 1e6
 
     plt.errorbar(gain_data[voltage][0]["week"] * 7 + 3, gain_data[voltage][0]["av_charge"],
@@ -314,15 +318,15 @@ def plot_aan(data: dict):
                  markersize=1, capsize=cap_size, linewidth=line_width, capthick=cap_thick)
     plt.errorbar(x_3, y_3, zorder=0, yerr=y_err_3, fmt="C3o", label="Control",
                  markersize=1, capsize=cap_size, linewidth=line_width, capthick=cap_thick)
-    plt.errorbar(data[0]["dates"], data[0]["he_ap_nums"], zorder=0, yerr=data[0]["he_ap_nums_err"], fmt="C4o",
+    '''plt.errorbar(data[0]["dates"], data[0]["he_ap_nums"], zorder=0, yerr=data[0]["he_ap_nums_err"], fmt="C4o",
                  label="Exposed raw",
                  markersize=1, capsize=cap_size, linewidth=line_width, capthick=cap_thick)
     plt.errorbar(data[1]["dates"], data[1]["he_ap_nums"], zorder=0, yerr=data[1]["he_ap_nums_err"], fmt="C5o",
                  label="Control raw",
-                 markersize=1, capsize=cap_size, linewidth=line_width, capthick=cap_thick)
+                 markersize=1, capsize=cap_size, linewidth=line_width, capthick=cap_thick)'''
 
     plt.ylabel("Number")
-    plt.title(r"He$^+$ Average After-pulse Number")
+    # plt.title(r"He$^+$ Average After-pulse Number")
     plt.xlim(-30, 420)
     plt.xlabel("Days from 1% Helium Onset")
     plt.legend(loc='upper left')
@@ -341,6 +345,8 @@ def plot_pp(model, data: dict, gain_data: dict):
     nums = [data[0]["ap_nums"], data[1]["ap_nums"]]
     # nums_err = [data[0]["ap_nums"] * 0.01, data[1]["ap_nums"] * 0.01]
     nums_err = [data[0]["ap_nums_err"], data[1]["ap_nums_err"]]
+    he_nums = [data[0]["he_ap_nums"], data[1]["he_ap_nums"]]
+    he_nums_err = [data[0]["he_ap_nums_err"], data[1]["he_ap_nums_err"]]
 
     err_p0 = t_perr[0] / t_popt[0]
     err_p1 = t_perr[1] / t_popt[1]
@@ -353,8 +359,12 @@ def plot_pp(model, data: dict, gain_data: dict):
     err_C = err_p2
     he_nums_corr = [A[i] + B[i] + C for i in range(2)]
     he_nums_corr_err = [np.sqrt((err_A[i])**2 + (err_B[i])**2 + (err_C)**2) for i in range(2)]
+
     pp, pp_err = partial_pressure(data, gain_data, nums, nums_err)
-    he_pp, he_pp_err = partial_pressure(data, gain_data, he_nums_corr, he_nums_corr_err)
+    if model.name == 'model_eff':
+        he_pp, he_pp_err = partial_pressure(data, gain_data, he_nums, he_nums_err)
+    else:
+        he_pp, he_pp_err = partial_pressure(data, gain_data, he_nums_corr, he_nums_corr_err)
 
     x = data[0]["dates"][mid + 1:] - data[0]["dates"][mid + 1:][0]
     y = pp[0][mid + 1:]
@@ -369,7 +379,7 @@ def plot_pp(model, data: dict, gain_data: dict):
     x_2, y_2, y_err_2 = data[0]["dates"][mid + 1:],          pp[0][mid + 1:],           pp_err[0][mid + 1:]
     x_3, y_3, y_err_3 = data[1]["dates"],                    pp[1],                     pp_err[1]
 
-    k = pars[1]
+    k = pars[1] * 1E-3
     # extrapolate(model, pars, 3.13, "")
     # extrapolate(model, pars, 0.13, "")
 
@@ -401,8 +411,10 @@ def plot_pp(model, data: dict, gain_data: dict):
     patch_1 = patches.Patch(color='white', label=strings[1].format(pars[1], errs[1]))
     patch_2 = patches.Patch(color='white',
                             label=strings[2].format(pars[2] / (3600 * 24), errs[2] / (3600 * 24)))
-    patch_3 = patches.Patch(color='white', label=r'$\chi^2$/N$_{DoF}$' + ' = {:.2f}/{}'.format(chi*ndof, ndof))
-    handles.extend([patch, patch_1, patch_2, patch_3])
+    # patch_3 = patches.Patch(color='white', label=r'$\chi^2$/N$_{DoF}$' + ' = {:.2f}/{}'.format(chi*ndof, ndof))
+    patch_3 = patches.Patch(color='white', label=r'$\chi^2_R$' + ' = {:.2f}'.format(chi))
+    # handles.extend([patch, patch_1, patch_2, patch_3])
+    handles.extend([patch_3])
 
     plt.ylabel("Pressure /Pa")
     # plt.title("Reconstructed Helium Internal Partial Pressure")
@@ -433,7 +445,7 @@ def plot_pp(model, data: dict, gain_data: dict):
     x_2, y_2, y_err_2 = data[0]["dates"][mid + 1:], he_pp[0][mid + 1:], he_pp_err[0][mid + 1:]
     x_3, y_3, y_err_3 = data[1]["dates"], he_pp[1], he_pp_err[1]
 
-    k = pars[1]
+    k = pars[1]*1E-3
     # extrapolate(model, pars, 3.13, "he")
     # extrapolate(model, pars, 0.13, "he")
 
@@ -464,8 +476,10 @@ def plot_pp(model, data: dict, gain_data: dict):
     patch_1 = patches.Patch(color='white', label=strings[1].format(pars[1], errs[1]))
     patch_2 = patches.Patch(color='white',
                             label=strings[2].format(pars[2] / (3600 * 24), errs[2] / (3600 * 24)))
-    patch_3 = patches.Patch(color='white', label=r'$\chi^2$/N$_{DoF}$' + ' = {:.2f}/{}'.format(chi*ndof, ndof))
-    handles.extend([patch, patch_1, patch_2, patch_3])
+    # patch_3 = patches.Patch(color='white', label=r'$\chi^2$/N$_{DoF}$' + ' = {:.2f}/{}'.format(chi*ndof, ndof))
+    patch_3 = patches.Patch(color='white', label=r'$\chi^2_R$' + ' = {:.2f}'.format(chi))
+    # handles.extend([patch, patch_1, patch_2, patch_3])
+    handles.extend([patch_3])
 
     plt.ylabel("Pressure /Pa")
     # plt.title("Reconstructed Helium Internal Partial Pressure")
@@ -500,6 +514,8 @@ def main():
     model = Model()
     plot_pp(model, data, gain_data)
     model = Model_0()
+    plot_pp(model, data, gain_data)
+    model = Model_eff()
     plot_pp(model, data, gain_data)
 
 

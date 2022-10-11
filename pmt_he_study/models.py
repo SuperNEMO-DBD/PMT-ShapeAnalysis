@@ -24,9 +24,9 @@ class Model:
     @staticmethod
     def __call__(x, pars):
         p = 101325 / 10
-        p0 = pars[0]
-        p1 = pars[1]
-        L = pars[2]
+        p0 = pars[0] * 1E-12
+        p1 = pars[1] * 1E-3
+        L = pars[2] * 3600 * 24
         t = x[0] * 3600 * 24
 
         temp = 0
@@ -39,10 +39,10 @@ class Model:
     @staticmethod
     def func(x, pars):
         p = 101325 / 10
-        p0 = pars[0]
-        p1 = pars[1]
-        L = pars[2]
-        t = x[0] * 3600 * 24
+        p0 = pars[0] * 1E-12
+        p1 = pars[1] * 1E-3
+        L = pars[2] * 3600 * 24
+        t = x * 3600 * 24
 
         temp = 0
         for n in range(1, 50):
@@ -59,37 +59,76 @@ class Model_eff:
 
     @staticmethod
     def __call__(x, pars):
-        p = 101325 / 10
-        p0 = pars[0]
-        p1 = pars[1]
-        L = pars[2]
-        A = pars[3] / 3600 * 24
+        pe = 101325 / 10
+        p0 = pars[0] * 1E-12
+        p1 = pars[1] * 1E-3
+        L = pars[2] * 3600 * 24
+        A = pars[3] * 3600 * 24
+        B = pars[4] * 3600 * 24
+        t_p100 = (x[0] + 98) * 3600 * 24
+        t = t_p100 - (98 * 3600 * 24)
+
+        temp = 0
+        temp_p100 = 0
+        for n in range(1, 50):
+            temp += ((-1) ** n / n ** 2) * (np.exp(-(n ** 2) * (np.pi ** 2) * t / (L * 6)))
+            temp_p100 += ((-1) ** n / n ** 2) * (np.exp(-(n ** 2) * (np.pi ** 2) * t_p100 / (L * 6)))
+        f_0 = (12 * L / np.pi ** 2) * temp
+        f_1 = (12 * L / np.pi ** 2) * temp_p100
+
+        y = (p0 * pe * (t - L - f_0) + p0 * pe * 0.1 * (t_p100 - L - f_1))*(1 - 1 / (1 + np.exp(-(t - B)/A))) + p1
+        return y
+
+        '''p = 101325 / 10
+        p0 = pars[0] * 1E-12
+        p1 = pars[1] * 1E-3
+        L = pars[2] * 3600 * 24
+        A = pars[3] * 3600 * 24
         B = pars[4] * 3600 * 24
         t = x[0] * 3600 * 24
 
         temp = 0
         for n in range(1, 50):
-            temp += ((-1) ** n / n ** 2) * (1 - np.exp(-(n ** 2) * (np.pi ** 2) * t / (L * 6)))
-        f2 = (12 / np.pi ** 2) * L * temp
-        y = (p0 * p * (t + f2) + p1) * (1 - 1 / (1 + np.exp(A * (t - B))))
-        return y
+            temp += ((-1) ** n / n ** 2) * (np.exp(-(n ** 2) * (np.pi ** 2) * t / (L * 6)))
+        f2 = (12 * L / np.pi ** 2) * temp
+        y = (p0 * p * (t - L - f2)) * (1 - 1 / (1 + np.exp(-(t - B)/A))) + p1
+        return y'''
 
     @staticmethod
     def func(x, pars):
-        p = 101325 / 10
-        p0 = pars[0]
-        p1 = pars[1]
-        L = pars[2]
-        A = pars[3] / 3600 * 24
+        pe = 101325 / 10
+        p0 = pars[0] * 1E-12
+        p1 = pars[1] * 1E-3
+        L = pars[2] * 3600 * 24
+        A = pars[3] * 3600 * 24
+        B = pars[4] * 3600 * 24
+        t_p100 = (x + 98) * 3600 * 24
+        t = t_p100 - (98 * 3600 * 24)
+
+        temp = 0
+        temp_p100 = 0
+        for n in range(1, 50):
+            temp += ((-1) ** n / n ** 2) * (np.exp(-(n ** 2) * (np.pi ** 2) * t / (L * 6)))
+            temp_p100 += ((-1) ** n / n ** 2) * (np.exp(-(n ** 2) * (np.pi ** 2) * t_p100 / (L * 6)))
+        f_0 = (12 * L / np.pi ** 2) * temp
+        f_1 = (12 * L / np.pi ** 2) * temp_p100
+
+        y = (p0 * pe * (t - L - f_0) + p0 * pe * 0.1 * (t_p100 - L - f_1)) * (1 - 1 / (1 + np.exp(-(t - B) / A))) + p1
+        return y
+        '''p = 101325 / 10
+        p0 = pars[0] * 1E-12
+        p1 = pars[1] * 1E-3
+        L = pars[2] * 3600 * 24
+        A = pars[3] * 3600 * 24
         B = pars[4] * 3600 * 24
         t = x * 3600 * 24
 
         temp = 0
         for n in range(1, 50):
-            temp += ((-1) ** n / n ** 2) * (1 - np.exp(-(n ** 2) * (np.pi ** 2) * t / (L * 6)))
-        f2 = (12 / np.pi ** 2) * L * temp
-        y = p0 * p * (t + f2) + p1 * (1 - 1 / (1 + np.exp(A * (t - B))))
-        return y
+            temp += ((-1) ** n / n ** 2) * (np.exp(-(n ** 2) * (np.pi ** 2) * t / (L * 6)))
+        f2 = (12 * L / np.pi ** 2) * temp
+        y = (p0 * p * (t - L - f2)) * (1 - 1 / (1 + np.exp(-(t - B)/A))) + p1
+        return y'''
 
 
 class Model_var:
@@ -98,9 +137,9 @@ class Model_var:
 
     @staticmethod
     def __call__(x, pars, p):
-        p0 = pars[0]
-        p1 = pars[1]
-        L = pars[2]
+        p0 = pars[0] * 1E-12
+        p1 = pars[1] * 1E-3
+        L = pars[2] * 3600 * 24
         t = x[0] * 3600 * 24
 
         temp = 0
@@ -108,20 +147,22 @@ class Model_var:
             temp += ((-1) ** n / n ** 2) * np.exp(-(n ** 2) * (np.pi ** 2) * t / (L * 6))
         f2 = (12 * L / np.pi ** 2) * temp
         y = p0 * p * (t - L - f2) + p1
+
         return y
 
     @staticmethod
     def func(x, pars, p):
-        p0 = pars[0]
-        p1 = pars[1]
-        L = pars[2]
-        t = x[0] * 3600 * 24
+        p0 = pars[0] * 1E-12
+        p1 = pars[1] * 1E-3
+        L = pars[2] * 3600 * 24
+        t = x * 3600 * 24
 
         temp = 0
         for n in range(1, 50):
             temp += ((-1) ** n / n ** 2) * np.exp(-(n ** 2) * (np.pi ** 2) * t / (L * 6))
         f2 = (12 * L / np.pi ** 2) * temp
         y = p0 * p * (t - L - f2) + p1
+
         return y
 
 
@@ -132,9 +173,9 @@ class Model_0:
     @staticmethod
     def __call__(x, pars):
         pe = 101325 / 10
-        p0 = pars[0]
-        p1 = pars[1]
-        L = pars[2]
+        p0 = pars[0] * 1E-12
+        p1 = pars[1] * 1E-3
+        L = pars[2] * 3600 * 24
 
         t_p100 = (x[0] + 98) * 3600 * 24
         t = t_p100 - (98 * 3600 * 24)
@@ -146,16 +187,17 @@ class Model_0:
         f_0 = (12 * L / np.pi ** 2) * temp
         f_1 = (12 * L / np.pi ** 2) * temp_p100
 
-        y = (p0 * pe / 10) * (11*t + 100 - 11*L - 10*f_0 - f_1) + p1
+        y = p0*pe*(t - L - f_0) + p0*pe*0.1*(t_p100 - L - f_1) + p1
         return y
+
     @staticmethod
     def func(x, pars):
         pe = 101325 / 10
-        p0 = pars[0]
-        p1 = pars[1]
-        L = pars[2]
+        p0 = pars[0] * 1E-12
+        p1 = pars[1] * 1E-3
+        L = pars[2] * 3600 * 24
 
-        t_p100 = (x[0] + 98) * 3600 * 24
+        t_p100 = (x + 98) * 3600 * 24
         t = t_p100 - (98 * 3600 * 24)
         temp = 0
         temp_p100 = 0
@@ -165,5 +207,5 @@ class Model_0:
         f_0 = (12 * L / np.pi ** 2) * temp
         f_1 = (12 * L / np.pi ** 2) * temp_p100
 
-        y = (p0 * pe / 10) * (11 * t + 100 - 11 * L - 10 * f_0 - f_1) + p1
+        y = p0*pe*(t - L - f_0) + p0*pe*0.1*(t_p100 - L - f_1) + p1
         return y

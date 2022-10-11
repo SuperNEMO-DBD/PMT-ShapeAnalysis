@@ -5,6 +5,8 @@ import tabulate
 
 sys.path.insert(1, '../..')
 from pmt_he_study.models import *
+from pmt_he_study.format_plot import *
+from src.PMT_Classes import *
 
 
 def print_cov_matrix(M, name):
@@ -43,7 +45,7 @@ def plot_pp(model, dates, ap_charges, ap_charges_err, av_charges, av_charges_err
     av_charge_err_1 = np.array(av_charges_err[1])
 
     l = 5.9
-    l_err = 0.2
+    l_err = 0  # This is factored in as a systematic error later on
     y0 = (1 / 0.054) * ap_charge_0 / av_charge_0 / l
     y0_err = y0 * np.sqrt((ap_charge_err_0 / ap_charge_0) ** 2 + (av_charge_err_0 / av_charge_0) ** 2 + (l_err/l)**2)
 
@@ -58,7 +60,7 @@ def plot_pp(model, dates, ap_charges, ap_charges_err, av_charges, av_charges_err
     # pcor = d_inv @ pcov @ d_inv
     # print_cov_matrix(pcor, model.name + name)
 
-    offset = pars[1]
+    offset = pars[1] * 1E-3
 
     fig1 = plt.figure(num=None, figsize=(5, 4), dpi=80, facecolor='w', edgecolor='k')
     frame1 = fig1.add_axes((.15, .32, .8, .6))
@@ -80,8 +82,10 @@ def plot_pp(model, dates, ap_charges, ap_charges_err, av_charges, av_charges_err
     patch_1 = patches.Patch(color='white', label=strings[1].format(pars[1], errs[1]))
     patch_2 = patches.Patch(color='white',
                             label=strings[2].format(pars[2] / (3600 * 24), errs[2] / (3600 * 24)))
-    patch_3 = patches.Patch(color='white', label=r'$\chi^2/N_{DoF}}$ = ' + '{:.2f}/{}'.format(chi*ndof, ndof))
-    handles.extend([patch, patch_1, patch_2, patch_3])
+    # patch_3 = patches.Patch(color='white', label=r'$\chi^2/N_{DoF}}$ = ' + '{:.2f}/{}'.format(chi*ndof, ndof))
+    patch_3 = patches.Patch(color='white', label=r'$\chi^2_R$ = ' + '{:.2f}'.format(chi))
+    # handles.extend([patch, patch_1, patch_2, patch_3])
+    handles.extend([patch_3])
 
     plt.ylabel(r'$p_i$ /Pa')
     plt.xlim(-30, 420)
@@ -175,6 +179,44 @@ def plot_ap_charge(model, dates, ap_charges, ap_charges_err, name):
     plt.tight_layout()
     plt.savefig("/Users/williamquinn/Desktop/PMT_Project/" + model.name + "ap_charge_vs_time_" + name + ".pdf")
     plt.close()
+
+
+def plot_ratio(dates, ratios, ratios_err, name: str):
+    date_0 = process_date(dates[0])
+    date_1 = process_date(dates[1])
+    try:
+        start = np.where(date_0 == 0)[0][0]
+    except:
+        start = np.where(date_0 == 1)[0][0]
+    mid = np.where(date_0 == 98)[0][0]
+
+    ratio_0 = np.array(ratios[0])
+    ratio_1 = np.array(ratios[1])
+
+    ratio_err_0 = np.array(ratios_err[0])
+    ratio_err_1 = np.array(ratios_err[1])
+
+    fig1 = plt.figure(figsize=figsize)
+    plt.errorbar(date_0[:start + 1], ratio_0[:start + 1], zorder=0,
+                 yerr=ratio_err_0[:start + 1], fmt="C0s", label="Atmospheric He",
+                 markersize=1, capsize=cap_size, linewidth=line_width, capthick=cap_thick)
+    plt.errorbar(date_0[start + 1:mid + 1], ratio_0[start + 1:mid + 1], zorder=0,
+                 yerr=ratio_err_0[start + 1:mid + 1], fmt="C1s", label="1% He",
+                 markersize=1, capsize=cap_size, linewidth=line_width, capthick=cap_thick)
+    plt.errorbar(date_0[mid + 1:], ratio_0[mid + 1:], zorder=0,
+                 yerr=ratio_err_0[mid + 1:], fmt="C2s", label="10% He",
+                 markersize=1, capsize=cap_size, linewidth=line_width, capthick=cap_thick)
+    plt.errorbar(date_1, ratio_1, zorder=0,
+                 yerr=ratio_err_1, fmt="C3o", label="Control",
+                 markersize=1, capsize=cap_size, linewidth=line_width, capthick=cap_thick)
+
+    plt.ylabel("Ratio Average")
+    plt.title("After-pulse Region Charge vs Pulse Charge Ratio")
+    plt.xlim(-30, 420)
+    plt.xlabel("Days from 10% He Onset")
+    plt.legend(loc='upper left')
+    plt.tight_layout()
+    plt.savefig("/Users/williamquinn/Desktop/PMT_Project/ratio_vs_time_" + name + ".pdf")
 
 
 def plot_charge_ratio(model, dates, ratios, ratios_err, name: str):
@@ -392,8 +434,9 @@ def main():
     # plot_ap_charge(model, dates, he_ap_charge, he_ap_charge_err, "he")
     # plot_charge_ratio(model, dates, ap_ratio, ap_ratio_err, "")
     # plot_charge_ratio(model, dates, he_ap_ratio, he_ap_ratio_err, "he")
+    plot_ratio(dates, he_ap_ratio, he_ap_ratio_err, "he")
     # plot(model, dates, ap_charge, ap_charge_err, av_charge, av_charge_err, "")
-    plot_pp(model, dates, he_ap_charge, he_ap_charge_err, av_charge, av_charge_err, "he")
+    # plot_pp(model, dates, he_ap_charge, he_ap_charge_err, av_charge, av_charge_err, "he")
 
     model = Model_0()
     # plot_ap_charge(model, dates, ap_charge, ap_charge_err, "")
@@ -401,7 +444,7 @@ def main():
     # plot_charge_ratio(model, dates, ap_ratio, ap_ratio_err, "")
     # plot_charge_ratio(model, dates, he_ap_ratio, he_ap_ratio_err, "he")
     # plot(model, dates, ap_charge, ap_charge_err, av_charge, av_charge_err, "")
-    plot_pp(model, dates, he_ap_charge, he_ap_charge_err, av_charge, av_charge_err, "he")
+    # plot_pp(model, dates, he_ap_charge, he_ap_charge_err, av_charge, av_charge_err, "he")
 
 
 if __name__ == "__main__":

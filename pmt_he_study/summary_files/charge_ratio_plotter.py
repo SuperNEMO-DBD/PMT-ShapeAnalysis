@@ -4,6 +4,8 @@ import numpy as np
 
 sys.path.insert(1, '../../')
 from pmt_he_study.models import *
+from src.PMT_Classes import *
+from pmt_he_study.format_plot import *
 
 
 def main():
