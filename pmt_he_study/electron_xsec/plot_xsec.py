@@ -157,7 +157,8 @@ def main():
     chi, ndof = chi2(y, y_err, model, len(popt))
 
     fig1 = plt.figure(figsize=(5, 4), facecolor='w')
-    frame1 = fig1.add_axes((.15, .34, .8, .6))
+    frame1 = fig1.add_axes((.15, .34, .8, .55))
+    ax2 = frame1.twiny()
     frame1.set_xticklabels([])
 
     # plt.title(r'$e^-$ He Ionisation Cross Section vs Electron Energy')
@@ -180,9 +181,23 @@ def main():
                  markersize=marker_size, capsize=cap_size, linewidth=line_width, capthick=cap_thick)
     plt.xlim(0, 10)
     # plt.xscale('log')
-    plt.ylabel("model-data /1E-18")
+    plt.ylabel(r"model-data/$10^{-18}$")
     plt.xlabel('Displacement /cm')
     plt.axhline(0, ls='--', color='k')
+
+    new_tick_locations = np.array([0, 2, 4, 6, 8, 10])
+
+    def tick_function(X):
+        V0 = 600
+        d = 10
+        V = V0*(X/d)**2
+        return ['{:.0f}'.format(z) for z in V]
+
+    ax2.set_xlim(0, 10)
+    ax2.set_xticks(new_tick_locations)
+    ax2.set_xticklabels(tick_function(new_tick_locations))
+    ax2.set_xlabel("Energy /eV")
+
     plt.tight_layout()
 
     print(popt, perr, chi, ndof)
@@ -194,9 +209,16 @@ def main():
     print("Integral:", I, "cm^3")
     print("err +   :", integrate.quad(func_x, x0, x1, args=(popt[0] + perr[0], popt[1] + perr[1], popt[2] + perr[2])))
     print("err -   :", integrate.quad(func_x, x0, x1, args=(popt[0] - perr[0], popt[1] - perr[1], popt[2] - perr[2])))
-    print("Value   :", I[0]/1.380649E-23/292/(100*100*100))
+    print("Value   :", I[0]/k/T/(100*100*100))
     # print(func_integrand(energy, *popt, 24.587, 588))
     # I = func_integrand(energy, *popt, 24.587, 588)
+
+    # Systematic error ±1cm
+    I_low = integrate.quad(func_x, x0, 9, args=(popt[0], popt[1], popt[2]))
+    I_up = integrate.quad(func_x, x0, 11, args=(popt[0], popt[1], popt[2]))
+    print()
+    print("Integral:", I_low[0], I_up[0], "cm^3")
+    print("Value   :", I_low[0]/k/T/(100*100*100), I_up[0]/k/T/(100*100*100))
 
     plt.savefig("/Users/williamquinn/Desktop/PMT_Project/xsec_energy.pdf")
 

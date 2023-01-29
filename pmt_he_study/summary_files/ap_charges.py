@@ -44,7 +44,7 @@ def plot_pp(model, dates, ap_charges, ap_charges_err, av_charges, av_charges_err
     av_charge_err_0 = np.array(av_charges_err[0])
     av_charge_err_1 = np.array(av_charges_err[1])
 
-    l = 5.9
+    l = 8.7
     l_err = 0  # This is factored in as a systematic error later on
     y0 = (1 / 0.054) * ap_charge_0 / av_charge_0 / l
     y0_err = y0 * np.sqrt((ap_charge_err_0 / ap_charge_0) ** 2 + (av_charge_err_0 / av_charge_0) ** 2 + (l_err/l)**2)
@@ -64,6 +64,12 @@ def plot_pp(model, dates, ap_charges, ap_charges_err, av_charges, av_charges_err
 
     fig1 = plt.figure(num=None, figsize=(5, 4), dpi=80, facecolor='w', edgecolor='k')
     frame1 = fig1.add_axes((.15, .32, .8, .6))
+    if model.name == 'model':
+        plt.title(r'Charge ratio method model: Simple')
+    elif model.name == 'model_0':
+        plt.title(r'Charge ratio method model: Extended')
+    elif model.name == 'model_eff':
+        plt.title(r'Charge ratio method model: Efficiency')
     plt.errorbar(date_0[:start + 1], y0[:start + 1] -offset, zorder=0, yerr=y0_err[:start + 1], fmt="C0s",
                  label="Atmospheric He", markersize=1, capsize=cap_size, linewidth=line_width, capthick=cap_thick)
     plt.errorbar(date_0[start + 1:mid + 1], y0[start + 1:mid + 1] -offset, zorder=0, yerr=y0_err[start + 1:mid + 1],
@@ -87,7 +93,7 @@ def plot_pp(model, dates, ap_charges, ap_charges_err, av_charges, av_charges_err
     # handles.extend([patch, patch_1, patch_2, patch_3])
     handles.extend([patch_3])
 
-    plt.ylabel(r'$p_i$ /Pa')
+    plt.ylabel('Pressure /Pa')
     plt.xlim(-30, 420)
     plt.legend(handles=handles, loc='upper left')
 
@@ -429,22 +435,24 @@ def main():
             del ap_charge_charge_hist
             del he_ap_charge_charge_hist
 
+    print(">>> Model")
     model = Model()
     # plot_ap_charge(model, dates, ap_charge, ap_charge_err, "")
     # plot_ap_charge(model, dates, he_ap_charge, he_ap_charge_err, "he")
     # plot_charge_ratio(model, dates, ap_ratio, ap_ratio_err, "")
     # plot_charge_ratio(model, dates, he_ap_ratio, he_ap_ratio_err, "he")
-    plot_ratio(dates, he_ap_ratio, he_ap_ratio_err, "he")
+    # plot_ratio(dates, he_ap_ratio, he_ap_ratio_err, "he")
     # plot(model, dates, ap_charge, ap_charge_err, av_charge, av_charge_err, "")
-    # plot_pp(model, dates, he_ap_charge, he_ap_charge_err, av_charge, av_charge_err, "he")
+    plot_pp(model, dates, he_ap_charge, he_ap_charge_err, av_charge, av_charge_err, "he")
 
+    print(">>> Model Extended")
     model = Model_0()
     # plot_ap_charge(model, dates, ap_charge, ap_charge_err, "")
     # plot_ap_charge(model, dates, he_ap_charge, he_ap_charge_err, "he")
     # plot_charge_ratio(model, dates, ap_ratio, ap_ratio_err, "")
     # plot_charge_ratio(model, dates, he_ap_ratio, he_ap_ratio_err, "he")
     # plot(model, dates, ap_charge, ap_charge_err, av_charge, av_charge_err, "")
-    # plot_pp(model, dates, he_ap_charge, he_ap_charge_err, av_charge, av_charge_err, "he")
+    plot_pp(model, dates, he_ap_charge, he_ap_charge_err, av_charge, av_charge_err, "he")
 
 
 if __name__ == "__main__":

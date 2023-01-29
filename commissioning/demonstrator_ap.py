@@ -6,6 +6,7 @@ from multiprocessing import Process
 import numpy as np
 
 sys.path.insert(1, '../')
+from pmt_he_study.format_plot import *
 from pmt_he_study.models import *
 from ReadRED import sndisplay as sn
 
@@ -509,6 +510,7 @@ def plot_HV_map(plot):
 
 
 def plot_ap_times(ap_info, HV_map):
+    comp_HV = 1400  # V
     ap_tot = [[], [], [], []]
     hvs = []
     for om in ap_info.keys():
@@ -519,7 +521,7 @@ def plot_ap_times(ap_info, HV_map):
             if ap_info[om]["ap_times"][index] is None:
                 continue
             for ap in aps:
-                new_ap = (ap - ap_info[om]["pulse_time"][index])/0.64 * np.sqrt(HV_map[om]/1000)
+                new_ap = (ap - ap_info[om]["pulse_time"][index])/0.64 * np.sqrt(HV_map[om]/comp_HV)
                 ap_tot[om_t].append(new_ap)
                 hvs.append(HV_map[om])
 
@@ -531,7 +533,7 @@ def plot_ap_times(ap_info, HV_map):
     for index in range(4):
         if len(ap_tot[index]) == 0:
             continue
-        freq, bin_edges = np.histogram(ap_tot[index], bins=100, range=(0, 1024/0.64*np.sqrt(np.max(hvs)/1000)))
+        freq, bin_edges = np.histogram(ap_tot[index], bins=100, range=(0, 1024/0.64*np.sqrt(np.max(hvs)/comp_HV)))
         width = bin_edges[2] - bin_edges[1]
         bin_centres = bin_edges[:-1] + width / 2
         plt.bar(bin_centres, freq, width=width, color='{}'.format(colours[index]), alpha=alphas[index],

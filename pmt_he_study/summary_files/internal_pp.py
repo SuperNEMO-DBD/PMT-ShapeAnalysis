@@ -452,6 +452,14 @@ def plot_pp(model, data: dict, gain_data: dict):
     fig1 = plt.figure(figsize=(5, 4), facecolor='w')
     frame1 = fig1.add_axes((.15, .32, .8, .6))
     frame1.set_xticklabels([])
+
+    if model.name == 'model':
+        plt.title(r'$\langle N\rangle$ method model: Simple')
+    elif model.name == 'model_0':
+        plt.title(r'$\langle N\rangle$ method model: Extended')
+    elif model.name == 'model_eff':
+        plt.title(r'$\langle N\rangle$ method model: Efficiency')
+
     plt.errorbar(x_0, y_0 - k, zorder=0, yerr=y_err_0, fmt="C0s", label="Atmospheric He",
                  markersize=1, capsize=cap_size, linewidth=line_width, capthick=cap_thick)
     plt.errorbar(x_1, y_1 - k, zorder=0, yerr=y_err_1, fmt="C1s", label="1% He",

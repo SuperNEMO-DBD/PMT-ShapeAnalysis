@@ -8,6 +8,7 @@ sys.path.insert(1, '../')
 from pmt_he_study.models import *
 from ReadRED import sndisplay as sn
 from sklearn.metrics import r2_score
+from pmt_he_study.format_plot import *
 
 
 lorentz_string = '[0] * [1] ** 2 / ((x - [2]) ** 2 + [1] ** 2) + [3]'
@@ -78,8 +79,8 @@ def get_pulse_time_mf(waveform_, template, peak, amplitude, baseline, plot=False
         plt.axvline(fit_result['pars'][2], ls='--', color='C3', linewidth=1, label='Model Mean {:.2f} ns'.format(fit_result['pars'][2]))
         handles, labels = plt.gca().get_legend_handles_labels()
         # patch = patches.Patch(color='white', label=r'$\chi^2_R =$ {:.2f}'.format(fit_result['chi']))
-        patch = patches.Patch(color='white', label=r'R$^2=$ {:.2f}'.format(fit_result['R2']))
-        handles.extend([patch])
+        # patch = patches.Patch(color='white', label=r'R$^2=$ {:.2f}'.format(fit_result['R2']))
+        # handles.extend([patch])
         plt.ylabel("Shape Index")
         plt.xlim(x[0], x[-1])
         plt.ylim(0, 1.1)

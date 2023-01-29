@@ -90,7 +90,7 @@ def main():
     plt.tight_layout()
     plt.savefig("/Users/williamquinn/Desktop/PMT_Project/ratio.pdf")
 
-    plt.figure(figsize=(3, 2))
+    plt.figure(figsize=figsize)
     freq_3, bin_edges = np.histogram(he_ratio, range=(-0.5, 0.5), bins=240)
     width = (bin_edges[2] - bin_edges[1])
     bin_centres_3 = bin_edges[:-1] + width / 2
@@ -108,6 +108,7 @@ def main():
     plt.plot(np.linspace(-0.5, 0.5, 1000), lorentzian(np.linspace(-0.5, 0.5, 1000), *popt), "C2--",
              label='f(x) = Lorentz', linewidth=1)'''
 
+    plt.title("Exposure 15.67 atm-days")
     plt.legend(loc='lower left')
     plt.yscale('log')
     plt.tight_layout()
@@ -148,7 +149,8 @@ def main():
     plt.tight_layout()
     plt.savefig("/Users/williamquinn/Desktop/PMT_Project/pc_vs_aprc.pdf")
 
-    fig = plt.figure(figsize=(3, 2))
+    fig = plt.figure(figsize=figsize)
+    plt.title("Exposure 15.67 atm-days")
     x = np.linspace(0, 400, 2)
     x_bins = np.linspace(0, 400, 50)
     y_bins = np.linspace(-5, 25, 50)

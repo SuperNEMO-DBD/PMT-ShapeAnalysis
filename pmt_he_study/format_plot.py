@@ -1,3 +1,4 @@
+import matplotlib
 import matplotlib.pyplot as plt
 from matplotlib import cycler, patches
 from matplotlib.colors import LogNorm
@@ -17,6 +18,9 @@ plt.rc('ytick', labelsize=SMALL_SIZE)  # fontsize of the tick labels
 plt.rc('legend', fontsize=SMALL_SIZE)  # legend fontsize
 plt.rc('figure', titlesize=SMALL_SIZE)  # fontsize of the figure title
 plt.rcParams["font.family"] = "serif"
+
+matplotlib.rcParams['mathtext.fontset'] = 'stix'
+#matplotlib.rcParams['font.family'] = 'STIXGeneral'
 
 marker_size = 2
 line_width = 0.5

@@ -13,6 +13,7 @@ sys.path.insert(1, '../..')
 
 from pmt_he_study.models import *
 from tqdm import tqdm
+from pmt_he_study.format_plot import *
 
 # import custom made classes
 from src.PMT_Array import PMT_Array
@@ -163,6 +164,12 @@ def fit_straight_line(x, y, dy, guess):
     popt_ = np.array([popt[0] / scale, (popt[1] - popt[0] * np.average(x)) / scale])
     perr_ = np.array([perr[0] / scale, np.sqrt(perr[1] ** 2 + (np.average(x) * perr[0]) ** 2) / scale])
 
+    y_fit = linear(x, *popt_)
+    print(y - y_fit, dy)
+    print("m: {}±{}".format(popt_[0], perr_[0]))
+    print("c: {}±{}".format(popt_[1], perr_[1]))
+    print("chi2: {}".format(sum(((y-y_fit)/dy)**2)))
+    print("N_dof: {}".format(len(y) - len(popt_) -1))
     fit = {"popt": popt_, "perr": perr_, "pcor": pcor}
 
     return fit
@@ -456,7 +463,7 @@ def main():
     pmt_array.set_pmt_id("GAO607", 0)
     pmt_array.set_pmt_id("GAO612", 1)
 
-    store_res(pmt_array)
+    # store_res(pmt_array)
     plot_res()
     # plot_base_drift()
 

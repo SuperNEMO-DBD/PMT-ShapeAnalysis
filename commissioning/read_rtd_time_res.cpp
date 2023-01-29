@@ -125,8 +125,10 @@ int main(int argc, char **argv)
         const double tdc2ns = snfee::model::feb_constants::SAMLONG_DEFAULT_TDC_LSB_NS;
         const double adc2mv = snfee::model::feb_constants::SAMLONG_ADC_VOLTAGE_LSB_MV;
         const int om_num_0 = 227;
-        const int om_num_1 = 214;
-        const int om_num_2 = 226;
+        // const int om_num_1 = 214;
+        // const int om_num_2 = 226;
+        const int om_num_1 = 225;
+        const int om_num_2 = 229;
         Double_t amplitude_cut = 50.;
         const int multiplicity_cut = 2;
 
